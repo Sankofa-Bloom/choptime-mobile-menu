@@ -1,12 +1,541 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
+import { ShoppingCart, Phone, MapPin, CreditCard, MessageCircle, Download, Star, Clock, Users } from 'lucide-react';
+
+interface MenuItem {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  image: string;
+  category: string;
+  rating: number;
+  cookTime: string;
+  serves: string;
+}
+
+interface OrderItem extends MenuItem {
+  quantity: number;
+}
+
+interface OrderDetails {
+  items: OrderItem[];
+  customerName: string;
+  phone: string;
+  deliveryAddress: string;
+  paymentMethod: string;
+  total: number;
+}
 
 const Index = () => {
+  const [menuItems] = useState<MenuItem[]>([
+    {
+      id: '1',
+      name: 'Eru with Fufu',
+      description: 'Traditional Cameroonian eru leaves cooked with dried fish, crayfish, and palm oil. Served with soft fufu.',
+      price: 2500,
+      image: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400',
+      category: 'Traditional',
+      rating: 4.8,
+      cookTime: '45 min',
+      serves: '2-3 people'
+    },
+    {
+      id: '2',
+      name: 'Achu Yellow Soup',
+      description: 'Delicious yellow soup made with palm nuts, vegetables, and assorted meat. Served with pounded cocoyam.',
+      price: 3000,
+      image: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400',
+      category: 'Traditional',
+      rating: 4.9,
+      cookTime: '60 min',
+      serves: '3-4 people'
+    },
+    {
+      id: '3',
+      name: 'Ndolé',
+      description: 'Cameroon\'s national dish made with ndolé leaves, groundnuts, fish, and meat in rich sauce.',
+      price: 2800,
+      image: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400',
+      category: 'Traditional',
+      rating: 4.7,
+      cookTime: '50 min',
+      serves: '2-3 people'
+    },
+    {
+      id: '4',
+      name: 'Pepper Soup',
+      description: 'Spicy and aromatic pepper soup with fresh fish or meat, perfect for any weather.',
+      price: 2000,
+      image: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400',
+      category: 'Soup',
+      rating: 4.6,
+      cookTime: '30 min',
+      serves: '1-2 people'
+    },
+    {
+      id: '5',
+      name: 'Jollof Rice',
+      description: 'Perfectly seasoned jollof rice cooked with tomatoes, spices, and your choice of chicken or beef.',
+      price: 2200,
+      image: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400',
+      category: 'Rice',
+      rating: 4.5,
+      cookTime: '40 min',
+      serves: '2 people'
+    },
+    {
+      id: '6',
+      name: 'Banga Soup',
+      description: 'Rich palm fruit soup with assorted meat and fish, seasoned with traditional spices.',
+      price: 2700,
+      image: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400',
+      category: 'Soup',
+      rating: 4.4,
+      cookTime: '55 min',
+      serves: '3 people'
+    }
+  ]);
+
+  const [cart, setCart] = useState<OrderItem[]>([]);
+  const [orderDetails, setOrderDetails] = useState<OrderDetails>({
+    items: [],
+    customerName: '',
+    phone: '',
+    deliveryAddress: '',
+    paymentMethod: '',
+    total: 0
+  });
+  const [showPWAPrompt, setShowPWAPrompt] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+
+  const { toast } = useToast();
+
+  // PWA Install Prompt
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowPWAPrompt(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallPWA = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        setShowPWAPrompt(false);
+        toast({
+          title: "ChopTime Installed!",
+          description: "You can now access ChopTime from your home screen.",
+        });
+      }
+      setDeferredPrompt(null);
+    }
+  };
+
+  const addToCart = (item: MenuItem) => {
+    const existingItem = cart.find(cartItem => cartItem.id === item.id);
+    
+    if (existingItem) {
+      setCart(cart.map(cartItem => 
+        cartItem.id === item.id 
+          ? { ...cartItem, quantity: cartItem.quantity + 1 }
+          : cartItem
+      ));
+    } else {
+      setCart([...cart, { ...item, quantity: 1 }]);
+    }
+
+    toast({
+      title: "Added to Cart",
+      description: `${item.name} has been added to your cart.`,
+    });
+  };
+
+  const updateQuantity = (id: string, quantity: number) => {
+    if (quantity === 0) {
+      setCart(cart.filter(item => item.id !== id));
+    } else {
+      setCart(cart.map(item => 
+        item.id === id ? { ...item, quantity } : item
+      ));
+    }
+  };
+
+  const calculateTotal = () => {
+    return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+  };
+
+  const formatPrice = (price: number) => {
+    return `${price.toLocaleString()} FCFA`;
+  };
+
+  const generateWhatsAppMessage = () => {
+    const total = calculateTotal();
+    let message = `🍽️ *ChopTime Order*\n\n`;
+    message += `👤 *Customer:* ${orderDetails.customerName}\n`;
+    message += `📱 *Phone:* ${orderDetails.phone}\n`;
+    message += `📍 *Delivery Address:* ${orderDetails.deliveryAddress}\n`;
+    message += `💳 *Payment:* ${orderDetails.paymentMethod}\n\n`;
+    message += `🛒 *Order Details:*\n`;
+    
+    cart.forEach(item => {
+      message += `• ${item.name} x${item.quantity} - ${formatPrice(item.price * item.quantity)}\n`;
+    });
+    
+    message += `\n💰 *Total: ${formatPrice(total)}*\n\n`;
+    message += `Thank you for choosing ChopTime! 🇨🇲`;
+    
+    return encodeURIComponent(message);
+  };
+
+  const handleWhatsAppOrder = () => {
+    if (!orderDetails.customerName || !orderDetails.phone || !orderDetails.deliveryAddress || !orderDetails.paymentMethod) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields before placing your order.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (cart.length === 0) {
+      toast({
+        title: "Empty Cart",
+        description: "Please add items to your cart before placing an order.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const message = generateWhatsAppMessage();
+    const whatsappUrl = `https://wa.me/237670416449?text=${message}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-choptime-beige">
+      {/* PWA Install Banner */}
+      {showPWAPrompt && (
+        <div className="bg-choptime-orange text-white p-4 text-center relative animate-slide-up">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Download className="w-5 h-5" />
+            <span className="font-semibold">Install ChopTime App</span>
+          </div>
+          <p className="text-sm mb-3">Add ChopTime to your home screen for quick access!</p>
+          <div className="flex gap-2 justify-center">
+            <Button 
+              size="sm" 
+              variant="secondary" 
+              onClick={handleInstallPWA}
+              className="bg-white text-choptime-orange hover:bg-gray-100"
+            >
+              Install Now
+            </Button>
+            <Button 
+              size="sm" 
+              variant="ghost" 
+              onClick={() => setShowPWAPrompt(false)}
+              className="text-white hover:bg-white/20"
+            >
+              Later
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Header */}
+      <header className="bg-white choptime-shadow sticky top-0 z-40">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-choptime-orange rounded-full flex items-center justify-center">
+                <span className="text-white font-bold text-xl">C</span>
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-choptime-brown">ChopTime</h1>
+                <p className="text-sm text-choptime-brown/70">Authentic Cameroonian Cuisine</p>
+              </div>
+            </div>
+            <div className="relative">
+              <Button
+                variant="outline"
+                size="sm"
+                className="relative border-choptime-orange text-choptime-orange hover:bg-choptime-orange hover:text-white"
+              >
+                <ShoppingCart className="w-4 h-4 mr-2" />
+                Cart
+                {cart.length > 0 && (
+                  <Badge className="absolute -top-2 -right-2 bg-choptime-orange text-white text-xs">
+                    {cart.length}
+                  </Badge>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <section className="african-pattern py-12">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-4xl md:text-5xl font-bold text-choptime-brown mb-4 animate-fade-in">
+            Taste of Cameroon 🇨🇲
+          </h2>
+          <p className="text-lg text-choptime-brown/80 mb-6 animate-fade-in">
+            Authentic traditional dishes delivered fresh to your doorstep
+          </p>
+          <div className="flex items-center justify-center gap-6 text-sm text-choptime-brown/70">
+            <div className="flex items-center gap-1">
+              <Clock className="w-4 h-4" />
+              <span>30-60 min delivery</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Star className="w-4 h-4 fill-choptime-orange text-choptime-orange" />
+              <span>4.7 rating</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Menu Section */}
+      <section className="py-8">
+        <div className="container mx-auto px-4">
+          <h3 className="text-2xl font-bold text-choptime-brown mb-6">Our Menu</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {menuItems.map((item, index) => (
+              <Card key={item.id} className="overflow-hidden choptime-shadow hover:shadow-lg transition-all duration-300 animate-slide-up" style={{ animationDelay: `${index * 100}ms` }}>
+                <div className="relative">
+                  <img 
+                    src={item.image} 
+                    alt={item.name}
+                    className="w-full h-48 object-cover"
+                  />
+                  <Badge className="absolute top-2 left-2 bg-choptime-orange text-white">
+                    {item.category}
+                  </Badge>
+                  <div className="absolute top-2 right-2 bg-white/90 rounded-full px-2 py-1 flex items-center gap-1">
+                    <Star className="w-3 h-3 fill-choptime-orange text-choptime-orange" />
+                    <span className="text-xs font-semibold">{item.rating}</span>
+                  </div>
+                </div>
+                <CardContent className="p-4">
+                  <h4 className="font-bold text-lg text-choptime-brown mb-2">{item.name}</h4>
+                  <p className="text-sm text-choptime-brown/70 mb-3 line-clamp-2">{item.description}</p>
+                  <div className="flex items-center gap-4 text-xs text-choptime-brown/60 mb-3">
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      <span>{item.cookTime}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Users className="w-3 h-3" />
+                      <span>{item.serves}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xl font-bold text-choptime-orange">{formatPrice(item.price)}</span>
+                    <Button 
+                      onClick={() => addToCart(item)}
+                      className="choptime-gradient hover:opacity-90 text-white"
+                    >
+                      Add to Cart
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Cart & Order Section */}
+      {cart.length > 0 && (
+        <section className="py-8 bg-white">
+          <div className="container mx-auto px-4">
+            <h3 className="text-2xl font-bold text-choptime-brown mb-6">Your Order</h3>
+            
+            {/* Cart Items */}
+            <div className="grid md:grid-cols-2 gap-8">
+              <div>
+                <h4 className="font-semibold text-choptime-brown mb-4">Cart Items</h4>
+                <div className="space-y-4">
+                  {cart.map(item => (
+                    <Card key={item.id}>
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-4">
+                          <img 
+                            src={item.image} 
+                            alt={item.name}
+                            className="w-16 h-16 object-cover rounded"
+                          />
+                          <div className="flex-1">
+                            <h5 className="font-semibold text-choptime-brown">{item.name}</h5>
+                            <p className="text-sm text-choptime-brown/70">{formatPrice(item.price)} each</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            >
+                              -
+                            </Button>
+                            <span className="w-8 text-center">{item.quantity}</span>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            >
+                              +
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+                <Separator className="my-4" />
+                <div className="flex justify-between items-center text-lg font-bold">
+                  <span>Total:</span>
+                  <span className="text-choptime-orange">{formatPrice(calculateTotal())}</span>
+                </div>
+              </div>
+
+              {/* Order Form */}
+              <div>
+                <h4 className="font-semibold text-choptime-brown mb-4">Delivery Details</h4>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="name">Full Name *</Label>
+                    <Input
+                      id="name"
+                      placeholder="Enter your full name"
+                      value={orderDetails.customerName}
+                      onChange={(e) => setOrderDetails({...orderDetails, customerName: e.target.value})}
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="phone">Phone Number *</Label>
+                    <Input
+                      id="phone"
+                      placeholder="e.g., +237 6XX XXX XXX"
+                      value={orderDetails.phone}
+                      onChange={(e) => setOrderDetails({...orderDetails, phone: e.target.value})}
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="address">Delivery Address *</Label>
+                    <Textarea
+                      id="address"
+                      placeholder="Enter your complete delivery address (neighborhood, street, landmarks)"
+                      value={orderDetails.deliveryAddress}
+                      onChange={(e) => setOrderDetails({...orderDetails, deliveryAddress: e.target.value})}
+                      rows={3}
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="payment">Payment Method *</Label>
+                    <Select onValueChange={(value) => setOrderDetails({...orderDetails, paymentMethod: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose payment method" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white">
+                        <SelectItem value="mtn-money">MTN Mobile Money</SelectItem>
+                        <SelectItem value="orange-money">Orange Money</SelectItem>
+                        <SelectItem value="pay-on-delivery">Pay on Delivery</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* WhatsApp Order Button */}
+            <div className="mt-8 text-center">
+              <Button 
+                onClick={handleWhatsAppOrder}
+                size="lg"
+                className="choptime-gradient hover:opacity-90 text-white text-lg px-8 py-3 w-full md:w-auto"
+              >
+                <MessageCircle className="w-5 h-5 mr-2" />
+                Order via WhatsApp
+              </Button>
+              <p className="text-sm text-choptime-brown/70 mt-2">
+                Your order will be sent to our WhatsApp for confirmation
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Footer */}
+      <footer className="bg-choptime-brown text-white py-8">
+        <div className="container mx-auto px-4">
+          <div className="grid md:grid-cols-3 gap-8">
+            <div>
+              <h5 className="font-bold text-lg mb-4">ChopTime</h5>
+              <p className="text-white/80 text-sm">
+                Bringing authentic Cameroonian flavors to your doorstep. 
+                Experience the taste of home with every bite.
+              </p>
+            </div>
+            
+            <div>
+              <h5 className="font-bold text-lg mb-4">Contact Us</h5>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <Phone className="w-4 h-4" />
+                  <span>+237 6 70 41 64 49</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <MessageCircle className="w-4 h-4" />
+                  <span>choptime237@gmail.com</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4" />
+                  <span>Cameroon</span>
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <h5 className="font-bold text-lg mb-4">Delivery Info</h5>
+              <div className="text-sm text-white/80 space-y-1">
+                <p>🕐 Delivery: 30-60 minutes</p>
+                <p>💳 Payment: MTN/Orange Money, Cash</p>
+                <p>🚚 Free delivery on orders above 5,000 FCFA</p>
+              </div>
+            </div>
+          </div>
+          
+          <Separator className="my-6 bg-white/20" />
+          
+          <div className="text-center text-sm text-white/60">
+            <p>&copy; 2024 ChopTime. Made with ❤️ for Cameroon.</p>
+            <p className="mt-1">Support: choptime237@gmail.com</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };

@@ -1,73 +1,263 @@
-# Welcome to your Lovable project
 
-## Project info
+# ChopTime - Cameroonian Food Delivery MVP 🇨🇲
 
-**URL**: https://lovable.dev/projects/cc56eea5-d5a0-4b65-a243-5b343549ab2f
+A beautiful, mobile-first Progressive Web App (PWA) for authentic Cameroonian food delivery with WhatsApp integration.
 
-## How can I edit this code?
+## 🌟 Features
 
-There are several ways of editing your application.
+- **Mobile-First Design**: Optimized for smartphones with responsive layout
+- **Traditional Cameroonian Menu**: Eru, Achu, Ndolé, and more authentic dishes
+- **WhatsApp Ordering**: Seamless order placement via WhatsApp
+- **PWA Support**: Installable web app with offline capabilities
+- **Cultural Design**: African-inspired colors and patterns
+- **Real-time Cart**: Dynamic shopping cart with quantity management
+- **Multiple Payment Options**: MTN Money, Orange Money, Pay on Delivery
 
-**Use Lovable**
+## 🎨 Design System
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/cc56eea5-d5a0-4b65-a243-5b343549ab2f) and start prompting.
+### Brand Colors
+- **Terracotta Orange**: `#D57A1F` - Primary brand color
+- **Earthy Brown**: `#5A2D0C` - Text and accents
+- **Soft Beige**: `#FDF1E0` - Background color
 
-Changes made via Lovable will be committed automatically to this repo.
+### Visual Elements
+- African-inspired patterns and textures
+- Warm, friendly animations
+- Cultural iconography
+- Mobile-optimized layouts
 
-**Use your preferred IDE**
+## 🚀 Quick Start
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Prerequisites
+- Node.js (v16 or higher)
+- npm or yarn
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Installation
+```bash
+# Clone the repository
+git clone <your-repo-url>
+cd choptime-mobile-menu
 
-Follow these steps:
+# Install dependencies
+npm install
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Build for Production
+```bash
+# Build the app
+npm run build
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+# Preview production build
+npm run preview
+```
 
-**Use GitHub Codespaces**
+## 📱 PWA Features
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Installation
+- Automatic install prompts on supported devices
+- Add to home screen functionality
+- App-like experience
 
-## What technologies are used for this project?
+### Offline Support
+- Service worker caches essential resources
+- Basic offline functionality
+- Background sync capabilities
 
-This project is built with:
+### Testing PWA
+1. Open Chrome DevTools
+2. Go to Application tab
+3. Check Manifest and Service Workers sections
+4. Test "Add to Home Screen" functionality
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 🔧 Customization Guide
 
-## How can I deploy this project?
+### Menu Items
+Edit the menu items in `src/pages/Index.tsx`:
 
-Simply open [Lovable](https://lovable.dev/projects/cc56eea5-d5a0-4b65-a243-5b343549ab2f) and click on Share -> Publish.
+```typescript
+const [menuItems] = useState<MenuItem[]>([
+  {
+    id: '1',
+    name: 'Your Dish Name',
+    description: 'Dish description',
+    price: 2500, // Price in FCFA
+    image: 'image-url',
+    category: 'Traditional',
+    rating: 4.8,
+    cookTime: '45 min',
+    serves: '2-3 people'
+  },
+  // Add more items...
+]);
+```
 
-## Can I connect a custom domain to my Lovable project?
+### WhatsApp Configuration
+Change the WhatsApp number in `src/pages/Index.tsx`:
 
-Yes, you can!
+```typescript
+const whatsappUrl = `https://wa.me/YOUR_WHATSAPP_NUMBER?text=${message}`;
+```
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+**Current Number**: `+237 6 70 41 64 49`
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+### Brand Colors
+Update colors in `tailwind.config.ts`:
+
+```typescript
+choptime: {
+  orange: '#D57A1F',      // Your primary color
+  brown: '#5A2D0C',       // Text color
+  beige: '#FDF1E0',       // Background
+  'orange-light': '#E89A4D',
+  'brown-light': '#8B4513'
+}
+```
+
+### Support Email
+Update support email throughout the app:
+**Current**: `choptime237@gmail.com`
+
+## 🌐 Deployment
+
+### Netlify Deployment
+1. Build your project: `npm run build`
+2. Drag and drop the `dist` folder to Netlify
+3. Configure custom domain if needed
+
+### Vercel Deployment
+1. Install Vercel CLI: `npm i -g vercel`
+2. Run: `vercel`
+3. Follow the prompts
+
+### Manual Deployment
+1. Build: `npm run build`
+2. Upload `dist` folder contents to your web server
+3. Configure server to serve `index.html` for all routes
+
+## 📋 Project Structure
+
+```
+src/
+├── components/           # Reusable UI components
+├── hooks/               # Custom React hooks
+├── lib/                 # Utility functions
+├── pages/               # Main pages
+│   └── Index.tsx        # Main ChopTime component
+├── index.css           # Global styles with ChopTime branding
+└── main.tsx            # App entry point
+
+public/
+├── manifest.json       # PWA manifest
+├── sw.js              # Service worker
+├── pwa-icon-*.png     # PWA icons (multiple sizes)
+└── robots.txt         # SEO robots file
+```
+
+## 🔧 Technical Details
+
+### Technologies Used
+- **React 18** with TypeScript
+- **Vite** for fast development and building
+- **Tailwind CSS** for styling
+- **Shadcn/UI** for components
+- **Lucide React** for icons
+- **PWA** with service worker
+
+### Browser Support
+- Chrome/Chromium 88+
+- Firefox 85+
+- Safari 14+
+- Edge 88+
+
+### Mobile Support
+- iOS Safari 14+
+- Android Chrome 88+
+- Samsung Internet 15+
+
+## 📱 WhatsApp Integration
+
+### How It Works
+1. Customer fills order form
+2. Clicks "Order via WhatsApp"
+3. Pre-filled message opens in WhatsApp
+4. Message sent to restaurant number
+5. Restaurant confirms and processes order
+
+### Message Format
+```
+🍽️ *ChopTime Order*
+
+👤 *Customer:* John Doe
+📱 *Phone:* +237 6XX XXX XXX
+📍 *Delivery Address:* Bastos, Yaoundé
+💳 *Payment:* MTN Mobile Money
+
+🛒 *Order Details:*
+• Eru with Fufu x2 - 5,000 FCFA
+• Pepper Soup x1 - 2,000 FCFA
+
+💰 *Total: 7,000 FCFA*
+
+Thank you for choosing ChopTime! 🇨🇲
+```
+
+## 🎯 SEO & Performance
+
+### SEO Features
+- Semantic HTML structure
+- Meta tags and Open Graph
+- Proper headings hierarchy
+- Alt text for images
+- Structured data ready
+
+### Performance Optimizations
+- Image lazy loading
+- Code splitting
+- Service worker caching
+- Minimal bundle size
+- Fast loading animations
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**PWA not installing**
+- Check manifest.json is accessible
+- Verify HTTPS (required for PWA)
+- Check service worker registration
+
+**WhatsApp not opening**
+- Verify phone number format: +237XXXXXXXXX
+- Check URL encoding of message
+- Test on different devices
+
+**Styling issues**
+- Clear browser cache
+- Check Tailwind CSS build
+- Verify custom CSS conflicts
+
+## 📞 Support
+
+For technical support and customization requests:
+- **Email**: choptime237@gmail.com
+- **WhatsApp**: +237 6 70 41 64 49
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🙏 Acknowledgments
+
+- Cameroonian culinary traditions
+- African design inspiration
+- Open source community
+- Traditional food photography
+
+---
+
+**Made with ❤️ for Cameroon**
+
+*Bringing authentic flavors to your doorstep, one order at a time.*
