@@ -9,7 +9,219 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      dishes: {
+        Row: {
+          category: Database["public"]["Enums"]["dish_category"]
+          cook_time: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          is_popular: boolean | null
+          is_spicy: boolean | null
+          is_vegetarian: boolean | null
+          name: string
+          serves: string | null
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["dish_category"]
+          cook_time?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_popular?: boolean | null
+          is_spicy?: boolean | null
+          is_vegetarian?: boolean | null
+          name: string
+          serves?: string | null
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["dish_category"]
+          cook_time?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_popular?: boolean | null
+          is_spicy?: boolean | null
+          is_vegetarian?: boolean | null
+          name?: string
+          serves?: string | null
+        }
+        Relationships: []
+      }
+      orders: {
+        Row: {
+          created_at: string | null
+          dish_id: string | null
+          dish_name: string
+          id: string
+          price: number
+          quantity: number
+          restaurant_id: string | null
+          restaurant_name: string
+          status: Database["public"]["Enums"]["order_status"] | null
+          total_amount: number
+          updated_at: string | null
+          user_location: string
+          user_name: string
+          user_phone: string
+        }
+        Insert: {
+          created_at?: string | null
+          dish_id?: string | null
+          dish_name: string
+          id?: string
+          price: number
+          quantity?: number
+          restaurant_id?: string | null
+          restaurant_name: string
+          status?: Database["public"]["Enums"]["order_status"] | null
+          total_amount: number
+          updated_at?: string | null
+          user_location: string
+          user_name: string
+          user_phone: string
+        }
+        Update: {
+          created_at?: string | null
+          dish_id?: string | null
+          dish_name?: string
+          id?: string
+          price?: number
+          quantity?: number
+          restaurant_id?: string | null
+          restaurant_name?: string
+          status?: Database["public"]["Enums"]["order_status"] | null
+          total_amount?: number
+          updated_at?: string | null
+          user_location?: string
+          user_name?: string
+          user_phone?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_dish_id_fkey"
+            columns: ["dish_id"]
+            isOneToOne: false
+            referencedRelation: "dishes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      restaurant_menus: {
+        Row: {
+          availability: boolean | null
+          created_at: string | null
+          dish_id: string | null
+          id: string
+          price: number
+          restaurant_id: string | null
+        }
+        Insert: {
+          availability?: boolean | null
+          created_at?: string | null
+          dish_id?: string | null
+          id?: string
+          price: number
+          restaurant_id?: string | null
+        }
+        Update: {
+          availability?: boolean | null
+          created_at?: string | null
+          dish_id?: string | null
+          id?: string
+          price?: number
+          restaurant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "restaurant_menus_dish_id_fkey"
+            columns: ["dish_id"]
+            isOneToOne: false
+            referencedRelation: "dishes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "restaurant_menus_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      restaurants: {
+        Row: {
+          auth_id: string | null
+          contact_number: string
+          created_at: string | null
+          id: string
+          image_url: string | null
+          mtn_number: string | null
+          name: string
+          orange_number: string | null
+          town: string
+          updated_at: string | null
+        }
+        Insert: {
+          auth_id?: string | null
+          contact_number: string
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          mtn_number?: string | null
+          name: string
+          orange_number?: string | null
+          town: string
+          updated_at?: string | null
+        }
+        Update: {
+          auth_id?: string | null
+          contact_number?: string
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          mtn_number?: string | null
+          name?: string
+          orange_number?: string | null
+          town?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_towns: {
+        Row: {
+          created_at: string | null
+          id: string
+          town: string
+          updated_at: string | null
+          user_phone: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          town: string
+          updated_at?: string | null
+          user_phone: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          town?: string
+          updated_at?: string | null
+          user_phone?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +230,20 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      dish_category:
+        | "Traditional"
+        | "Soup"
+        | "Rice"
+        | "Grilled"
+        | "Snacks"
+        | "Drinks"
+      order_status:
+        | "pending"
+        | "confirmed"
+        | "preparing"
+        | "ready"
+        | "delivered"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +358,23 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      dish_category: [
+        "Traditional",
+        "Soup",
+        "Rice",
+        "Grilled",
+        "Snacks",
+        "Drinks",
+      ],
+      order_status: [
+        "pending",
+        "confirmed",
+        "preparing",
+        "ready",
+        "delivered",
+        "cancelled",
+      ],
+    },
   },
 } as const

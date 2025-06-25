@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,10 +9,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { ShoppingCart, Phone, MapPin, MessageCircle, Download, Star, Clock, Users } from 'lucide-react';
-import { Restaurant, MenuItem, RestaurantMenuItem, OrderItem } from '@/types/restaurant';
+import { ShoppingCart, Phone, MapPin, MessageCircle, Download, Star, Clock, Users, Flame, Leaf } from 'lucide-react';
+import { Restaurant, Dish, OrderItem, Order } from '@/types/restaurant';
 import RestaurantSelectionModal from '@/components/RestaurantSelectionModal';
 import PaymentDetails from '@/components/PaymentDetails';
+import TownSelector from '@/components/TownSelector';
+import { useChopTimeData } from '@/hooks/useChopTimeData';
 
 interface OrderDetails {
   items: OrderItem[];
@@ -23,136 +26,9 @@ interface OrderDetails {
 }
 
 const Index = () => {
-  // Sample data - in a real app, this would come from an API
-  const [restaurants] = useState<Restaurant[]>([
-    {
-      id: '1',
-      name: 'Mama Africa Kitchen',
-      rating: 4.8,
-      deliveryTime: '30-45 min',
-      location: 'Douala, Akwa',
-      mtnNumber: '+237 6 70 41 64 49',
-      orangeNumber: '+237 6 90 12 34 56',
-      contactNumber: '+237 6 70 41 64 49',
-      image: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=400'
-    },
-    {
-      id: '2',
-      name: 'Authentic Bamileke Cuisine',
-      rating: 4.7,
-      deliveryTime: '35-50 min',
-      location: 'Yaoundé, Bastos',
-      mtnNumber: '+237 6 80 22 33 44',
-      orangeNumber: '+237 6 95 44 55 66',
-      contactNumber: '+237 6 80 22 33 44',
-      image: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=400'
-    },
-    {
-      id: '3',
-      name: 'ChopTime Express',
-      rating: 4.9,
-      deliveryTime: '25-40 min',
-      location: 'Douala, Bonanjo',
-      mtnNumber: '+237 6 70 41 64 49',
-      orangeNumber: '+237 6 92 77 88 99',
-      contactNumber: '+237 6 70 41 64 49',
-      image: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=400'
-    }
-  ]);
-
-  const [menuItems] = useState<MenuItem[]>([
-    {
-      id: '1',
-      name: 'Eru with Fufu',
-      description: 'Traditional Cameroonian eru leaves cooked with dried fish, crayfish, and palm oil. Served with soft fufu.',
-      basePrice: 2500,
-      image: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400',
-      category: 'Traditional',
-      rating: 4.8,
-      cookTime: '45 min',
-      serves: '2-3 people'
-    },
-    {
-      id: '2',
-      name: 'Achu Yellow Soup',
-      description: 'Delicious yellow soup made with palm nuts, vegetables, and assorted meat. Served with pounded cocoyam.',
-      basePrice: 3000,
-      image: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400',
-      category: 'Traditional',
-      rating: 4.9,
-      cookTime: '60 min',
-      serves: '3-4 people'
-    },
-    {
-      id: '3',
-      name: 'Ndolé',
-      description: 'Cameroon\'s national dish made with ndolé leaves, groundnuts, fish, and meat in rich sauce.',
-      basePrice: 2800,
-      image: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400',
-      category: 'Traditional',
-      rating: 4.7,
-      cookTime: '50 min',
-      serves: '2-3 people'
-    },
-    {
-      id: '4',
-      name: 'Pepper Soup',
-      description: 'Spicy and aromatic pepper soup with fresh fish or meat, perfect for any weather.',
-      basePrice: 2000,
-      image: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400',
-      category: 'Soup',
-      rating: 4.6,
-      cookTime: '30 min',
-      serves: '1-2 people'
-    },
-    {
-      id: '5',
-      name: 'Jollof Rice',
-      description: 'Perfectly seasoned jollof rice cooked with tomatoes, spices, and your choice of chicken or beef.',
-      basePrice: 2200,
-      image: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400',
-      category: 'Rice',
-      rating: 4.5,
-      cookTime: '40 min',
-      serves: '2 people'
-    },
-    {
-      id: '6',
-      name: 'Banga Soup',
-      description: 'Rich palm fruit soup with assorted meat and fish, seasoned with traditional spices.',
-      basePrice: 2700,
-      image: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400',
-      category: 'Soup',
-      rating: 4.4,
-      cookTime: '55 min',
-      serves: '3 people'
-    }
-  ]);
-
-  const [restaurantMenuItems] = useState<RestaurantMenuItem[]>([
-    // Restaurant 1 - Mama Africa Kitchen
-    { menuItemId: '1', restaurantId: '1', price: 2500, availability: true },
-    { menuItemId: '2', restaurantId: '1', price: 3200, availability: true },
-    { menuItemId: '3', restaurantId: '1', price: 2800, availability: true },
-    { menuItemId: '4', restaurantId: '1', price: 2100, availability: true },
-    { menuItemId: '5', restaurantId: '1', price: 2200, availability: false },
-    
-    // Restaurant 2 - Authentic Bamileke Cuisine
-    { menuItemId: '1', restaurantId: '2', price: 2400, availability: true },
-    { menuItemId: '2', restaurantId: '2', price: 3000, availability: true },
-    { menuItemId: '3', restaurantId: '2', price: 2900, availability: true },
-    { menuItemId: '6', restaurantId: '2', price: 2700, availability: true },
-    
-    // Restaurant 3 - ChopTime Express
-    { menuItemId: '1', restaurantId: '3', price: 2600, availability: true },
-    { menuItemId: '3', restaurantId: '3', price: 2750, availability: true },
-    { menuItemId: '4', restaurantId: '3', price: 2000, availability: true },
-    { menuItemId: '5', restaurantId: '3', price: 2300, availability: true },
-    { menuItemId: '6', restaurantId: '3', price: 2800, availability: true },
-  ]);
-
+  const [selectedTown, setSelectedTown] = useState<string>('');
   const [cart, setCart] = useState<OrderItem[]>([]);
-  const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(null);
+  const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
   const [showRestaurantModal, setShowRestaurantModal] = useState(false);
   const [orderDetails, setOrderDetails] = useState<OrderDetails>({
     items: [],
@@ -166,6 +42,32 @@ const Index = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   const { toast } = useToast();
+  const { 
+    dishes, 
+    restaurants, 
+    restaurantMenus, 
+    loading, 
+    error, 
+    saveUserTown, 
+    getUserTown, 
+    saveOrder,
+    getUserOrders 
+  } = useChopTimeData(selectedTown);
+
+  // Load user's town on component mount
+  useEffect(() => {
+    const loadUserTown = async () => {
+      const savedPhone = localStorage.getItem('choptime_phone');
+      if (savedPhone) {
+        const userTown = await getUserTown(savedPhone);
+        if (userTown) {
+          setSelectedTown(userTown);
+          setOrderDetails(prev => ({ ...prev, phone: savedPhone }));
+        }
+      }
+    };
+    loadUserTown();
+  }, [getUserTown]);
 
   // PWA Install Prompt
   useEffect(() => {
@@ -176,10 +78,7 @@ const Index = () => {
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
   }, []);
 
   const handleInstallPWA = async () => {
@@ -197,49 +96,71 @@ const Index = () => {
     }
   };
 
-  const handleAddToCart = (item: MenuItem) => {
-    setSelectedMenuItem(item);
+  const handleTownSelect = async (town: string) => {
+    setSelectedTown(town);
+    if (orderDetails.phone) {
+      await saveUserTown(orderDetails.phone, town);
+      localStorage.setItem('choptime_phone', orderDetails.phone);
+    }
+  };
+
+  const handleAddToCart = (dish: Dish) => {
+    setSelectedDish(dish);
     setShowRestaurantModal(true);
   };
 
+  const getAvailableRestaurantsForDish = (dishId: string): Restaurant[] => {
+    const availableMenus = restaurantMenus.filter(
+      menu => menu.dish_id === dishId && menu.availability && menu.restaurant
+    );
+    return availableMenus.map(menu => menu.restaurant!);
+  };
+
+  const getDishPrice = (dishId: string, restaurantId: string): number => {
+    const menu = restaurantMenus.find(
+      m => m.dish_id === dishId && m.restaurant_id === restaurantId
+    );
+    return menu?.price || 0;
+  };
+
   const handleRestaurantSelection = (restaurant: Restaurant, price: number) => {
-    if (!selectedMenuItem) return;
+    if (!selectedDish) return;
 
     const existingItem = cart.find(
-      cartItem => cartItem.id === selectedMenuItem.id && cartItem.restaurant.id === restaurant.id
+      item => item.dish.id === selectedDish.id && item.restaurant.id === restaurant.id
     );
     
     if (existingItem) {
-      setCart(cart.map(cartItem => 
-        cartItem.id === selectedMenuItem.id && cartItem.restaurant.id === restaurant.id
-          ? { ...cartItem, quantity: cartItem.quantity + 1 }
-          : cartItem
+      setCart(cart.map(item => 
+        item.dish.id === selectedDish.id && item.restaurant.id === restaurant.id
+          ? { ...item, quantity: item.quantity + 1 }
+          : item
       ));
     } else {
       const orderItem: OrderItem = {
-        ...selectedMenuItem,
-        quantity: 1,
+        dish: selectedDish,
         restaurant,
-        finalPrice: price
+        quantity: 1,
+        price
       };
       setCart([...cart, orderItem]);
     }
 
     setShowRestaurantModal(false);
-    setSelectedMenuItem(null);
+    setSelectedDish(null);
 
     toast({
       title: "Added to Cart",
-      description: `${selectedMenuItem.name} from ${restaurant.name} has been added to your cart.`,
+      description: `${selectedDish.name} from ${restaurant.name} has been added to your cart.`,
     });
   };
 
-  const updateQuantity = (id: string, restaurantId: string, quantity: number) => {
+  const updateQuantity = (dishId: string, restaurantId: string, quantity: number) => {
     if (quantity === 0) {
-      setCart(cart.filter(item => !(item.id === id && item.restaurant.id === restaurantId)));
+      setCart(cart.filter(item => !(item.dish.id === dishId && item.restaurant.id === restaurantId)));
     } else {
       setCart(cart.map(item => 
-        item.id === id && item.restaurant.id === restaurantId 
+        item.dish.id === dishId && item.restaurant.id === restaurantId 
           ? { ...item, quantity } 
           : item
       ));
@@ -247,7 +168,7 @@ const Index = () => {
   };
 
   const calculateTotal = () => {
-    return cart.reduce((total, item) => total + (item.finalPrice * item.quantity), 0);
+    return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
   };
 
   const formatPrice = (price: number) => {
@@ -258,7 +179,7 @@ const Index = () => {
     const restaurantIds = new Set(cart.map(item => item.restaurant.id));
     return Array.from(restaurantIds).map(id => 
       restaurants.find(r => r.id === id)!
-    );
+    ).filter(Boolean);
   };
 
   const generateWhatsAppMessage = () => {
@@ -267,6 +188,7 @@ const Index = () => {
     message += `👤 *Customer:* ${orderDetails.customerName}\n`;
     message += `📱 *Phone:* ${orderDetails.phone}\n`;
     message += `📍 *Delivery Address:* ${orderDetails.deliveryAddress}\n`;
+    message += `🏙️ *Town:* ${selectedTown}\n`;
     message += `💳 *Payment:* ${orderDetails.paymentMethod}\n\n`;
     
     // Group items by restaurant
@@ -284,16 +206,16 @@ const Index = () => {
 
     Object.values(restaurantGroups).forEach(group => {
       message += `🏪 *${group.restaurant.name}*\n`;
-      message += `📞 Contact: ${group.restaurant.contactNumber}\n`;
-      if (orderDetails.paymentMethod === 'mtn-money' && group.restaurant.mtnNumber) {
-        message += `💳 MTN Money: ${group.restaurant.mtnNumber}\n`;
+      message += `📞 Contact: ${group.restaurant.contact_number}\n`;
+      if (orderDetails.paymentMethod === 'mtn-money' && group.restaurant.mtn_number) {
+        message += `💳 MTN Money: ${group.restaurant.mtn_number}\n`;
       }
-      if (orderDetails.paymentMethod === 'orange-money' && group.restaurant.orangeNumber) {
-        message += `🧡 Orange Money: ${group.restaurant.orangeNumber}\n`;
+      if (orderDetails.paymentMethod === 'orange-money' && group.restaurant.orange_number) {
+        message += `🧡 Orange Money: ${group.restaurant.orange_number}\n`;
       }
       
       group.items.forEach(item => {
-        message += `• ${item.name} x${item.quantity} - ${formatPrice(item.finalPrice * item.quantity)}\n`;
+        message += `• ${item.dish.name} x${item.quantity} - ${formatPrice(item.price * item.quantity)}\n`;
       });
       message += `\n`;
     });
@@ -304,7 +226,7 @@ const Index = () => {
     return encodeURIComponent(message);
   };
 
-  const handleWhatsAppOrder = () => {
+  const handleWhatsAppOrder = async () => {
     if (!orderDetails.customerName || !orderDetails.phone || !orderDetails.deliveryAddress || !orderDetails.paymentMethod) {
       toast({
         title: "Missing Information",
@@ -323,13 +245,76 @@ const Index = () => {
       return;
     }
 
+    // Save orders to database
+    try {
+      for (const item of cart) {
+        const orderData: Omit<Order, 'id' | 'created_at' | 'updated_at'> = {
+          user_name: orderDetails.customerName,
+          user_phone: orderDetails.phone,
+          user_location: orderDetails.deliveryAddress,
+          dish_name: item.dish.name,
+          restaurant_name: item.restaurant.name,
+          restaurant_id: item.restaurant.id,
+          dish_id: item.dish.id,
+          quantity: item.quantity,
+          price: item.price,
+          total_amount: item.price * item.quantity,
+          status: 'pending'
+        };
+        await saveOrder(orderData);
+      }
+
+      // Save user's town and phone
+      await saveUserTown(orderDetails.phone, selectedTown);
+      localStorage.setItem('choptime_phone', orderDetails.phone);
+
+      toast({
+        title: "Order Saved!",
+        description: "Your order has been saved successfully.",
+      });
+    } catch (error) {
+      console.error('Error saving order:', error);
+      toast({
+        title: "Save Error",
+        description: "Failed to save order, but WhatsApp will still work.",
+        variant: "destructive"
+      });
+    }
+
+    // Open WhatsApp
     const message = generateWhatsAppMessage();
     const whatsappUrl = `https://wa.me/237670416449?text=${message}`;
     window.open(whatsappUrl, '_blank');
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-choptime-beige flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 bg-choptime-orange rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-choptime-brown">Loading ChopTime...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-choptime-beige flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-choptime-brown">Error: {error}</p>
+          <Button onClick={() => window.location.reload()} className="mt-4">
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-choptime-beige">
+      <TownSelector onTownSelect={handleTownSelect} selectedTown={selectedTown} />
+
       {/* PWA Install Banner */}
       {showPWAPrompt && (
         <div className="bg-choptime-orange text-white p-4 text-center relative animate-slide-up">
@@ -369,23 +354,38 @@ const Index = () => {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-choptime-brown">ChopTime</h1>
-                <p className="text-sm text-choptime-brown/70">Authentic Cameroonian Cuisine</p>
+                <p className="text-sm text-choptime-brown/70">
+                  {selectedTown ? `Delivering in ${selectedTown}` : 'Authentic Cameroonian Cuisine'}
+                </p>
               </div>
             </div>
-            <div className="relative">
-              <Button
-                variant="outline"
-                size="sm"
-                className="relative border-choptime-orange text-choptime-orange hover:bg-choptime-orange hover:text-white"
-              >
-                <ShoppingCart className="w-4 h-4 mr-2" />
-                Cart
-                {cart.length > 0 && (
-                  <Badge className="absolute -top-2 -right-2 bg-choptime-orange text-white text-xs">
-                    {cart.length}
-                  </Badge>
-                )}
-              </Button>
+            <div className="flex items-center gap-2">
+              {selectedTown && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedTown('')}
+                  className="text-choptime-orange hover:bg-choptime-orange/10"
+                >
+                  <MapPin className="w-4 h-4 mr-1" />
+                  Change Town
+                </Button>
+              )}
+              <div className="relative">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="relative border-choptime-orange text-choptime-orange hover:bg-choptime-orange hover:text-white"
+                >
+                  <ShoppingCart className="w-4 h-4 mr-2" />
+                  Cart
+                  {cart.length > 0 && (
+                    <Badge className="absolute -top-2 -right-2 bg-choptime-orange text-white text-xs">
+                      {cart.length}
+                    </Badge>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -398,7 +398,10 @@ const Index = () => {
             Taste of Cameroon 🇨🇲
           </h2>
           <p className="text-lg text-choptime-brown/80 mb-6 animate-fade-in">
-            Choose your favorite dish, then select your preferred restaurant
+            {selectedTown 
+              ? `Fresh dishes from restaurants in ${selectedTown}` 
+              : 'Choose your favorite dish, then select your preferred restaurant'
+            }
           </p>
           <div className="flex items-center justify-center gap-6 text-sm text-choptime-brown/70">
             <div className="flex items-center gap-1">
@@ -409,6 +412,12 @@ const Index = () => {
               <Star className="w-4 h-4 fill-choptime-orange text-choptime-orange" />
               <span>4.8 rating</span>
             </div>
+            {selectedTown && (
+              <div className="flex items-center gap-1">
+                <MapPin className="w-4 h-4" />
+                <span>{selectedTown}</span>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -418,47 +427,68 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <h3 className="text-2xl font-bold text-choptime-brown mb-6">Our Menu</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {menuItems.map((item, index) => (
-              <Card key={item.id} className="overflow-hidden choptime-shadow hover:shadow-lg transition-all duration-300 animate-slide-up" style={{ animationDelay: `${index * 100}ms` }}>
-                <div className="relative">
-                  <img 
-                    src={item.image} 
-                    alt={item.name}
-                    className="w-full h-48 object-cover"
-                  />
-                  <Badge className="absolute top-2 left-2 bg-choptime-orange text-white">
-                    {item.category}
-                  </Badge>
-                  <div className="absolute top-2 right-2 bg-white/90 rounded-full px-2 py-1 flex items-center gap-1">
-                    <Star className="w-3 h-3 fill-choptime-orange text-choptime-orange" />
-                    <span className="text-xs font-semibold">{item.rating}</span>
-                  </div>
-                </div>
-                <CardContent className="p-4">
-                  <h4 className="font-bold text-lg text-choptime-brown mb-2">{item.name}</h4>
-                  <p className="text-sm text-choptime-brown/70 mb-3 line-clamp-2">{item.description}</p>
-                  <div className="flex items-center gap-4 text-xs text-choptime-brown/60 mb-3">
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      <span>{item.cookTime}</span>
+            {dishes.map((dish, index) => {
+              const availableRestaurants = getAvailableRestaurantsForDish(dish.id);
+              const minPrice = Math.min(...availableRestaurants.map(r => getDishPrice(dish.id, r.id)));
+              
+              return (
+                <Card key={dish.id} className="overflow-hidden choptime-shadow hover:shadow-lg transition-all duration-300 animate-slide-up" style={{ animationDelay: `${index * 100}ms` }}>
+                  <div className="relative">
+                    <img 
+                      src={dish.image_url || 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400'} 
+                      alt={dish.name}
+                      className="w-full h-48 object-cover"
+                    />
+                    <Badge className="absolute top-2 left-2 bg-choptime-orange text-white">
+                      {dish.category}
+                    </Badge>
+                    <div className="absolute top-2 right-2 flex gap-1">
+                      {dish.is_popular && (
+                        <Badge variant="secondary" className="bg-white/90 text-choptime-orange">
+                          Popular
+                        </Badge>
+                      )}
+                      {dish.is_spicy && (
+                        <Badge variant="secondary" className="bg-red-100 text-red-600">
+                          <Flame className="w-3 h-3" />
+                        </Badge>
+                      )}
+                      {dish.is_vegetarian && (
+                        <Badge variant="secondary" className="bg-green-100 text-green-600">
+                          <Leaf className="w-3 h-3" />
+                        </Badge>
+                      )}
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Users className="w-3 h-3" />
-                      <span>{item.serves}</span>
+                  </div>
+                  <CardContent className="p-4">
+                    <h4 className="font-bold text-lg text-choptime-brown mb-2">{dish.name}</h4>
+                    <p className="text-sm text-choptime-brown/70 mb-3 line-clamp-2">{dish.description}</p>
+                    <div className="flex items-center gap-4 text-xs text-choptime-brown/60 mb-3">
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        <span>{dish.cook_time}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Users className="w-3 h-3" />
+                        <span>{dish.serves}</span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold text-choptime-orange">From {formatPrice(item.basePrice)}</span>
-                    <Button 
-                      onClick={() => handleAddToCart(item)}
-                      className="choptime-gradient hover:opacity-90 text-white"
-                    >
-                      Choose Restaurant
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    <div className="flex items-center justify-between">
+                      <span className="text-lg font-bold text-choptime-orange">
+                        {availableRestaurants.length > 0 ? `From ${formatPrice(minPrice)}` : 'Not Available'}
+                      </span>
+                      <Button 
+                        onClick={() => handleAddToCart(dish)}
+                        disabled={availableRestaurants.length === 0}
+                        className="choptime-gradient hover:opacity-90 text-white disabled:opacity-50"
+                      >
+                        {availableRestaurants.length > 0 ? 'Choose Restaurant' : 'Not Available'}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -474,24 +504,24 @@ const Index = () => {
                 <h4 className="font-semibold text-choptime-brown mb-4">Cart Items</h4>
                 <div className="space-y-4">
                   {cart.map(item => (
-                    <Card key={`${item.id}-${item.restaurant.id}`}>
+                    <Card key={`${item.dish.id}-${item.restaurant.id}`}>
                       <CardContent className="p-4">
                         <div className="flex items-center gap-4">
                           <img 
-                            src={item.image} 
-                            alt={item.name}
+                            src={item.dish.image_url || 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400'} 
+                            alt={item.dish.name}
                             className="w-16 h-16 object-cover rounded"
                           />
                           <div className="flex-1">
-                            <h5 className="font-semibold text-choptime-brown">{item.name}</h5>
+                            <h5 className="font-semibold text-choptime-brown">{item.dish.name}</h5>
                             <p className="text-xs text-choptime-orange font-medium">{item.restaurant.name}</p>
-                            <p className="text-sm text-choptime-brown/70">{formatPrice(item.finalPrice)} each</p>
+                            <p className="text-sm text-choptime-brown/70">{formatPrice(item.price)} each</p>
                           </div>
                           <div className="flex items-center gap-2">
                             <Button 
                               size="sm" 
                               variant="outline"
-                              onClick={() => updateQuantity(item.id, item.restaurant.id, item.quantity - 1)}
+                              onClick={() => updateQuantity(item.dish.id, item.restaurant.id, item.quantity - 1)}
                             >
                               -
                             </Button>
@@ -499,7 +529,7 @@ const Index = () => {
                             <Button 
                               size="sm" 
                               variant="outline"
-                              onClick={() => updateQuantity(item.id, item.restaurant.id, item.quantity + 1)}
+                              onClick={() => updateQuantity(item.dish.id, item.restaurant.id, item.quantity + 1)}
                             >
                               +
                             </Button>
@@ -536,15 +566,21 @@ const Index = () => {
                         id="phone"
                         placeholder="e.g., +237 6XX XXX XXX"
                         value={orderDetails.phone}
-                        onChange={(e) => setOrderDetails({...orderDetails, phone: e.target.value})}
+                        onChange={(e) => {
+                          setOrderDetails({...orderDetails, phone: e.target.value});
+                          if (e.target.value && selectedTown) {
+                            saveUserTown(e.target.value, selectedTown);
+                            localStorage.setItem('choptime_phone', e.target.value);
+                          }
+                        }}
                       />
                     </div>
                     
                     <div>
-                      <Label htmlFor="address">Delivery Address *</Label>
+                      <Label htmlFor="address">Delivery Address in {selectedTown} *</Label>
                       <Textarea
                         id="address"
-                        placeholder="Enter your complete delivery address (neighborhood, street, landmarks)"
+                        placeholder={`Enter your complete delivery address in ${selectedTown} (neighborhood, street, landmarks)`}
                         value={orderDetails.deliveryAddress}
                         onChange={(e) => setOrderDetails({...orderDetails, deliveryAddress: e.target.value})}
                         rows={3}
@@ -594,9 +630,9 @@ const Index = () => {
       <RestaurantSelectionModal
         isOpen={showRestaurantModal}
         onClose={() => setShowRestaurantModal(false)}
-        menuItem={selectedMenuItem}
-        restaurants={restaurants}
-        restaurantMenuItems={restaurantMenuItems}
+        dish={selectedDish}
+        restaurants={selectedDish ? getAvailableRestaurantsForDish(selectedDish.id) : []}
+        getDishPrice={(restaurantId) => selectedDish ? getDishPrice(selectedDish.id, restaurantId) : 0}
         onSelectRestaurant={handleRestaurantSelection}
       />
 
