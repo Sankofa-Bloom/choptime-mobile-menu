@@ -16,10 +16,10 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({ paymentMethod, restaura
   const getPaymentNumbers = () => {
     const numbers = new Set<string>();
     restaurants.forEach(restaurant => {
-      if (paymentMethod === 'mtn-money' && restaurant.mtnNumber) {
-        numbers.add(restaurant.mtnNumber);
-      } else if (paymentMethod === 'orange-money' && restaurant.orangeNumber) {
-        numbers.add(restaurant.orangeNumber);
+      if (paymentMethod === 'mtn-money' && restaurant.mtn_number) {
+        numbers.add(restaurant.mtn_number);
+      } else if (paymentMethod === 'orange-money' && restaurant.orange_number) {
+        numbers.add(restaurant.orange_number);
       }
     });
     return Array.from(numbers);
