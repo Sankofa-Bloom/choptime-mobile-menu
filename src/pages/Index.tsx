@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,23 +8,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { ShoppingCart, Phone, MapPin, CreditCard, MessageCircle, Download, Star, Clock, Users } from 'lucide-react';
-
-interface MenuItem {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  image: string;
-  category: string;
-  rating: number;
-  cookTime: string;
-  serves: string;
-}
-
-interface OrderItem extends MenuItem {
-  quantity: number;
-}
+import { ShoppingCart, Phone, MapPin, MessageCircle, Download, Star, Clock, Users } from 'lucide-react';
+import { Restaurant, MenuItem, RestaurantMenuItem, OrderItem } from '@/types/restaurant';
+import RestaurantSelectionModal from '@/components/RestaurantSelectionModal';
+import PaymentDetails from '@/components/PaymentDetails';
 
 interface OrderDetails {
   items: OrderItem[];
@@ -37,12 +23,49 @@ interface OrderDetails {
 }
 
 const Index = () => {
+  // Sample data - in a real app, this would come from an API
+  const [restaurants] = useState<Restaurant[]>([
+    {
+      id: '1',
+      name: 'Mama Africa Kitchen',
+      rating: 4.8,
+      deliveryTime: '30-45 min',
+      location: 'Douala, Akwa',
+      mtnNumber: '+237 6 70 41 64 49',
+      orangeNumber: '+237 6 90 12 34 56',
+      contactNumber: '+237 6 70 41 64 49',
+      image: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=400'
+    },
+    {
+      id: '2',
+      name: 'Authentic Bamileke Cuisine',
+      rating: 4.7,
+      deliveryTime: '35-50 min',
+      location: 'Yaoundé, Bastos',
+      mtnNumber: '+237 6 80 22 33 44',
+      orangeNumber: '+237 6 95 44 55 66',
+      contactNumber: '+237 6 80 22 33 44',
+      image: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=400'
+    },
+    {
+      id: '3',
+      name: 'ChopTime Express',
+      rating: 4.9,
+      deliveryTime: '25-40 min',
+      location: 'Douala, Bonanjo',
+      mtnNumber: '+237 6 70 41 64 49',
+      orangeNumber: '+237 6 92 77 88 99',
+      contactNumber: '+237 6 70 41 64 49',
+      image: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=400'
+    }
+  ]);
+
   const [menuItems] = useState<MenuItem[]>([
     {
       id: '1',
       name: 'Eru with Fufu',
       description: 'Traditional Cameroonian eru leaves cooked with dried fish, crayfish, and palm oil. Served with soft fufu.',
-      price: 2500,
+      basePrice: 2500,
       image: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400',
       category: 'Traditional',
       rating: 4.8,
@@ -53,7 +76,7 @@ const Index = () => {
       id: '2',
       name: 'Achu Yellow Soup',
       description: 'Delicious yellow soup made with palm nuts, vegetables, and assorted meat. Served with pounded cocoyam.',
-      price: 3000,
+      basePrice: 3000,
       image: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400',
       category: 'Traditional',
       rating: 4.9,
@@ -64,7 +87,7 @@ const Index = () => {
       id: '3',
       name: 'Ndolé',
       description: 'Cameroon\'s national dish made with ndolé leaves, groundnuts, fish, and meat in rich sauce.',
-      price: 2800,
+      basePrice: 2800,
       image: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400',
       category: 'Traditional',
       rating: 4.7,
@@ -75,7 +98,7 @@ const Index = () => {
       id: '4',
       name: 'Pepper Soup',
       description: 'Spicy and aromatic pepper soup with fresh fish or meat, perfect for any weather.',
-      price: 2000,
+      basePrice: 2000,
       image: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400',
       category: 'Soup',
       rating: 4.6,
@@ -86,7 +109,7 @@ const Index = () => {
       id: '5',
       name: 'Jollof Rice',
       description: 'Perfectly seasoned jollof rice cooked with tomatoes, spices, and your choice of chicken or beef.',
-      price: 2200,
+      basePrice: 2200,
       image: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400',
       category: 'Rice',
       rating: 4.5,
@@ -97,7 +120,7 @@ const Index = () => {
       id: '6',
       name: 'Banga Soup',
       description: 'Rich palm fruit soup with assorted meat and fish, seasoned with traditional spices.',
-      price: 2700,
+      basePrice: 2700,
       image: 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400',
       category: 'Soup',
       rating: 4.4,
@@ -106,7 +129,31 @@ const Index = () => {
     }
   ]);
 
+  const [restaurantMenuItems] = useState<RestaurantMenuItem[]>([
+    // Restaurant 1 - Mama Africa Kitchen
+    { menuItemId: '1', restaurantId: '1', price: 2500, availability: true },
+    { menuItemId: '2', restaurantId: '1', price: 3200, availability: true },
+    { menuItemId: '3', restaurantId: '1', price: 2800, availability: true },
+    { menuItemId: '4', restaurantId: '1', price: 2100, availability: true },
+    { menuItemId: '5', restaurantId: '1', price: 2200, availability: false },
+    
+    // Restaurant 2 - Authentic Bamileke Cuisine
+    { menuItemId: '1', restaurantId: '2', price: 2400, availability: true },
+    { menuItemId: '2', restaurantId: '2', price: 3000, availability: true },
+    { menuItemId: '3', restaurantId: '2', price: 2900, availability: true },
+    { menuItemId: '6', restaurantId: '2', price: 2700, availability: true },
+    
+    // Restaurant 3 - ChopTime Express
+    { menuItemId: '1', restaurantId: '3', price: 2600, availability: true },
+    { menuItemId: '3', restaurantId: '3', price: 2750, availability: true },
+    { menuItemId: '4', restaurantId: '3', price: 2000, availability: true },
+    { menuItemId: '5', restaurantId: '3', price: 2300, availability: true },
+    { menuItemId: '6', restaurantId: '3', price: 2800, availability: true },
+  ]);
+
   const [cart, setCart] = useState<OrderItem[]>([]);
+  const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(null);
+  const [showRestaurantModal, setShowRestaurantModal] = useState(false);
   const [orderDetails, setOrderDetails] = useState<OrderDetails>({
     items: [],
     customerName: '',
@@ -150,41 +197,68 @@ const Index = () => {
     }
   };
 
-  const addToCart = (item: MenuItem) => {
-    const existingItem = cart.find(cartItem => cartItem.id === item.id);
+  const handleAddToCart = (item: MenuItem) => {
+    setSelectedMenuItem(item);
+    setShowRestaurantModal(true);
+  };
+
+  const handleRestaurantSelection = (restaurant: Restaurant, price: number) => {
+    if (!selectedMenuItem) return;
+
+    const existingItem = cart.find(
+      cartItem => cartItem.id === selectedMenuItem.id && cartItem.restaurant.id === restaurant.id
+    );
     
     if (existingItem) {
       setCart(cart.map(cartItem => 
-        cartItem.id === item.id 
+        cartItem.id === selectedMenuItem.id && cartItem.restaurant.id === restaurant.id
           ? { ...cartItem, quantity: cartItem.quantity + 1 }
           : cartItem
       ));
     } else {
-      setCart([...cart, { ...item, quantity: 1 }]);
+      const orderItem: OrderItem = {
+        ...selectedMenuItem,
+        quantity: 1,
+        restaurant,
+        finalPrice: price
+      };
+      setCart([...cart, orderItem]);
     }
+
+    setShowRestaurantModal(false);
+    setSelectedMenuItem(null);
 
     toast({
       title: "Added to Cart",
-      description: `${item.name} has been added to your cart.`,
+      description: `${selectedMenuItem.name} from ${restaurant.name} has been added to your cart.`,
     });
   };
 
-  const updateQuantity = (id: string, quantity: number) => {
+  const updateQuantity = (id: string, restaurantId: string, quantity: number) => {
     if (quantity === 0) {
-      setCart(cart.filter(item => item.id !== id));
+      setCart(cart.filter(item => !(item.id === id && item.restaurant.id === restaurantId)));
     } else {
       setCart(cart.map(item => 
-        item.id === id ? { ...item, quantity } : item
+        item.id === id && item.restaurant.id === restaurantId 
+          ? { ...item, quantity } 
+          : item
       ));
     }
   };
 
   const calculateTotal = () => {
-    return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+    return cart.reduce((total, item) => total + (item.finalPrice * item.quantity), 0);
   };
 
   const formatPrice = (price: number) => {
     return `${price.toLocaleString()} FCFA`;
+  };
+
+  const getUniqueRestaurants = () => {
+    const restaurantIds = new Set(cart.map(item => item.restaurant.id));
+    return Array.from(restaurantIds).map(id => 
+      restaurants.find(r => r.id === id)!
+    );
   };
 
   const generateWhatsAppMessage = () => {
@@ -194,13 +268,37 @@ const Index = () => {
     message += `📱 *Phone:* ${orderDetails.phone}\n`;
     message += `📍 *Delivery Address:* ${orderDetails.deliveryAddress}\n`;
     message += `💳 *Payment:* ${orderDetails.paymentMethod}\n\n`;
-    message += `🛒 *Order Details:*\n`;
     
-    cart.forEach(item => {
-      message += `• ${item.name} x${item.quantity} - ${formatPrice(item.price * item.quantity)}\n`;
+    // Group items by restaurant
+    const restaurantGroups = cart.reduce((groups, item) => {
+      const restaurantId = item.restaurant.id;
+      if (!groups[restaurantId]) {
+        groups[restaurantId] = {
+          restaurant: item.restaurant,
+          items: []
+        };
+      }
+      groups[restaurantId].items.push(item);
+      return groups;
+    }, {} as Record<string, { restaurant: Restaurant; items: OrderItem[] }>);
+
+    Object.values(restaurantGroups).forEach(group => {
+      message += `🏪 *${group.restaurant.name}*\n`;
+      message += `📞 Contact: ${group.restaurant.contactNumber}\n`;
+      if (orderDetails.paymentMethod === 'mtn-money' && group.restaurant.mtnNumber) {
+        message += `💳 MTN Money: ${group.restaurant.mtnNumber}\n`;
+      }
+      if (orderDetails.paymentMethod === 'orange-money' && group.restaurant.orangeNumber) {
+        message += `🧡 Orange Money: ${group.restaurant.orangeNumber}\n`;
+      }
+      
+      group.items.forEach(item => {
+        message += `• ${item.name} x${item.quantity} - ${formatPrice(item.finalPrice * item.quantity)}\n`;
+      });
+      message += `\n`;
     });
     
-    message += `\n💰 *Total: ${formatPrice(total)}*\n\n`;
+    message += `💰 *Total: ${formatPrice(total)}*\n\n`;
     message += `Thank you for choosing ChopTime! 🇨🇲`;
     
     return encodeURIComponent(message);
@@ -300,16 +398,16 @@ const Index = () => {
             Taste of Cameroon 🇨🇲
           </h2>
           <p className="text-lg text-choptime-brown/80 mb-6 animate-fade-in">
-            Authentic traditional dishes delivered fresh to your doorstep
+            Choose your favorite dish, then select your preferred restaurant
           </p>
           <div className="flex items-center justify-center gap-6 text-sm text-choptime-brown/70">
             <div className="flex items-center gap-1">
               <Clock className="w-4 h-4" />
-              <span>30-60 min delivery</span>
+              <span>25-60 min delivery</span>
             </div>
             <div className="flex items-center gap-1">
               <Star className="w-4 h-4 fill-choptime-orange text-choptime-orange" />
-              <span>4.7 rating</span>
+              <span>4.8 rating</span>
             </div>
           </div>
         </div>
@@ -350,12 +448,12 @@ const Index = () => {
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-xl font-bold text-choptime-orange">{formatPrice(item.price)}</span>
+                    <span className="text-lg font-bold text-choptime-orange">From {formatPrice(item.basePrice)}</span>
                     <Button 
-                      onClick={() => addToCart(item)}
+                      onClick={() => handleAddToCart(item)}
                       className="choptime-gradient hover:opacity-90 text-white"
                     >
-                      Add to Cart
+                      Choose Restaurant
                     </Button>
                   </div>
                 </CardContent>
@@ -371,13 +469,12 @@ const Index = () => {
           <div className="container mx-auto px-4">
             <h3 className="text-2xl font-bold text-choptime-brown mb-6">Your Order</h3>
             
-            {/* Cart Items */}
             <div className="grid md:grid-cols-2 gap-8">
               <div>
                 <h4 className="font-semibold text-choptime-brown mb-4">Cart Items</h4>
                 <div className="space-y-4">
                   {cart.map(item => (
-                    <Card key={item.id}>
+                    <Card key={`${item.id}-${item.restaurant.id}`}>
                       <CardContent className="p-4">
                         <div className="flex items-center gap-4">
                           <img 
@@ -387,13 +484,14 @@ const Index = () => {
                           />
                           <div className="flex-1">
                             <h5 className="font-semibold text-choptime-brown">{item.name}</h5>
-                            <p className="text-sm text-choptime-brown/70">{formatPrice(item.price)} each</p>
+                            <p className="text-xs text-choptime-orange font-medium">{item.restaurant.name}</p>
+                            <p className="text-sm text-choptime-brown/70">{formatPrice(item.finalPrice)} each</p>
                           </div>
                           <div className="flex items-center gap-2">
                             <Button 
                               size="sm" 
                               variant="outline"
-                              onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                              onClick={() => updateQuantity(item.id, item.restaurant.id, item.quantity - 1)}
                             >
                               -
                             </Button>
@@ -401,7 +499,7 @@ const Index = () => {
                             <Button 
                               size="sm" 
                               variant="outline"
-                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                              onClick={() => updateQuantity(item.id, item.restaurant.id, item.quantity + 1)}
                             >
                               +
                             </Button>
@@ -418,59 +516,64 @@ const Index = () => {
                 </div>
               </div>
 
-              {/* Order Form */}
-              <div>
-                <h4 className="font-semibold text-choptime-brown mb-4">Delivery Details</h4>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="name">Full Name *</Label>
-                    <Input
-                      id="name"
-                      placeholder="Enter your full name"
-                      value={orderDetails.customerName}
-                      onChange={(e) => setOrderDetails({...orderDetails, customerName: e.target.value})}
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="phone">Phone Number *</Label>
-                    <Input
-                      id="phone"
-                      placeholder="e.g., +237 6XX XXX XXX"
-                      value={orderDetails.phone}
-                      onChange={(e) => setOrderDetails({...orderDetails, phone: e.target.value})}
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="address">Delivery Address *</Label>
-                    <Textarea
-                      id="address"
-                      placeholder="Enter your complete delivery address (neighborhood, street, landmarks)"
-                      value={orderDetails.deliveryAddress}
-                      onChange={(e) => setOrderDetails({...orderDetails, deliveryAddress: e.target.value})}
-                      rows={3}
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="payment">Payment Method *</Label>
-                    <Select onValueChange={(value) => setOrderDetails({...orderDetails, paymentMethod: value})}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose payment method" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white">
-                        <SelectItem value="mtn-money">MTN Mobile Money</SelectItem>
-                        <SelectItem value="orange-money">Orange Money</SelectItem>
-                        <SelectItem value="pay-on-delivery">Pay on Delivery</SelectItem>
-                      </SelectContent>
-                    </Select>
+              <div className="space-y-6">
+                <div>
+                  <h4 className="font-semibold text-choptime-brown mb-4">Delivery Details</h4>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="name">Full Name *</Label>
+                      <Input
+                        id="name"
+                        placeholder="Enter your full name"
+                        value={orderDetails.customerName}
+                        onChange={(e) => setOrderDetails({...orderDetails, customerName: e.target.value})}
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="phone">Phone Number *</Label>
+                      <Input
+                        id="phone"
+                        placeholder="e.g., +237 6XX XXX XXX"
+                        value={orderDetails.phone}
+                        onChange={(e) => setOrderDetails({...orderDetails, phone: e.target.value})}
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="address">Delivery Address *</Label>
+                      <Textarea
+                        id="address"
+                        placeholder="Enter your complete delivery address (neighborhood, street, landmarks)"
+                        value={orderDetails.deliveryAddress}
+                        onChange={(e) => setOrderDetails({...orderDetails, deliveryAddress: e.target.value})}
+                        rows={3}
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="payment">Payment Method *</Label>
+                      <Select onValueChange={(value) => setOrderDetails({...orderDetails, paymentMethod: value})}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Choose payment method" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white z-50">
+                          <SelectItem value="mtn-money">MTN Mobile Money</SelectItem>
+                          <SelectItem value="orange-money">Orange Money</SelectItem>
+                          <SelectItem value="pay-on-delivery">Pay on Delivery</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
+
+                <PaymentDetails 
+                  paymentMethod={orderDetails.paymentMethod}
+                  restaurants={getUniqueRestaurants()}
+                />
               </div>
             </div>
 
-            {/* WhatsApp Order Button */}
             <div className="mt-8 text-center">
               <Button 
                 onClick={handleWhatsAppOrder}
@@ -487,6 +590,15 @@ const Index = () => {
           </div>
         </section>
       )}
+
+      <RestaurantSelectionModal
+        isOpen={showRestaurantModal}
+        onClose={() => setShowRestaurantModal(false)}
+        menuItem={selectedMenuItem}
+        restaurants={restaurants}
+        restaurantMenuItems={restaurantMenuItems}
+        onSelectRestaurant={handleRestaurantSelection}
+      />
 
       {/* Footer */}
       <footer className="bg-choptime-brown text-white py-8">
