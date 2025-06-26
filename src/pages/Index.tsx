@@ -9,34 +9,38 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { ShoppingCart, Phone, MapPin, MessageCircle, Download, Star, Clock, Users, Flame, Leaf } from 'lucide-react';
-import { Restaurant, Dish, OrderItem, Order } from '@/types/restaurant';
+import { ShoppingCart, Phone, MapPin, MessageCircle, Download, Star, Clock, Users, Flame, Leaf, Package } from 'lucide-react';
+import { Restaurant, Dish, OrderItem, CustomOrderItem, Order, CustomOrder } from '@/types/restaurant';
 import RestaurantSelectionModal from '@/components/RestaurantSelectionModal';
+import CustomOrderModal from '@/components/CustomOrderModal';
 import PaymentDetails from '@/components/PaymentDetails';
 import TownSelector from '@/components/TownSelector';
 import { useChopTimeData } from '@/hooks/useChopTimeData';
 
 interface OrderDetails {
-  items: OrderItem[];
+  items: (OrderItem | CustomOrderItem)[];
   customerName: string;
   phone: string;
   deliveryAddress: string;
   paymentMethod: string;
   total: number;
+  deliveryFee: number;
 }
 
 const Index = () => {
   const [selectedTown, setSelectedTown] = useState<string>('');
-  const [cart, setCart] = useState<OrderItem[]>([]);
+  const [cart, setCart] = useState<(OrderItem | CustomOrderItem)[]>([]);
   const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
   const [showRestaurantModal, setShowRestaurantModal] = useState(false);
+  const [showCustomOrderModal, setShowCustomOrderModal] = useState(false);
   const [orderDetails, setOrderDetails] = useState<OrderDetails>({
     items: [],
     customerName: '',
     phone: '',
     deliveryAddress: '',
     paymentMethod: '',
-    total: 0
+    total: 0,
+    deliveryFee: 0
   });
   const [showPWAPrompt, setShowPWAPrompt] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -48,9 +52,12 @@ const Index = () => {
     restaurantMenus, 
     loading, 
     error, 
+    getDeliveryFee,
+    generateOrderReference,
     saveUserTown, 
     getUserTown, 
     saveOrder,
+    saveCustomOrder,
     getUserOrders 
   } = useChopTimeData(selectedTown);
 
@@ -62,12 +69,24 @@ const Index = () => {
         const userTown = await getUserTown(savedPhone);
         if (userTown) {
           setSelectedTown(userTown);
-          setOrderDetails(prev => ({ ...prev, phone: savedPhone }));
+          setOrderDetails(prev => ({ 
+            ...prev, 
+            phone: savedPhone,
+            deliveryFee: getDeliveryFee(userTown)
+          }));
         }
       }
     };
     loadUserTown();
-  }, [getUserTown]);
+  }, [getUserTown, getDeliveryFee]);
+
+  // Update delivery fee when town changes
+  useEffect(() => {
+    if (selectedTown) {
+      const fee = getDeliveryFee(selectedTown);
+      setOrderDetails(prev => ({ ...prev, deliveryFee: fee }));
+    }
+  }, [selectedTown, getDeliveryFee]);
 
   // PWA Install Prompt
   useEffect(() => {
@@ -98,6 +117,8 @@ const Index = () => {
 
   const handleTownSelect = async (town: string) => {
     setSelectedTown(town);
+    const fee = getDeliveryFee(town);
+    setOrderDetails(prev => ({ ...prev, deliveryFee: fee }));
     if (orderDetails.phone) {
       await saveUserTown(orderDetails.phone, town);
       localStorage.setItem('choptime_phone', orderDetails.phone);
@@ -107,6 +128,10 @@ const Index = () => {
   const handleAddToCart = (dish: Dish) => {
     setSelectedDish(dish);
     setShowRestaurantModal(true);
+  };
+
+  const handleCustomOrder = () => {
+    setShowCustomOrderModal(true);
   };
 
   const getAvailableRestaurantsForDish = (dishId: string): Restaurant[] => {
@@ -127,12 +152,12 @@ const Index = () => {
     if (!selectedDish) return;
 
     const existingItem = cart.find(
-      item => item.dish.id === selectedDish.id && item.restaurant.id === restaurant.id
-    );
+      item => 'dish' in item && item.dish.id === selectedDish.id && item.restaurant.id === restaurant.id
+    ) as OrderItem | undefined;
     
     if (existingItem) {
       setCart(cart.map(item => 
-        item.dish.id === selectedDish.id && item.restaurant.id === restaurant.id
+        'dish' in item && item.dish.id === selectedDish.id && item.restaurant.id === restaurant.id
           ? { ...item, quantity: item.quantity + 1 }
           : item
       ));
@@ -155,75 +180,83 @@ const Index = () => {
     });
   };
 
-  const updateQuantity = (dishId: string, restaurantId: string, quantity: number) => {
+  const handleCustomOrderAdd = (customOrderItem: CustomOrderItem) => {
+    setCart([...cart, customOrderItem]);
+    toast({
+      title: "Custom Order Added",
+      description: `${customOrderItem.customDishName} from ${customOrderItem.restaurant.name} has been added to your cart.`,
+    });
+  };
+
+  const updateQuantity = (index: number, quantity: number) => {
     if (quantity === 0) {
-      setCart(cart.filter(item => !(item.dish.id === dishId && item.restaurant.id === restaurantId)));
+      setCart(cart.filter((_, i) => i !== index));
     } else {
-      setCart(cart.map(item => 
-        item.dish.id === dishId && item.restaurant.id === restaurantId 
-          ? { ...item, quantity } 
-          : item
+      setCart(cart.map((item, i) => 
+        i === index ? { ...item, quantity } : item
       ));
     }
   };
 
+  const calculateSubtotal = () => {
+    return cart.reduce((total, item) => {
+      if ('dish' in item) {
+        return total + (item.price * item.quantity);
+      } else {
+        return total + (item.estimatedPrice * item.quantity);
+      }
+    }, 0);
+  };
+
   const calculateTotal = () => {
-    return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+    return calculateSubtotal() + orderDetails.deliveryFee;
   };
 
   const formatPrice = (price: number) => {
     return `${price.toLocaleString()} FCFA`;
   };
 
-  const getUniqueRestaurants = () => {
-    const restaurantIds = new Set(cart.map(item => item.restaurant.id));
-    return Array.from(restaurantIds).map(id => 
-      restaurants.find(r => r.id === id)!
-    ).filter(Boolean);
-  };
-
-  const generateWhatsAppMessage = () => {
+  const generateWhatsAppMessage = async () => {
+    const subtotal = calculateSubtotal();
     const total = calculateTotal();
+    const orderRef = await generateOrderReference(selectedTown);
+    
     let message = `🍽️ *ChopTime Order*\n\n`;
+    message += `📋 *Order ID:* ${orderRef}\n`;
     message += `👤 *Customer:* ${orderDetails.customerName}\n`;
     message += `📱 *Phone:* ${orderDetails.phone}\n`;
-    message += `📍 *Delivery Address:* ${orderDetails.deliveryAddress}\n`;
+    message += `📍 *Address:* ${orderDetails.deliveryAddress}\n`;
     message += `🏙️ *Town:* ${selectedTown}\n`;
     message += `💳 *Payment:* ${orderDetails.paymentMethod}\n\n`;
     
-    // Group items by restaurant
-    const restaurantGroups = cart.reduce((groups, item) => {
-      const restaurantId = item.restaurant.id;
-      if (!groups[restaurantId]) {
-        groups[restaurantId] = {
-          restaurant: item.restaurant,
-          items: []
-        };
-      }
-      groups[restaurantId].items.push(item);
-      return groups;
-    }, {} as Record<string, { restaurant: Restaurant; items: OrderItem[] }>);
-
-    Object.values(restaurantGroups).forEach(group => {
-      message += `🏪 *${group.restaurant.name}*\n`;
-      message += `📞 Contact: ${group.restaurant.contact_number}\n`;
-      if (orderDetails.paymentMethod === 'mtn-money' && group.restaurant.mtn_number) {
-        message += `💳 MTN Money: ${group.restaurant.mtn_number}\n`;
-      }
-      if (orderDetails.paymentMethod === 'orange-money' && group.restaurant.orange_number) {
-        message += `🧡 Orange Money: ${group.restaurant.orange_number}\n`;
-      }
-      
-      group.items.forEach(item => {
+    message += `🛒 *Order Details:*\n`;
+    cart.forEach(item => {
+      if ('dish' in item) {
         message += `• ${item.dish.name} x${item.quantity} - ${formatPrice(item.price * item.quantity)}\n`;
-      });
-      message += `\n`;
+        message += `  📍 ${item.restaurant.name}\n`;
+      } else {
+        message += `• ${item.customDishName} x${item.quantity} - ${formatPrice(item.estimatedPrice * item.quantity)} (Custom)\n`;
+        message += `  📍 ${item.restaurant.name}\n`;
+        if (item.specialInstructions) {
+          message += `  📝 ${item.specialInstructions}\n`;
+        }
+      }
     });
     
-    message += `💰 *Total: ${formatPrice(total)}*\n\n`;
+    message += `\n💰 *Subtotal:* ${formatPrice(subtotal)}\n`;
+    message += `🚚 *Delivery Fee:* ${formatPrice(orderDetails.deliveryFee)}\n`;
+    message += `💯 *Total:* ${formatPrice(total)}\n\n`;
+    
+    if (orderDetails.paymentMethod !== 'pay-on-delivery') {
+      message += `💳 *Payment Details:*\n`;
+      message += `📞 Number: +237 6 70 41 64 49\n`;
+      message += `👤 Name: Ngwese Mpah\n`;
+      message += `📋 Reference: ${orderRef}\n\n`;
+    }
+    
     message += `Thank you for choosing ChopTime! 🇨🇲`;
     
-    return encodeURIComponent(message);
+    return { message: encodeURIComponent(message), orderRef };
   };
 
   const handleWhatsAppOrder = async () => {
@@ -245,23 +278,44 @@ const Index = () => {
       return;
     }
 
-    // Save orders to database
     try {
+      const { message, orderRef } = await generateWhatsAppMessage();
+
+      // Save orders to database
       for (const item of cart) {
-        const orderData: Omit<Order, 'id' | 'created_at' | 'updated_at'> = {
-          user_name: orderDetails.customerName,
-          user_phone: orderDetails.phone,
-          user_location: orderDetails.deliveryAddress,
-          dish_name: item.dish.name,
-          restaurant_name: item.restaurant.name,
-          restaurant_id: item.restaurant.id,
-          dish_id: item.dish.id,
-          quantity: item.quantity,
-          price: item.price,
-          total_amount: item.price * item.quantity,
-          status: 'pending'
-        };
-        await saveOrder(orderData);
+        if ('dish' in item) {
+          const orderData: Omit<Order, 'id' | 'created_at' | 'updated_at'> = {
+            user_name: orderDetails.customerName,
+            user_phone: orderDetails.phone,
+            user_location: orderDetails.deliveryAddress,
+            dish_name: item.dish.name,
+            restaurant_name: item.restaurant.name,
+            restaurant_id: item.restaurant.id,
+            dish_id: item.dish.id,
+            quantity: item.quantity,
+            price: item.price,
+            total_amount: item.price * item.quantity,
+            order_reference: orderRef,
+            status: 'pending'
+          };
+          await saveOrder(orderData);
+        } else {
+          const customOrderData: Omit<CustomOrder, 'id' | 'created_at' | 'updated_at'> = {
+            user_name: orderDetails.customerName,
+            user_phone: orderDetails.phone,
+            user_location: orderDetails.deliveryAddress,
+            custom_dish_name: item.customDishName,
+            quantity: item.quantity,
+            special_instructions: item.specialInstructions,
+            restaurant_id: item.restaurant.id,
+            restaurant_name: item.restaurant.name,
+            estimated_price: item.estimatedPrice,
+            total_amount: item.estimatedPrice * item.quantity,
+            order_reference: orderRef,
+            status: 'pending'
+          };
+          await saveCustomOrder(customOrderData);
+        }
       }
 
       // Save user's town and phone
@@ -270,21 +324,20 @@ const Index = () => {
 
       toast({
         title: "Order Saved!",
-        description: "Your order has been saved successfully.",
+        description: `Your order ${orderRef} has been saved successfully.`,
       });
+
+      // Open WhatsApp
+      const whatsappUrl = `https://wa.me/237670416449?text=${message}`;
+      window.open(whatsappUrl, '_blank');
     } catch (error) {
-      console.error('Error saving order:', error);
+      console.error('Error processing order:', error);
       toast({
-        title: "Save Error",
-        description: "Failed to save order, but WhatsApp will still work.",
+        title: "Order Error",
+        description: "Failed to process order. Please try again.",
         variant: "destructive"
       });
     }
-
-    // Open WhatsApp
-    const message = generateWhatsAppMessage();
-    const whatsappUrl = `https://wa.me/237670416449?text=${message}`;
-    window.open(whatsappUrl, '_blank');
   };
 
   if (loading) {
@@ -330,7 +383,7 @@ const Index = () => {
               onClick={handleInstallPWA}
               className="bg-white text-choptime-orange hover:bg-gray-100"
             >
-              Install Now
+              📲 Install Now
             </Button>
             <Button 
               size="sm" 
@@ -375,6 +428,11 @@ const Index = () => {
                 <Button
                   variant="outline"
                   size="sm"
+                  onClick={() => {
+                    if (cart.length > 0) {
+                      document.getElementById('cart-section')?.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
                   className="relative border-choptime-orange text-choptime-orange hover:bg-choptime-orange hover:text-white"
                 >
                   <ShoppingCart className="w-4 h-4 mr-2" />
@@ -415,7 +473,7 @@ const Index = () => {
             {selectedTown && (
               <div className="flex items-center gap-1">
                 <MapPin className="w-4 h-4" />
-                <span>{selectedTown}</span>
+                <span>{selectedTown} • Delivery: {formatPrice(getDeliveryFee(selectedTown))}</span>
               </div>
             )}
           </div>
@@ -427,12 +485,41 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <h3 className="text-2xl font-bold text-choptime-brown mb-6">Our Menu</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Custom Order Card */}
+            <Card className="overflow-hidden choptime-shadow hover:shadow-lg transition-all duration-300 animate-slide-up border-2 border-dashed border-choptime-orange/50">
+              <div className="relative bg-gradient-to-br from-choptime-orange/10 to-choptime-beige/50 h-48 flex items-center justify-center">
+                <div className="text-center">
+                  <Package className="w-16 h-16 text-choptime-orange mx-auto mb-3" />
+                  <Badge className="bg-choptime-orange text-white">Custom Order</Badge>
+                </div>
+              </div>
+              <CardContent className="p-4">
+                <h4 className="font-bold text-lg text-choptime-brown mb-2">📦 Custom Food Order</h4>
+                <p className="text-sm text-choptime-brown/70 mb-3">
+                  Can't find what you're looking for? Order any dish from your favorite restaurant!
+                </p>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-choptime-orange">
+                    Starting from {formatPrice(2000)}
+                  </span>
+                  <Button 
+                    onClick={handleCustomOrder}
+                    disabled={!selectedTown || restaurants.length === 0}
+                    className="choptime-gradient hover:opacity-90 text-white disabled:opacity-50"
+                  >
+                    {restaurants.length > 0 ? 'Order Custom' : 'No Restaurants'}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Regular Dishes */}
             {dishes.map((dish, index) => {
               const availableRestaurants = getAvailableRestaurantsForDish(dish.id);
-              const minPrice = Math.min(...availableRestaurants.map(r => getDishPrice(dish.id, r.id)));
+              const minPrice = availableRestaurants.length > 0 ? Math.min(...availableRestaurants.map(r => getDishPrice(dish.id, r.id))) : 0;
               
               return (
-                <Card key={dish.id} className="overflow-hidden choptime-shadow hover:shadow-lg transition-all duration-300 animate-slide-up" style={{ animationDelay: `${index * 100}ms` }}>
+                <Card key={dish.id} className="overflow-hidden choptime-shadow hover:shadow-lg transition-all duration-300 animate-slide-up" style={{ animationDelay: `${(index + 1) * 100}ms` }}>
                   <div className="relative">
                     <img 
                       src={dish.image_url || 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400'} 
@@ -495,7 +582,7 @@ const Index = () => {
 
       {/* Cart & Order Section */}
       {cart.length > 0 && (
-        <section className="py-8 bg-white">
+        <section id="cart-section" className="py-8 bg-white">
           <div className="container mx-auto px-4">
             <h3 className="text-2xl font-bold text-choptime-brown mb-6">Your Order</h3>
             
@@ -503,25 +590,43 @@ const Index = () => {
               <div>
                 <h4 className="font-semibold text-choptime-brown mb-4">Cart Items</h4>
                 <div className="space-y-4">
-                  {cart.map(item => (
-                    <Card key={`${item.dish.id}-${item.restaurant.id}`}>
+                  {cart.map((item, index) => (
+                    <Card key={index}>
                       <CardContent className="p-4">
                         <div className="flex items-center gap-4">
-                          <img 
-                            src={item.dish.image_url || 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400'} 
-                            alt={item.dish.name}
-                            className="w-16 h-16 object-cover rounded"
-                          />
-                          <div className="flex-1">
-                            <h5 className="font-semibold text-choptime-brown">{item.dish.name}</h5>
-                            <p className="text-xs text-choptime-orange font-medium">{item.restaurant.name}</p>
-                            <p className="text-sm text-choptime-brown/70">{formatPrice(item.price)} each</p>
-                          </div>
+                          {'dish' in item ? (
+                            <>
+                              <img 
+                                src={item.dish.image_url || 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400'} 
+                                alt={item.dish.name}
+                                className="w-16 h-16 object-cover rounded"
+                              />
+                              <div className="flex-1">
+                                <h5 className="font-semibold text-choptime-brown">{item.dish.name}</h5>
+                                <p className="text-xs text-choptime-orange font-medium">{item.restaurant.name}</p>
+                                <p className="text-sm text-choptime-brown/70">{formatPrice(item.price)} each</p>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="w-16 h-16 bg-choptime-orange/10 rounded flex items-center justify-center">
+                                <Package className="w-8 h-8 text-choptime-orange" />
+                              </div>
+                              <div className="flex-1">
+                                <h5 className="font-semibold text-choptime-brown">{item.customDishName}</h5>
+                                <p className="text-xs text-choptime-orange font-medium">{item.restaurant.name}</p>
+                                <p className="text-sm text-choptime-brown/70">{formatPrice(item.estimatedPrice)} each (Est.)</p>
+                                {item.specialInstructions && (
+                                  <p className="text-xs text-choptime-brown/60 mt-1">📝 {item.specialInstructions}</p>
+                                )}
+                              </div>
+                            </>
+                          )}
                           <div className="flex items-center gap-2">
                             <Button 
                               size="sm" 
                               variant="outline"
-                              onClick={() => updateQuantity(item.dish.id, item.restaurant.id, item.quantity - 1)}
+                              onClick={() => updateQuantity(index, item.quantity - 1)}
                             >
                               -
                             </Button>
@@ -529,7 +634,7 @@ const Index = () => {
                             <Button 
                               size="sm" 
                               variant="outline"
-                              onClick={() => updateQuantity(item.dish.id, item.restaurant.id, item.quantity + 1)}
+                              onClick={() => updateQuantity(index, item.quantity + 1)}
                             >
                               +
                             </Button>
@@ -540,9 +645,20 @@ const Index = () => {
                   ))}
                 </div>
                 <Separator className="my-4" />
-                <div className="flex justify-between items-center text-lg font-bold">
-                  <span>Total:</span>
-                  <span className="text-choptime-orange">{formatPrice(calculateTotal())}</span>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span>Subtotal:</span>
+                    <span className="text-choptime-orange font-medium">{formatPrice(calculateSubtotal())}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Delivery Fee ({selectedTown}):</span>
+                    <span className="text-choptime-orange font-medium">{formatPrice(orderDetails.deliveryFee)}</span>
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between items-center text-lg font-bold">
+                    <span>Total:</span>
+                    <span className="text-choptime-orange">{formatPrice(calculateTotal())}</span>
+                  </div>
                 </div>
               </div>
 
@@ -603,10 +719,7 @@ const Index = () => {
                   </div>
                 </div>
 
-                <PaymentDetails 
-                  paymentMethod={orderDetails.paymentMethod}
-                  restaurants={getUniqueRestaurants()}
-                />
+                <PaymentDetails paymentMethod={orderDetails.paymentMethod} />
               </div>
             </div>
 
@@ -634,6 +747,13 @@ const Index = () => {
         restaurants={selectedDish ? getAvailableRestaurantsForDish(selectedDish.id) : []}
         getDishPrice={(restaurantId) => selectedDish ? getDishPrice(selectedDish.id, restaurantId) : 0}
         onSelectRestaurant={handleRestaurantSelection}
+      />
+
+      <CustomOrderModal
+        isOpen={showCustomOrderModal}
+        onClose={() => setShowCustomOrderModal(false)}
+        restaurants={restaurants}
+        onAddToCart={handleCustomOrderAdd}
       />
 
       {/* Footer */}
@@ -671,7 +791,8 @@ const Index = () => {
               <div className="text-sm text-white/80 space-y-1">
                 <p>🕐 Delivery: 30-60 minutes</p>
                 <p>💳 Payment: MTN/Orange Money, Cash</p>
-                <p>🚚 Free delivery on orders above 5,000 FCFA</p>
+                <p>🚚 Delivery fees vary by town</p>
+                <p>📱 Order tracking via WhatsApp</p>
               </div>
             </div>
           </div>

@@ -9,6 +9,92 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      custom_orders: {
+        Row: {
+          created_at: string | null
+          custom_dish_name: string
+          estimated_price: number | null
+          id: string
+          order_reference: string | null
+          quantity: number
+          restaurant_id: string | null
+          restaurant_name: string
+          special_instructions: string | null
+          status: Database["public"]["Enums"]["order_status"] | null
+          total_amount: number | null
+          updated_at: string | null
+          user_location: string
+          user_name: string
+          user_phone: string
+        }
+        Insert: {
+          created_at?: string | null
+          custom_dish_name: string
+          estimated_price?: number | null
+          id?: string
+          order_reference?: string | null
+          quantity?: number
+          restaurant_id?: string | null
+          restaurant_name: string
+          special_instructions?: string | null
+          status?: Database["public"]["Enums"]["order_status"] | null
+          total_amount?: number | null
+          updated_at?: string | null
+          user_location: string
+          user_name: string
+          user_phone: string
+        }
+        Update: {
+          created_at?: string | null
+          custom_dish_name?: string
+          estimated_price?: number | null
+          id?: string
+          order_reference?: string | null
+          quantity?: number
+          restaurant_id?: string | null
+          restaurant_name?: string
+          special_instructions?: string | null
+          status?: Database["public"]["Enums"]["order_status"] | null
+          total_amount?: number | null
+          updated_at?: string | null
+          user_location?: string
+          user_name?: string
+          user_phone?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_orders_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      delivery_fees: {
+        Row: {
+          created_at: string | null
+          fee: number
+          id: string
+          town: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          fee?: number
+          id?: string
+          town: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          fee?: number
+          id?: string
+          town?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       dishes: {
         Row: {
           category: Database["public"]["Enums"]["dish_category"]
@@ -57,6 +143,7 @@ export type Database = {
           dish_id: string | null
           dish_name: string
           id: string
+          order_reference: string | null
           price: number
           quantity: number
           restaurant_id: string | null
@@ -73,6 +160,7 @@ export type Database = {
           dish_id?: string | null
           dish_name: string
           id?: string
+          order_reference?: string | null
           price: number
           quantity?: number
           restaurant_id?: string | null
@@ -89,6 +177,7 @@ export type Database = {
           dish_id?: string | null
           dish_name?: string
           id?: string
+          order_reference?: string | null
           price?: number
           quantity?: number
           restaurant_id?: string | null
@@ -227,7 +316,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_order_reference: {
+        Args: { town_name: string }
+        Returns: string
+      }
     }
     Enums: {
       dish_category:

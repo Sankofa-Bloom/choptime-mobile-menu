@@ -9,7 +9,7 @@ interface TownSelectorProps {
   selectedTown?: string;
 }
 
-const TOWNS = ['Douala', 'Yaoundé', 'Buea', 'Bamenda', 'Bafoussam'];
+const TOWNS = ['Douala', 'Yaoundé', 'Buea', 'Limbe', 'Bamenda', 'Bafoussam'];
 
 const TownSelector: React.FC<TownSelectorProps> = ({ onTownSelect, selectedTown }) => {
   if (selectedTown) return null;

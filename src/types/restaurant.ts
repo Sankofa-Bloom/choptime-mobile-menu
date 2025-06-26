@@ -50,7 +50,34 @@ export interface Order {
   quantity: number;
   price: number;
   total_amount: number;
+  order_reference?: string;
   status?: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface CustomOrder {
+  id?: string;
+  user_name: string;
+  user_phone: string;
+  user_location: string;
+  custom_dish_name: string;
+  quantity: number;
+  special_instructions?: string;
+  restaurant_id: string;
+  restaurant_name: string;
+  estimated_price?: number;
+  total_amount?: number;
+  order_reference?: string;
+  status?: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface DeliveryFee {
+  id: string;
+  town: string;
+  fee: number;
   created_at?: string;
   updated_at?: string;
 }
@@ -60,6 +87,14 @@ export interface OrderItem {
   restaurant: Restaurant;
   quantity: number;
   price: number;
+}
+
+export interface CustomOrderItem {
+  customDishName: string;
+  restaurant: Restaurant;
+  quantity: number;
+  estimatedPrice: number;
+  specialInstructions?: string;
 }
 
 export interface UserTown {
