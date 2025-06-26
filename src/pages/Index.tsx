@@ -1,20 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { ShoppingCart, Phone, MapPin, MessageCircle, Download, Star, Clock, Users, Flame, Leaf, Package } from 'lucide-react';
 import { Restaurant, Dish, OrderItem, CustomOrderItem, Order, CustomOrder } from '@/types/restaurant';
 import RestaurantSelectionModal from '@/components/RestaurantSelectionModal';
 import CustomOrderModal from '@/components/CustomOrderModal';
-import PaymentDetails from '@/components/PaymentDetails';
 import TownSelector from '@/components/TownSelector';
+import Header from '@/components/Header';
+import HeroSection from '@/components/HeroSection';
+import MenuSection from '@/components/MenuSection';
+import CartSection from '@/components/CartSection';
+import Footer from '@/components/Footer';
 import { useChopTimeData } from '@/hooks/useChopTimeData';
 
 interface OrderDetails {
@@ -57,8 +52,7 @@ const Index = () => {
     saveUserTown, 
     getUserTown, 
     saveOrder,
-    saveCustomOrder,
-    getUserOrders 
+    saveCustomOrder
   } = useChopTimeData(selectedTown);
 
   // Load user's town on component mount
@@ -67,7 +61,7 @@ const Index = () => {
       const savedPhone = localStorage.getItem('choptime_phone');
       if (savedPhone) {
         const userTown = await getUserTown(savedPhone);
-        if (userTown) {
+        if (userTown && (userTown === 'Buea' || userTown === 'Limbe')) {
           setSelectedTown(userTown);
           setOrderDetails(prev => ({ 
             ...prev, 
@@ -340,6 +334,20 @@ const Index = () => {
     }
   };
 
+  const handleCartClick = () => {
+    if (cart.length > 0) {
+      document.getElementById('cart-section')?.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleOrderDetailsChange = (details: any) => {
+    setOrderDetails(details);
+    if (details.phone && selectedTown) {
+      saveUserTown(details.phone, selectedTown);
+      localStorage.setItem('choptime_phone', details.phone);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-choptime-beige flex items-center justify-center">
@@ -356,9 +364,9 @@ const Index = () => {
       <div className="min-h-screen bg-choptime-beige flex items-center justify-center">
         <div className="text-center">
           <p className="text-choptime-brown">Error: {error}</p>
-          <Button onClick={() => window.location.reload()} className="mt-4">
+          <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 bg-choptime-orange text-white rounded">
             Retry
-          </Button>
+          </button>
         </div>
       </div>
     );
@@ -368,376 +376,39 @@ const Index = () => {
     <div className="min-h-screen bg-choptime-beige">
       <TownSelector onTownSelect={handleTownSelect} selectedTown={selectedTown} />
 
-      {/* PWA Install Banner */}
-      {showPWAPrompt && (
-        <div className="bg-choptime-orange text-white p-4 text-center relative animate-slide-up">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <Download className="w-5 h-5" />
-            <span className="font-semibold">Install ChopTime App</span>
-          </div>
-          <p className="text-sm mb-3">Add ChopTime to your home screen for quick access!</p>
-          <div className="flex gap-2 justify-center">
-            <Button 
-              size="sm" 
-              variant="secondary" 
-              onClick={handleInstallPWA}
-              className="bg-white text-choptime-orange hover:bg-gray-100"
-            >
-              📲 Install Now
-            </Button>
-            <Button 
-              size="sm" 
-              variant="ghost" 
-              onClick={() => setShowPWAPrompt(false)}
-              className="text-white hover:bg-white/20"
-            >
-              Later
-            </Button>
-          </div>
-        </div>
-      )}
+      <Header
+        selectedTown={selectedTown}
+        cart={cart}
+        onTownChange={() => setSelectedTown('')}
+        onCartClick={handleCartClick}
+        showPWAPrompt={showPWAPrompt}
+        onInstallPWA={handleInstallPWA}
+        onDismissPWA={() => setShowPWAPrompt(false)}
+      />
 
-      {/* Header */}
-      <header className="bg-white choptime-shadow sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-choptime-orange rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-xl">C</span>
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-choptime-brown">ChopTime</h1>
-                <p className="text-sm text-choptime-brown/70">
-                  {selectedTown ? `Delivering in ${selectedTown}` : 'Authentic Cameroonian Cuisine'}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              {selectedTown && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSelectedTown('')}
-                  className="text-choptime-orange hover:bg-choptime-orange/10"
-                >
-                  <MapPin className="w-4 h-4 mr-1" />
-                  Change Town
-                </Button>
-              )}
-              <div className="relative">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    if (cart.length > 0) {
-                      document.getElementById('cart-section')?.scrollIntoView({ behavior: 'smooth' });
-                    }
-                  }}
-                  className="relative border-choptime-orange text-choptime-orange hover:bg-choptime-orange hover:text-white"
-                >
-                  <ShoppingCart className="w-4 h-4 mr-2" />
-                  Cart
-                  {cart.length > 0 && (
-                    <Badge className="absolute -top-2 -right-2 bg-choptime-orange text-white text-xs">
-                      {cart.length}
-                    </Badge>
-                  )}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+      <HeroSection selectedTown={selectedTown} deliveryFee={orderDetails.deliveryFee} />
 
-      {/* Hero Section */}
-      <section className="african-pattern py-12">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-4xl md:text-5xl font-bold text-choptime-brown mb-4 animate-fade-in">
-            Taste of Cameroon 🇨🇲
-          </h2>
-          <p className="text-lg text-choptime-brown/80 mb-6 animate-fade-in">
-            {selectedTown 
-              ? `Fresh dishes from restaurants in ${selectedTown}` 
-              : 'Choose your favorite dish, then select your preferred restaurant'
-            }
-          </p>
-          <div className="flex items-center justify-center gap-6 text-sm text-choptime-brown/70">
-            <div className="flex items-center gap-1">
-              <Clock className="w-4 h-4" />
-              <span>25-60 min delivery</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Star className="w-4 h-4 fill-choptime-orange text-choptime-orange" />
-              <span>4.8 rating</span>
-            </div>
-            {selectedTown && (
-              <div className="flex items-center gap-1">
-                <MapPin className="w-4 h-4" />
-                <span>{selectedTown} • Delivery: {formatPrice(getDeliveryFee(selectedTown))}</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
+      <MenuSection
+        dishes={dishes}
+        restaurants={restaurants}
+        selectedTown={selectedTown}
+        getAvailableRestaurantsForDish={getAvailableRestaurantsForDish}
+        getDishPrice={getDishPrice}
+        onAddToCart={handleAddToCart}
+        onCustomOrder={handleCustomOrder}
+      />
 
-      {/* Menu Section */}
-      <section className="py-8">
-        <div className="container mx-auto px-4">
-          <h3 className="text-2xl font-bold text-choptime-brown mb-6">Our Menu</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Custom Order Card */}
-            <Card className="overflow-hidden choptime-shadow hover:shadow-lg transition-all duration-300 animate-slide-up border-2 border-dashed border-choptime-orange/50">
-              <div className="relative bg-gradient-to-br from-choptime-orange/10 to-choptime-beige/50 h-48 flex items-center justify-center">
-                <div className="text-center">
-                  <Package className="w-16 h-16 text-choptime-orange mx-auto mb-3" />
-                  <Badge className="bg-choptime-orange text-white">Custom Order</Badge>
-                </div>
-              </div>
-              <CardContent className="p-4">
-                <h4 className="font-bold text-lg text-choptime-brown mb-2">📦 Custom Food Order</h4>
-                <p className="text-sm text-choptime-brown/70 mb-3">
-                  Can't find what you're looking for? Order any dish from your favorite restaurant!
-                </p>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-choptime-orange">
-                    Starting from {formatPrice(2000)}
-                  </span>
-                  <Button 
-                    onClick={handleCustomOrder}
-                    disabled={!selectedTown || restaurants.length === 0}
-                    className="choptime-gradient hover:opacity-90 text-white disabled:opacity-50"
-                  >
-                    {restaurants.length > 0 ? 'Order Custom' : 'No Restaurants'}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Regular Dishes */}
-            {dishes.map((dish, index) => {
-              const availableRestaurants = getAvailableRestaurantsForDish(dish.id);
-              const minPrice = availableRestaurants.length > 0 ? Math.min(...availableRestaurants.map(r => getDishPrice(dish.id, r.id))) : 0;
-              
-              return (
-                <Card key={dish.id} className="overflow-hidden choptime-shadow hover:shadow-lg transition-all duration-300 animate-slide-up" style={{ animationDelay: `${(index + 1) * 100}ms` }}>
-                  <div className="relative">
-                    <img 
-                      src={dish.image_url || 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400'} 
-                      alt={dish.name}
-                      className="w-full h-48 object-cover"
-                    />
-                    <Badge className="absolute top-2 left-2 bg-choptime-orange text-white">
-                      {dish.category}
-                    </Badge>
-                    <div className="absolute top-2 right-2 flex gap-1">
-                      {dish.is_popular && (
-                        <Badge variant="secondary" className="bg-white/90 text-choptime-orange">
-                          Popular
-                        </Badge>
-                      )}
-                      {dish.is_spicy && (
-                        <Badge variant="secondary" className="bg-red-100 text-red-600">
-                          <Flame className="w-3 h-3" />
-                        </Badge>
-                      )}
-                      {dish.is_vegetarian && (
-                        <Badge variant="secondary" className="bg-green-100 text-green-600">
-                          <Leaf className="w-3 h-3" />
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                  <CardContent className="p-4">
-                    <h4 className="font-bold text-lg text-choptime-brown mb-2">{dish.name}</h4>
-                    <p className="text-sm text-choptime-brown/70 mb-3 line-clamp-2">{dish.description}</p>
-                    <div className="flex items-center gap-4 text-xs text-choptime-brown/60 mb-3">
-                      <div className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        <span>{dish.cook_time}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Users className="w-3 h-3" />
-                        <span>{dish.serves}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-lg font-bold text-choptime-orange">
-                        {availableRestaurants.length > 0 ? `From ${formatPrice(minPrice)}` : 'Not Available'}
-                      </span>
-                      <Button 
-                        onClick={() => handleAddToCart(dish)}
-                        disabled={availableRestaurants.length === 0}
-                        className="choptime-gradient hover:opacity-90 text-white disabled:opacity-50"
-                      >
-                        {availableRestaurants.length > 0 ? 'Choose Restaurant' : 'Not Available'}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Cart & Order Section */}
       {cart.length > 0 && (
-        <section id="cart-section" className="py-8 bg-white">
-          <div className="container mx-auto px-4">
-            <h3 className="text-2xl font-bold text-choptime-brown mb-6">Your Order</h3>
-            
-            <div className="grid md:grid-cols-2 gap-8">
-              <div>
-                <h4 className="font-semibold text-choptime-brown mb-4">Cart Items</h4>
-                <div className="space-y-4">
-                  {cart.map((item, index) => (
-                    <Card key={index}>
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-4">
-                          {'dish' in item ? (
-                            <>
-                              <img 
-                                src={item.dish.image_url || 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400'} 
-                                alt={item.dish.name}
-                                className="w-16 h-16 object-cover rounded"
-                              />
-                              <div className="flex-1">
-                                <h5 className="font-semibold text-choptime-brown">{item.dish.name}</h5>
-                                <p className="text-xs text-choptime-orange font-medium">{item.restaurant.name}</p>
-                                <p className="text-sm text-choptime-brown/70">{formatPrice(item.price)} each</p>
-                              </div>
-                            </>
-                          ) : (
-                            <>
-                              <div className="w-16 h-16 bg-choptime-orange/10 rounded flex items-center justify-center">
-                                <Package className="w-8 h-8 text-choptime-orange" />
-                              </div>
-                              <div className="flex-1">
-                                <h5 className="font-semibold text-choptime-brown">{item.customDishName}</h5>
-                                <p className="text-xs text-choptime-orange font-medium">{item.restaurant.name}</p>
-                                <p className="text-sm text-choptime-brown/70">{formatPrice(item.estimatedPrice)} each (Est.)</p>
-                                {item.specialInstructions && (
-                                  <p className="text-xs text-choptime-brown/60 mt-1">📝 {item.specialInstructions}</p>
-                                )}
-                              </div>
-                            </>
-                          )}
-                          <div className="flex items-center gap-2">
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => updateQuantity(index, item.quantity - 1)}
-                            >
-                              -
-                            </Button>
-                            <span className="w-8 text-center">{item.quantity}</span>
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => updateQuantity(index, item.quantity + 1)}
-                            >
-                              +
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-                <Separator className="my-4" />
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span>Subtotal:</span>
-                    <span className="text-choptime-orange font-medium">{formatPrice(calculateSubtotal())}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span>Delivery Fee ({selectedTown}):</span>
-                    <span className="text-choptime-orange font-medium">{formatPrice(orderDetails.deliveryFee)}</span>
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between items-center text-lg font-bold">
-                    <span>Total:</span>
-                    <span className="text-choptime-orange">{formatPrice(calculateTotal())}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-6">
-                <div>
-                  <h4 className="font-semibold text-choptime-brown mb-4">Delivery Details</h4>
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="name">Full Name *</Label>
-                      <Input
-                        id="name"
-                        placeholder="Enter your full name"
-                        value={orderDetails.customerName}
-                        onChange={(e) => setOrderDetails({...orderDetails, customerName: e.target.value})}
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="phone">Phone Number *</Label>
-                      <Input
-                        id="phone"
-                        placeholder="e.g., +237 6XX XXX XXX"
-                        value={orderDetails.phone}
-                        onChange={(e) => {
-                          setOrderDetails({...orderDetails, phone: e.target.value});
-                          if (e.target.value && selectedTown) {
-                            saveUserTown(e.target.value, selectedTown);
-                            localStorage.setItem('choptime_phone', e.target.value);
-                          }
-                        }}
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="address">Delivery Address in {selectedTown} *</Label>
-                      <Textarea
-                        id="address"
-                        placeholder={`Enter your complete delivery address in ${selectedTown} (neighborhood, street, landmarks)`}
-                        value={orderDetails.deliveryAddress}
-                        onChange={(e) => setOrderDetails({...orderDetails, deliveryAddress: e.target.value})}
-                        rows={3}
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="payment">Payment Method *</Label>
-                      <Select onValueChange={(value) => setOrderDetails({...orderDetails, paymentMethod: value})}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Choose payment method" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white z-50">
-                          <SelectItem value="mtn-money">MTN Mobile Money</SelectItem>
-                          <SelectItem value="orange-money">Orange Money</SelectItem>
-                          <SelectItem value="pay-on-delivery">Pay on Delivery</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
-
-                <PaymentDetails paymentMethod={orderDetails.paymentMethod} />
-              </div>
-            </div>
-
-            <div className="mt-8 text-center">
-              <Button 
-                onClick={handleWhatsAppOrder}
-                size="lg"
-                className="choptime-gradient hover:opacity-90 text-white text-lg px-8 py-3 w-full md:w-auto"
-              >
-                <MessageCircle className="w-5 h-5 mr-2" />
-                Order via WhatsApp
-              </Button>
-              <p className="text-sm text-choptime-brown/70 mt-2">
-                Your order will be sent to our WhatsApp for confirmation
-              </p>
-            </div>
-          </div>
-        </section>
+        <CartSection
+          cart={cart}
+          orderDetails={orderDetails}
+          selectedTown={selectedTown}
+          onOrderDetailsChange={handleOrderDetailsChange}
+          onQuantityUpdate={updateQuantity}
+          onWhatsAppOrder={handleWhatsAppOrder}
+          calculateSubtotal={calculateSubtotal}
+          calculateTotal={calculateTotal}
+        />
       )}
 
       <RestaurantSelectionModal
@@ -756,55 +427,7 @@ const Index = () => {
         onAddToCart={handleCustomOrderAdd}
       />
 
-      {/* Footer */}
-      <footer className="bg-choptime-brown text-white py-8">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-3 gap-8">
-            <div>
-              <h5 className="font-bold text-lg mb-4">ChopTime</h5>
-              <p className="text-white/80 text-sm">
-                Bringing authentic Cameroonian flavors to your doorstep. 
-                Experience the taste of home with every bite.
-              </p>
-            </div>
-            
-            <div>
-              <h5 className="font-bold text-lg mb-4">Contact Us</h5>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <Phone className="w-4 h-4" />
-                  <span>+237 6 70 41 64 49</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <MessageCircle className="w-4 h-4" />
-                  <span>choptime237@gmail.com</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4" />
-                  <span>Cameroon</span>
-                </div>
-              </div>
-            </div>
-            
-            <div>
-              <h5 className="font-bold text-lg mb-4">Delivery Info</h5>
-              <div className="text-sm text-white/80 space-y-1">
-                <p>🕐 Delivery: 30-60 minutes</p>
-                <p>💳 Payment: MTN/Orange Money, Cash</p>
-                <p>🚚 Delivery fees vary by town</p>
-                <p>📱 Order tracking via WhatsApp</p>
-              </div>
-            </div>
-          </div>
-          
-          <Separator className="my-6 bg-white/20" />
-          
-          <div className="text-center text-sm text-white/60">
-            <p>&copy; 2024 ChopTime. Made with ❤️ for Cameroon.</p>
-            <p className="mt-1">Support: choptime237@gmail.com</p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };
