@@ -15,7 +15,7 @@ import { useAdminData } from '@/hooks/useAdminData';
 import { useToast } from '@/hooks/use-toast';
 import { DishFormData } from '@/types/admin';
 
-const DISH_CATEGORIES = [
+const DISH_CATEGORIES: Array<'Traditional' | 'Soup' | 'Rice' | 'Grilled' | 'Snacks' | 'Drinks'> = [
   'Traditional', 'Soup', 'Rice', 'Grilled', 'Snacks', 'Drinks'
 ];
 
@@ -111,6 +111,13 @@ const DishManagement = () => {
     }
   };
 
+  const handleCategoryChange = (value: string) => {
+    setFormData({
+      ...formData, 
+      category: value as 'Traditional' | 'Soup' | 'Rice' | 'Grilled' | 'Snacks' | 'Drinks'
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -144,9 +151,9 @@ const DishManagement = () => {
                 </div>
                 <div>
                   <Label htmlFor="category">Category *</Label>
-                  <Select onValueChange={(value) => setFormData({...formData, category: value})}>
+                  <Select onValueChange={handleCategoryChange} value={formData.category}>
                     <SelectTrigger>
-                      <SelectValue placeholder={formData.category || "Select category"} />
+                      <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
                       {DISH_CATEGORIES.map(category => (
