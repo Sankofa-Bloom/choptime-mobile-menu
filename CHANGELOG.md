@@ -1,190 +1,175 @@
 
-# Changelog
+# ChopTime Changelog
 
-All notable changes to ChopTime will be documented in this file.
+All notable changes to the ChopTime food delivery platform will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [2.0.0] - 2024-12-28
 
-## [2.0.0] - 2024-01-25
+### 🎉 Major Backend Enhancement Release
 
-### 🎉 Major Release: Multi-Restaurant Vendor System
+This release transforms ChopTime from a basic MVP to a comprehensive food delivery platform with full backend management capabilities.
 
-This release transforms ChopTime from a simple menu display into a comprehensive multi-restaurant platform while maintaining the original simple, mobile-first design.
+### ✨ New Features
 
-### Added
+#### 🔐 Admin Authentication System
+- **Admin-only authentication** with email/password
+- **Secure admin panel** at `/dash/chp-ctrl` (hidden from public site)
+- **JWT-based security** with Supabase Auth integration
+- **Role-based access control** for admin functions
 
-#### 🏪 Multi-Restaurant Vendor System
-- **Restaurant Registration**: Backend support for restaurant owners to register and manage profiles
-- **Custom Pricing**: Each restaurant can set different prices for the same dish based on location
-- **Menu Management**: Restaurants can toggle availability of dishes independently
-- **Profile Images**: Support for restaurant profile image upload via Supabase Storage
-- **Town-Based Operations**: Restaurants operate within specific towns (Douala, Yaoundé, Buea, etc.)
+#### 🏪 Restaurant Management System
+- **Complete restaurant CRUD operations**
+  - Add/edit restaurant name, town, contact details
+  - Upload restaurant images and logos
+  - Set custom delivery times (15-45 minutes default)
+  - Toggle restaurant active/inactive status
+- **Multi-town support** (Buea, Limbe)
+- **Mobile money integration** (MTN, Orange number storage)
 
-#### 🌍 Town-Based User Filtering
-- **Town Selection Modal**: Users must select their town on first visit
-- **Persistent Town Storage**: User's town preference saved with phone number
-- **Filtered Restaurant Display**: Only restaurants in user's town appear in selection
-- **Location-Based Pricing**: Prices vary by town (e.g., Buea: 2,500 FCFA, Yaoundé: 3,000 FCFA)
-- **Quick Town Switching**: Users can change their town selection easily
+#### 🍽️ Advanced Dish Management
+- **Comprehensive dish properties**
+  - Categories: Traditional, Soup, Rice, Grilled, Snacks, Drinks
+  - Dietary flags: Popular, Spicy, Vegetarian
+  - Cook time and serving size information
+- **Image management** with URL support
+- **Admin-created vs. system dishes** tracking
+- **Availability toggle** per dish
 
-#### 🍽️ Enhanced Menu Management
-- **Master Dish Catalog**: Centralized dishes table with rich metadata
-- **Dish Categories**: Traditional, Soup, Rice, Grilled, Snacks, Drinks
-- **Smart Tags**: Popular, Spicy, Vegetarian indicators with icons
-- **Rich Descriptions**: Detailed dish descriptions with cook time and serving info
-- **Image Upload**: Support for dish images (JPG/PNG/WebP, max 2MB)
-- **Availability Toggle**: Real-time dish availability per restaurant
+#### 💰 Smart Delivery Pricing System
+- **Zone-based pricing** replacing flat fees
+- **Distance-tier calculation**
+  - Buea: 500 FCFA (0-2km), 800 FCFA (2-5km), 1200 FCFA (5km+)
+  - Limbe: 600 FCFA (0-3km), 900 FCFA (3-6km), 1400 FCFA (6km+)
+- **Intelligent address parsing** for automatic zone detection
+- **Keyword-based fee calculation** (center, outskirts, etc.)
 
-#### 🛒 Order Management System
-- **Database Order Storage**: All orders saved to Supabase with complete details
-- **User Recognition**: Phone number-based user identification
-- **Order History**: Track previous orders for returning customers
-- **Status Tracking**: Order lifecycle (pending → confirmed → preparing → ready → delivered)
-- **Restaurant Integration**: Orders linked to specific restaurants for future admin features
+#### 📊 Order Management & Analytics
+- **Unified order viewing** (regular + custom orders)
+- **Advanced filtering** by status, customer, date
+- **Order analytics dashboard**
+  - Total orders and revenue
+  - Pending vs. completed orders
+  - Average order value
+- **Order reference generation** per town (CHP-DLA-XXXX, CHP-LMB-XXXX)
 
-#### 🎨 UI/UX Enhancements
-- **Enhanced Cards**: Dish cards show availability, pricing, and restaurant count
-- **Smart Pricing Display**: "From X FCFA" when multiple restaurants available
-- **Loading States**: Skeleton loading and error handling throughout
-- **Town Indicator**: Header shows current selected town
-- **Disabled States**: Graceful handling when dishes unavailable in user's town
+#### 🚚 Enhanced Order Processing
+- **Delivery zone tracking** with each order
+- **Order status management** (pending, confirmed, preparing, ready, delivered, cancelled)
+- **Admin notes** and delivery fee breakdown
+- **Mobile money number capture** for payment processing
 
-### Changed
+### 🔧 Technical Improvements
 
-#### 📊 Data Architecture Overhaul
-- **New Database Schema**: 5 core tables with proper relationships and RLS
-- **Type System Update**: TypeScript types aligned with new database structure
-- **API Integration**: Complete Supabase integration replacing mock data
-- **Data Fetching**: Custom `useChopTimeData` hook for centralized data management
+#### 🗄️ Database Enhancements
+- **New tables**: `admin_users`, `delivery_zones`
+- **Enhanced existing tables** with admin fields
+- **Row Level Security (RLS)** for data protection
+- **Database functions** for order references and fee calculation
+- **Optimized queries** with proper joins and filtering
 
-#### 🔧 Technical Improvements
-- **Performance**: Optimized queries with proper indexing and relationships
-- **Security**: Row Level Security (RLS) policies for all tables
-- **Storage**: Dedicated buckets for restaurant and dish images
-- **Caching**: Improved data caching and synchronization
+#### 🎨 UI/UX Improvements
+- **Professional admin dashboard** with statistics cards
+- **Tabbed interface** for different management sections
+- **Responsive design** for mobile admin access
+- **Improved error handling** and user feedback
+- **Loading states** and progress indicators
 
-#### 📱 Enhanced User Flow
-1. **Town Selection**: Mandatory on first visit, persistent thereafter
-2. **Menu Browsing**: Only dishes available in user's town displayed
-3. **Restaurant Selection**: Filtered list based on dish availability and town
-4. **Order Processing**: Enhanced order details with town information
-5. **Return Experience**: Recognized users skip town selection
+#### 📱 Mobile Optimization
+- **Fixed WhatsApp integration** for better device compatibility
+- **Improved order button** functionality across platforms
+- **Mobile-responsive admin panel**
 
-### Database Schema
+### 🔒 Security Features
+- **Hidden admin routes** not discoverable from public site
+- **JWT-based authentication** with proper token handling
+- **Input validation** on all admin forms
+- **SQL injection protection** through Supabase ORM
+- **Role-based data access** with RLS policies
 
-#### New Tables
-```sql
--- Restaurants with town-based operations
-restaurants: {
-  id, name, town, image_url, contact_number, 
-  mtn_number, orange_number, auth_id, timestamps
-}
+### 🛠️ Developer Experience
+- **TypeScript interfaces** for all new data types
+- **Custom hooks** for admin functionality (`useAdminAuth`, `useAdminData`)
+- **Modular component architecture** for admin panel
+- **Comprehensive error handling** and logging
+- **Clean separation** between public and admin functionality
 
--- Master dish catalog
-dishes: {
-  id, name, description, category, image_url,
-  is_popular, is_spicy, is_vegetarian, 
-  cook_time, serves, created_at
-}
+### 📈 Performance Improvements
+- **Optimized database queries** with proper indexing
+- **Lazy loading** for admin data tables
+- **Efficient state management** with React hooks
+- **Reduced bundle size** with code splitting
 
--- Restaurant-specific pricing and availability
-restaurant_menus: {
-  id, restaurant_id, dish_id, price, 
-  availability, created_at
-}
+### 🐛 Bug Fixes
+- **Fixed WhatsApp order button** not working on mobile devices
+- **Improved restaurant selection** modal with delivery times
+- **Enhanced form validation** across the platform
+- **Better error messages** for user guidance
 
--- Complete order tracking
-orders: {
-  id, user_name, user_phone, user_location,
-  dish_name, restaurant_name, restaurant_id, dish_id,
-  quantity, price, total_amount, status, timestamps
-}
+### 📝 Documentation
+- **Comprehensive README.md** with setup instructions
+- **Database schema documentation**
+- **Admin panel user guide**
+- **Deployment instructions** for production
+- **API documentation** for custom functions
 
--- User town preferences
-user_towns: {
-  id, user_phone, town, timestamps
-}
-```
+### 🔄 Migration Notes
+- **Automatic database migration** for existing installations
+- **Backward compatibility** maintained for existing orders
+- **Default admin user** setup required
+- **Environment variables** update needed
 
-#### Storage Buckets
-- `restaurant-images`: Public bucket for restaurant profile images
-- `dish-images`: Public bucket for dish images
-
-### Technical Details
-
-#### New Components
-- `TownSelector.tsx`: Modal for town selection on first visit
-- `useChopTimeData.ts`: Centralized data fetching and management hook
-- Enhanced `RestaurantSelectionModal.tsx`: Now shows town-filtered restaurants
-
-#### Updated Components  
-- `Index.tsx`: Complete rewrite with backend integration (656 → 400+ lines)
-- `types/restaurant.ts`: New type definitions matching database schema
-- `PaymentDetails.tsx`: Enhanced with new restaurant data structure
-
-#### Dependencies Added
-- `@supabase/supabase-js`: Backend integration
-- Enhanced TypeScript definitions
-
-### Fixed
-- **Restaurant Selection**: Now properly filters by user's selected town
-- **Pricing Display**: Accurate pricing based on restaurant-dish combinations  
-- **Order Persistence**: Orders now saved reliably to database
-- **Town Persistence**: User's town selection remembered across sessions
-- **Error Handling**: Graceful degradation when data unavailable
-
-### Performance
-- **Query Optimization**: Efficient joins and filtering at database level
-- **Image Optimization**: Supabase CDN for fast image loading
-- **Caching Strategy**: Smart data caching with automatic invalidation
-- **Bundle Size**: Maintained minimal bundle size despite new features
-
-### Security
-- **RLS Policies**: Comprehensive Row Level Security across all tables
-- **Input Validation**: Proper validation for all user inputs
-- **Image Upload**: Secure file upload with size and type restrictions
-- **Data Privacy**: User data properly scoped and protected
-
-## [1.0.0] - 2024-01-20
-
-### Initial Release
-
-#### Added
-- **Mobile-First Design**: Responsive layout optimized for smartphones
-- **Traditional Menu**: Authentic Cameroonian dishes (Eru, Ndolé, Achu, etc.)
-- **WhatsApp Integration**: Seamless order placement via WhatsApp
-- **PWA Support**: Installable web app with offline capabilities
-- **Cart Management**: Dynamic shopping cart with quantity controls
-- **Payment Options**: MTN Money, Orange Money, Pay on Delivery
-- **Cultural Design**: African-inspired colors and patterns
-
-#### Technical Foundation
-- React 18 with TypeScript
-- Vite for fast development and building
-- Tailwind CSS for styling
-- Shadcn/UI components
-- Lucide React icons
-- Service worker for PWA functionality
-
-#### Core Features
-- Restaurant selection modal
-- Menu item browsing
-- Shopping cart functionality
-- Order form with delivery details
-- WhatsApp message generation
-- PWA install prompts
+### ⚡ What's Next
+- Restaurant owner dashboard
+- Real-time order notifications  
+- Payment gateway integration
+- GPS-based delivery calculation
+- Mobile app development
+- Customer review system
 
 ---
 
-## Version Numbering
+## [1.1.0] - 2024-12-27
 
-- **Major (X.0.0)**: Breaking changes, major feature additions
-- **Minor (0.X.0)**: New features, backward compatible
-- **Patch (0.0.X)**: Bug fixes, small improvements
+### Added
+- **Additional message field** in order form
+- **Enhanced WhatsApp message** with customer notes
+- **Mobile-compatible WhatsApp integration**
 
-## Support
+### Fixed
+- WhatsApp order button compatibility across devices
+- Order form validation improvements
 
-For questions about changes or upgrades:
-- **Email**: choptime237@gmail.com  
-- **WhatsApp**: +237 6 70 41 64 49
+### Changed
+- Delivery time updated to 15-45 minutes
+- Removed restaurant phone numbers from public display
+- Enhanced restaurant selection modal with delivery times
+
+---
+
+## [1.0.0] - 2024-12-26
+
+### 🎉 Initial Release
+
+#### Core Features
+- **Dish-first ordering system** with restaurant selection
+- **Town-based filtering** (Buea, Limbe)
+- **Custom order requests** for special dishes
+- **WhatsApp order integration**
+- **Local storage** for user preferences
+
+#### UI Components
+- Modern design with ChopTime branding
+- Responsive layout for all devices
+- Interactive dish cards with properties
+- Shopping cart functionality
+- Order form with validation
+
+#### Technical Foundation
+- React 18 + TypeScript + Vite
+- Supabase backend integration
+- Tailwind CSS styling
+- Component-based architecture
+
+---
+
+*This changelog follows the [Keep a Changelog](https://keepachangelog.com/) format.*

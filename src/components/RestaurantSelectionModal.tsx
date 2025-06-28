@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Star, Clock, MapPin, Phone } from 'lucide-react';
+import { Clock, MapPin } from 'lucide-react';
 import { Restaurant, Dish } from '@/types/restaurant';
 
 interface RestaurantSelectionModalProps {
@@ -97,8 +97,10 @@ const RestaurantSelectionModal: React.FC<RestaurantSelectionModalProps> = ({
                             <span>{restaurant.town}</span>
                           </div>
                           <div className="flex items-center gap-2 text-sm text-choptime-brown/70">
-                            <Phone className="w-3 h-3" />
-                            <span>{restaurant.contact_number}</span>
+                            <Clock className="w-3 h-3" />
+                            <span>
+                              {restaurant.delivery_time_min || 15}-{restaurant.delivery_time_max || 45} min delivery
+                            </span>
                           </div>
                         </div>
                         <div className="text-right">

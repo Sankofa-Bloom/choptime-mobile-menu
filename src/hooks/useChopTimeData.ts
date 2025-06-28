@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Restaurant, Dish, RestaurantMenu, Order, CustomOrder, DeliveryFee, UserTown } from '@/types/restaurant';
@@ -17,6 +16,7 @@ export const useChopTimeData = (selectedTown?: string) => {
       const { data, error } = await supabase
         .from('dishes')
         .select('*')
+        .eq('active', true)
         .order('name');
       
       if (error) throw error;
@@ -30,7 +30,7 @@ export const useChopTimeData = (selectedTown?: string) => {
   // Fetch restaurants by town
   const fetchRestaurants = async (town?: string) => {
     try {
-      let query = supabase.from('restaurants').select('*');
+      let query = supabase.from('restaurants').select('*').eq('active', true);
       
       if (town) {
         query = query.eq('town', town);
@@ -53,10 +53,12 @@ export const useChopTimeData = (selectedTown?: string) => {
         .from('restaurant_menus')
         .select(`
           *,
-          restaurant:restaurants(*),
-          dish:dishes(*)
+          restaurant:restaurants!inner(*),
+          dish:dishes!inner(*)
         `)
-        .eq('availability', true);
+        .eq('availability', true)
+        .eq('restaurant.active', true)
+        .eq('dish.active', true);
 
       if (town) {
         query = query.eq('restaurant.town', town);
@@ -72,25 +74,52 @@ export const useChopTimeData = (selectedTown?: string) => {
     }
   };
 
-  // Fetch delivery fees
+  // Fetch delivery zones instead of fees
   const fetchDeliveryFees = async () => {
     try {
       const { data, error } = await supabase
-        .from('delivery_fees')
+        .from('delivery_zones')
         .select('*')
+        .eq('active', true)
         .order('town');
       
       if (error) throw error;
-      setDeliveryFees(data || []);
+      
+      // Convert zones to delivery fees format for backward compatibility
+      const fees = data?.reduce((acc, zone) => {
+        const existingFee = acc.find(f => f.town === zone.town);
+        if (!existingFee) {
+          acc.push({
+            id: zone.id,
+            town: zone.town,
+            fee: zone.fee, // Use minimum fee as default
+            created_at: zone.created_at,
+            updated_at: zone.updated_at
+          });
+        }
+        return acc;
+      }, [] as DeliveryFee[]) || [];
+      
+      setDeliveryFees(fees);
     } catch (err) {
-      console.error('Error fetching delivery fees:', err);
+      console.error('Error fetching delivery zones:', err);
     }
   };
 
-  // Get delivery fee for a town
-  const getDeliveryFee = (town: string): number => {
-    const fee = deliveryFees.find(f => f.town === town);
-    return fee?.fee || 500; // Default fee
+  // Enhanced delivery fee calculation using zones
+  const getDeliveryFee = async (town: string, locationDescription?: string): Promise<number> => {
+    try {
+      const { data, error } = await supabase.rpc('calculate_delivery_fee', {
+        town_name: town,
+        location_description: locationDescription || ''
+      });
+      
+      if (error) throw error;
+      return data && data.length > 0 ? data[0].fee : 500;
+    } catch (err) {
+      console.error('Error calculating delivery fee:', err);
+      return 500; // Default fee
+    }
   };
 
   // Generate order reference
@@ -142,12 +171,25 @@ export const useChopTimeData = (selectedTown?: string) => {
     }
   };
 
-  // Save regular order
+  // Enhanced save order with delivery zone info
   const saveOrder = async (orderData: Omit<Order, 'id' | 'created_at' | 'updated_at'>) => {
     try {
+      // Calculate delivery zone info
+      const { data: zoneData } = await supabase.rpc('calculate_delivery_fee', {
+        town_name: orderData.user_location.split(',')[0], // Assume town is first part
+        location_description: orderData.user_location
+      });
+
+      const enhancedOrderData = {
+        ...orderData,
+        delivery_zone_id: zoneData && zoneData.length > 0 ? zoneData[0].zone_id : null,
+        delivery_fee_breakdown: zoneData && zoneData.length > 0 ? 
+          `${zoneData[0].zone_name}: ${zoneData[0].fee} FCFA` : null
+      };
+
       const { data, error } = await supabase
         .from('orders')
-        .insert([orderData])
+        .insert([enhancedOrderData])
         .select()
         .single();
       

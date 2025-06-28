@@ -1,401 +1,246 @@
 
-# ChopTime - Enhanced Cameroonian Food Delivery MVP 🇨🇲
+# ChopTime - Cameroon Food Delivery Platform
 
-A beautiful, mobile-first Progressive Web App (PWA) for authentic Cameroonian food delivery with multi-restaurant vendor system, town-based filtering, and complete backend integration.
+ChopTime is a comprehensive food delivery platform specifically designed for Cameroon, focusing on traditional dishes and local restaurants in Buea and Limbe.
 
-## 🌟 New Features
+## Features
 
-### 🏪 Multi-Restaurant Vendor System
-- Restaurants can register and manage their own profiles
-- Custom pricing per dish by location (e.g., Eru = 2,500 XAF in Buea, 3,000 XAF in Yaoundé)
-- Menu item availability management
-- Restaurant profile image upload
+### 🍽️ Customer Features
+- Browse dishes by category (Traditional, Soup, Rice, Grilled, Snacks, Drinks)
+- Select restaurants by town (Buea, Limbe)
+- Smart delivery pricing based on location zones
+- Custom dish ordering for special requests
+- WhatsApp-based order confirmation
+- Real-time order tracking
 
-### 🌍 Town-Based Filtering
-- Users select their town on first visit
-- Dishes shown only from restaurants in selected town  
-- Restaurant selection filtered by user's town
-- Persistent town selection with phone number
+### 🏪 Admin Features
+- Restaurant management (add/edit/delete restaurants)
+- Dish management with categories and properties
+- Dynamic pricing per restaurant
+- Delivery zone management with distance-based pricing
+- Order management and analytics
+- Admin authentication system
 
-### 🍽️ Enhanced Menu Management
-- Master dish catalog with categories
-- Image upload support for dishes and restaurants
-- Dish tags: Popular, Spicy, Vegetarian
-- Rich dish descriptions with cook time and serving info
+## Tech Stack
 
-### 🛒 Order Management System
-- Orders saved to database with full details
-- User order history tracking
-- Restaurant order management (future admin feature)
-- Phone number-based user recognition
+- **Frontend**: React 18 + TypeScript + Vite
+- **UI Library**: Shadcn/UI + Tailwind CSS
+- **Backend**: Supabase (PostgreSQL + Row Level Security)
+- **Authentication**: Supabase Auth
+- **Real-time**: Supabase Realtime
+- **Deployment**: Ready for Vercel/Netlify
 
-## 🎨 Design System
+## Database Schema
 
-### Brand Colors
-- **Terracotta Orange**: `#D57A1F` - Primary brand color
-- **Earthy Brown**: `#5A2D0C` - Text and accents  
-- **Soft Beige**: `#FDF1E0` - Background color
+### Core Tables
+- `restaurants` - Restaurant information and settings
+- `dishes` - Available dishes with properties
+- `restaurant_menus` - Links dishes to restaurants with pricing
+- `orders` - Regular orders from menu items
+- `custom_orders` - Custom dish requests
+- `delivery_zones` - Zone-based delivery pricing
+- `admin_users` - Admin authentication
+- `user_towns` - User town preferences
 
-### Visual Elements
-- African-inspired patterns and textures
-- Warm, friendly animations
-- Cultural iconography
-- Mobile-optimized layouts
+### Key Features
+- Row Level Security (RLS) for data protection
+- Distance-based delivery fee calculation
+- Order reference generation per town
+- Admin-only access controls
 
-## 🚀 Quick Start
+## Installation & Setup
 
 ### Prerequisites
-- Node.js (v16 or higher)
-- npm or yarn
-- Supabase account (for backend)
+- Node.js 18+ and npm/yarn
+- Supabase account
 
-### Installation
+### 1. Clone Repository
 ```bash
-# Clone the repository
-git clone <your-repo-url>
-cd choptime-mobile-menu
-
-# Install dependencies
+git clone <repository-url>
+cd choptime
 npm install
+```
 
-# Start development server
+### 2. Environment Setup
+Create `.env.local`:
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+### 3. Database Setup
+The database migrations are included. Run them in your Supabase SQL editor:
+
+1. Navigate to your Supabase project dashboard
+2. Go to SQL Editor
+3. Run the migration files in order
+
+### 4. Create Admin User
+Insert an admin user manually in Supabase:
+```sql
+-- First create auth user in Supabase Auth dashboard
+-- Then insert admin record:
+INSERT INTO public.admin_users (email, password_hash, role, active)
+VALUES ('admin@choptime.com', 'your_hashed_password', 'admin', true);
+```
+
+### 5. Run Development Server
+```bash
 npm run dev
 ```
 
-### Backend Setup (Supabase)
-1. Create a Supabase project
-2. Run the provided SQL migrations to set up tables
-3. Configure storage buckets for image upload
-4. Update environment variables with your Supabase credentials
+## Deployment
 
-### Build for Production
-```bash
-# Build the app
-npm run build
+### Supabase Configuration
+1. Set up Row Level Security policies
+2. Configure authentication providers
+3. Set up realtime subscriptions if needed
 
-# Preview production build  
-npm run preview
-```
+### Frontend Deployment
+1. Build the project: `npm run build`
+2. Deploy to Vercel/Netlify
+3. Set environment variables in deployment platform
 
-## 📱 PWA Features
+## Admin Panel Access
 
-### Installation
-- Automatic install prompts on supported devices
-- Add to home screen functionality
-- App-like experience
+### URL Structure
+- Public site: `/`
+- Admin login: `/dash/login`
+- Admin dashboard: `/dash/chp-ctrl`
 
-### Offline Support
-- Service worker caches essential resources
-- Basic offline functionality
-- Background sync capabilities
+⚠️ **Security Note**: The admin panel routes are hidden and not linked from the public site.
 
-## 🗄️ Database Structure
+### Admin Functions
+1. **Restaurant Management**
+   - Add/edit restaurant details
+   - Set delivery times and contact info
+   - Upload logos and images
+   - Toggle active status
 
-### Core Tables
+2. **Dish Management**
+   - Create dishes with categories
+   - Set properties (popular, spicy, vegetarian)
+   - Upload dish images
+   - Manage availability
 
-#### `restaurants`
-```sql
-- id (UUID, Primary Key)
-- name (Text, Required)
-- town (Text, Required) 
-- image_url (Text, Optional)
-- contact_number (Text, Required)
-- mtn_number (Text, Optional)
-- orange_number (Text, Optional)
-- auth_id (UUID, References auth.users)
-- created_at, updated_at (Timestamps)
-```
+3. **Delivery Zone Management**
+   - Set distance-based pricing
+   - Create delivery zones per town
+   - Automatic fee calculation
 
-#### `dishes` 
-```sql
-- id (UUID, Primary Key)
-- name (Text, Required, Unique)
-- description (Text, Optional)
-- category (Enum: Traditional, Soup, Rice, Grilled, Snacks, Drinks)
-- image_url (Text, Optional)
-- is_popular, is_spicy, is_vegetarian (Boolean)
-- cook_time, serves (Text)
-- created_at (Timestamp)
-```
+4. **Order Management**
+   - View all orders (regular & custom)
+   - Filter by status and search
+   - Order analytics dashboard
 
-#### `restaurant_menus`
-```sql
-- id (UUID, Primary Key)
-- restaurant_id (UUID, References restaurants)
-- dish_id (UUID, References dishes)
-- price (Integer, FCFA)
-- availability (Boolean)
-- created_at (Timestamp)
-- UNIQUE(restaurant_id, dish_id)
-```
+## Delivery Logic
 
-#### `orders`
-```sql
-- id (UUID, Primary Key)
-- user_name, user_phone, user_location (Text, Required)
-- dish_name, restaurant_name (Text, Required)
-- restaurant_id, dish_id (UUID, References)
-- quantity, price, total_amount (Integer)
-- status (Enum: pending, confirmed, preparing, ready, delivered, cancelled)
-- created_at, updated_at (Timestamps)
-```
+### Zone-Based Pricing
+The system uses intelligent zone-based pricing:
+- Each town has multiple delivery zones
+- Zones are defined by distance ranges (0-2km, 2-5km, etc.)
+- Automatic fee calculation based on address keywords
+- Fallback to minimum zone fee if no match
 
-#### `user_towns`
-```sql
-- id (UUID, Primary Key)
-- user_phone (Text, Required, Unique)
-- town (Text, Required)
-- created_at, updated_at (Timestamps)
-```
+### Default Zones
+**Buea:**
+- Town Center (0-2km): 500 FCFA
+- Suburbs (2-5km): 800 FCFA  
+- Outskirts (5km+): 1200 FCFA
 
-## 🔧 API Integration
+**Limbe:**
+- Mile 1-2 (0-3km): 600 FCFA
+- Mile 3-4 (3-6km): 900 FCFA
+- Down Beach & Beyond (6km+): 1400 FCFA
 
-### Supabase Integration
-- Real-time data fetching with React hooks
-- Row Level Security (RLS) policies
-- Image storage with public buckets
-- Automatic data synchronization
+## Order Flow
 
-### Key Hooks
+1. **Customer Journey**
+   - Select town (Buea/Limbe)
+   - Browse dishes by category
+   - Choose restaurant for each dish
+   - Add to cart with quantities
+   - Fill delivery details
+   - Generate WhatsApp order
+   - Order saved to database
 
-#### `useChopTimeData(selectedTown)`
-```typescript
-const {
-  dishes,           // All available dishes
-  restaurants,      // Restaurants in selected town
-  restaurantMenus,  // Menu items with pricing
-  loading,          // Loading state
-  error,            // Error state
-  saveUserTown,     // Save user's town preference
-  getUserTown,      // Get user's saved town
-  saveOrder,        // Save order to database
-  getUserOrders,    // Get user's order history
-  refetch          // Refetch all data
-} = useChopTimeData(selectedTown);
-```
+2. **Order Processing**
+   - Automatic order reference generation
+   - Delivery fee calculation
+   - Order saved with pending status
+   - WhatsApp message formatted and sent
+   - Admin can view and manage in dashboard
 
-## 🎯 User Flow
+## API Functions
 
-### New User Experience
-1. **Town Selection**: User selects their location on first visit
-2. **Menu Browsing**: Dishes filtered by restaurants in user's town
-3. **Restaurant Selection**: When adding to cart, user chooses from available restaurants
-4. **Order Placement**: Order details saved to database + WhatsApp integration
-5. **Return Visits**: Town and phone number remembered for faster ordering
+### Supabase Functions
+- `generate_order_reference(town_name)` - Creates unique order IDs
+- `calculate_delivery_fee(town_name, location_description)` - Smart fee calculation
+- `get_order_stats()` - Admin dashboard analytics
 
-### Restaurant Owner Experience (Future)
-1. **Registration**: Restaurant owners can register via authentication
-2. **Menu Management**: Add/remove dishes, set prices, toggle availability
-3. **Order Management**: View and manage incoming orders
-4. **Profile Management**: Upload restaurant images, update contact info
+## Customization
 
-## 📷 Image Upload
+### Adding New Towns
+1. Update `TownSelector.tsx` component
+2. Add delivery zones for the new town
+3. Update order reference generation function
 
-### Supported Formats
-- JPG, PNG, WebP
-- Maximum size: 2MB
-- Automatic compression and optimization
+### Adding New Categories
+1. Update the dish category enum in database
+2. Update `DishManagement.tsx` categories array
+3. Update filtering logic if needed
 
-### Storage Structure
-```
-restaurant-images/
-  ├── restaurant-{id}/
-  │   └── profile.jpg
-dish-images/
-  ├── dish-{id}/
-  │   └── main.jpg
-```
+### Custom Styling
+- Modify Tailwind configuration in `tailwind.config.ts`
+- Update CSS custom properties in `index.css`
+- ChopTime brand colors are defined as custom Tailwind classes
 
-## 🌐 Deployment
+## Security Considerations
 
-### Netlify Deployment
-1. Build your project: `npm run build`
-2. Connect your Git repository to Netlify
-3. Set environment variables for Supabase
-4. Deploy automatically on commits
+- Row Level Security enabled on all tables
+- Admin routes are hidden and not guessable
+- JWT-based authentication through Supabase
+- Input validation on all forms
+- SQL injection protection through Supabase
 
-### Vercel Deployment  
-1. Install Vercel CLI: `npm i -g vercel`
-2. Run: `vercel`
-3. Configure environment variables
-4. Deploy with automatic builds
+## Performance
 
-### Environment Variables
-```
-VITE_SUPABASE_URL=your-supabase-url
-VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
-```
+- Optimized queries with proper indexing
+- Image optimization recommendations
+- Lazy loading for large datasets
+- Efficient state management with React hooks
 
-## 📋 Project Structure
+## Support & Maintenance
 
-```
-src/
-├── components/           # Reusable UI components
-│   ├── TownSelector.tsx     # Town selection modal
-│   ├── RestaurantSelectionModal.tsx
-│   └── PaymentDetails.tsx
-├── hooks/               # Custom React hooks
-│   └── useChopTimeData.ts   # Main data fetching hook
-├── types/               # TypeScript type definitions
-│   └── restaurant.ts       # Core data types
-├── pages/               # Main pages
-│   └── Index.tsx           # Enhanced main page
-├── integrations/        # External service integrations
-│   └── supabase/           # Supabase client and types
-└── lib/                 # Utility functions
+### Monitoring
+- Check Supabase logs for errors
+- Monitor order submission rates
+- Track delivery zone effectiveness
 
-public/
-├── manifest.json       # PWA manifest
-├── sw.js              # Service worker
-└── pwa-icon-*.png     # PWA icons (multiple sizes)
-```
+### Backup
+- Supabase handles automatic backups
+- Export order data regularly for analytics
+- Keep admin credentials secure
 
-## 🔧 Technical Details
+## Future Enhancements
 
-### Technologies Used
-- **Frontend**: React 18 with TypeScript, Vite
-- **Styling**: Tailwind CSS with custom ChopTime theme
-- **UI Components**: Shadcn/UI component library
-- **Backend**: Supabase (PostgreSQL + Auth + Storage)
-- **State Management**: React hooks with custom data layer
-- **PWA**: Service worker with manifest
-
-### Browser Support
-- Chrome/Chromium 88+
-- Firefox 85+
-- Safari 14+
-- Edge 88+
-
-### Mobile Support
-- iOS Safari 14+
-- Android Chrome 88+
-- Samsung Internet 15+
-
-## 📱 WhatsApp Integration
-
-### Enhanced Message Format
-```
-🍽️ *ChopTime Order*
-
-👤 *Customer:* John Doe
-📱 *Phone:* +237 6XX XXX XXX
-📍 *Delivery Address:* Bastos, Yaoundé
-🏙️ *Town:* Yaoundé
-💳 *Payment:* MTN Mobile Money
-
-🏪 *Mama Africa Kitchen*
-📞 Contact: +237 6 70 41 64 49
-💳 MTN Money: +237 6 70 41 64 49
-• Eru with Fufu x2 - 6,000 FCFA
-• Pepper Soup x1 - 2,100 FCFA
-
-💰 *Total: 8,100 FCFA*
-
-Thank you for choosing ChopTime! 🇨🇲
-```
-
-## 🎯 SEO & Performance
-
-### SEO Features
-- Semantic HTML structure
-- Meta tags and Open Graph
-- Proper headings hierarchy
-- Alt text for images
-- Structured data ready
-
-### Performance Optimizations
-- Image lazy loading with Supabase CDN
-- Code splitting with Vite
-- Service worker caching
-- Minimal bundle size
-- Optimized database queries
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-**PWA not installing**
-- Check manifest.json is accessible
-- Verify HTTPS (required for PWA)
-- Check service worker registration
-
-**Database connection issues**
-- Verify Supabase credentials
-- Check RLS policies
-- Ensure tables are created
-
-**Image upload failures**
-- Check storage bucket permissions
-- Verify file size limits (2MB max)
-- Ensure proper file formats
-
-**Town selection not saving**
-- Check user_towns table exists
-- Verify phone number format
-- Check localStorage permissions
-
-## 🔮 Future Enhancements
-
-### Phase 2 Features
-- Restaurant owner dashboard
+- Mobile app development
 - Real-time order tracking
-- Push notifications
-- Advanced filtering (price, rating, cuisine type)
-- User reviews and ratings
+- Payment gateway integration
+- GPS-based delivery fee calculation
+- Restaurant dashboard for order management
+- Customer review system
 - Loyalty program
+- Push notifications
 
-### Phase 3 Features
-- Multiple payment gateways
-- Delivery tracking with maps
-- Restaurant analytics
-- Multi-language support
-- Social media integration
+## Contributing
 
-## 📞 Support
+1. Fork the repository
+2. Create feature branch
+3. Follow TypeScript best practices
+4. Test thoroughly before submitting
+5. Update documentation for new features
 
-For technical support and customization requests:
-- **Email**: choptime237@gmail.com
-- **WhatsApp**: +237 6 70 41 64 49
-- **Documentation**: [Project Wiki](link-to-wiki)
+## License
 
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🙏 Acknowledgments
-
-- Cameroonian culinary traditions
-- African design inspiration
-- Supabase for backend infrastructure
-- Open source community
-- Traditional food photography
-
----
-
-**Made with ❤️ for Cameroon**
-
-*Bringing authentic flavors to your doorstep, one order at a time.*
-
-## 🚀 Recent Changes (v2.0)
-
-- ✅ Multi-restaurant vendor system implemented
-- ✅ Town-based filtering with persistent selection
-- ✅ Enhanced menu management with categories and tags
-- ✅ Order saving and user history tracking
-- ✅ Image upload support for restaurants and dishes
-- ✅ Improved mobile-first responsive design
-- ✅ Database integration with Supabase
-- ✅ Enhanced WhatsApp order formatting
-- ✅ PWA optimization and offline support
-
-### Breaking Changes
-- New database schema requires migration
-- Updated API structure for restaurant selection
-- Enhanced order flow with town selection requirement
-
-### Migration Guide
-1. Run provided SQL migrations in Supabase
-2. Update environment variables
-3. Test town selection and restaurant filtering
-4. Verify order saving functionality
-5. Test image upload capabilities
+Proprietary - All rights reserved by ChopTime

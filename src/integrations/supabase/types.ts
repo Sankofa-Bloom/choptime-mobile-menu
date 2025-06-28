@@ -9,6 +9,36 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admin_users: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          email: string
+          id: string
+          password_hash: string
+          role: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          email: string
+          id?: string
+          password_hash: string
+          role?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          password_hash?: string
+          role?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       custom_orders: {
         Row: {
           created_at: string | null
@@ -95,8 +125,46 @@ export type Database = {
         }
         Relationships: []
       }
+      delivery_zones: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          distance_max: number
+          distance_min: number
+          fee: number
+          id: string
+          town: string
+          updated_at: string | null
+          zone_name: string
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          distance_max?: number
+          distance_min?: number
+          fee: number
+          id?: string
+          town: string
+          updated_at?: string | null
+          zone_name: string
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          distance_max?: number
+          distance_min?: number
+          fee?: number
+          id?: string
+          town?: string
+          updated_at?: string | null
+          zone_name?: string
+        }
+        Relationships: []
+      }
       dishes: {
         Row: {
+          active: boolean | null
+          admin_created: boolean | null
           category: Database["public"]["Enums"]["dish_category"]
           cook_time: string | null
           created_at: string | null
@@ -110,6 +178,8 @@ export type Database = {
           serves: string | null
         }
         Insert: {
+          active?: boolean | null
+          admin_created?: boolean | null
           category: Database["public"]["Enums"]["dish_category"]
           cook_time?: string | null
           created_at?: string | null
@@ -123,6 +193,8 @@ export type Database = {
           serves?: string | null
         }
         Update: {
+          active?: boolean | null
+          admin_created?: boolean | null
           category?: Database["public"]["Enums"]["dish_category"]
           cook_time?: string | null
           created_at?: string | null
@@ -139,10 +211,14 @@ export type Database = {
       }
       orders: {
         Row: {
+          admin_notes: string | null
           created_at: string | null
+          delivery_fee_breakdown: string | null
+          delivery_zone_id: string | null
           dish_id: string | null
           dish_name: string
           id: string
+          momo_number: string | null
           order_reference: string | null
           price: number
           quantity: number
@@ -156,10 +232,14 @@ export type Database = {
           user_phone: string
         }
         Insert: {
+          admin_notes?: string | null
           created_at?: string | null
+          delivery_fee_breakdown?: string | null
+          delivery_zone_id?: string | null
           dish_id?: string | null
           dish_name: string
           id?: string
+          momo_number?: string | null
           order_reference?: string | null
           price: number
           quantity?: number
@@ -173,10 +253,14 @@ export type Database = {
           user_phone: string
         }
         Update: {
+          admin_notes?: string | null
           created_at?: string | null
+          delivery_fee_breakdown?: string | null
+          delivery_zone_id?: string | null
           dish_id?: string | null
           dish_name?: string
           id?: string
+          momo_number?: string | null
           order_reference?: string | null
           price?: number
           quantity?: number
@@ -190,6 +274,13 @@ export type Database = {
           user_phone?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "orders_delivery_zone_id_fkey"
+            columns: ["delivery_zone_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_zones"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "orders_dish_id_fkey"
             columns: ["dish_id"]
@@ -250,11 +341,15 @@ export type Database = {
       }
       restaurants: {
         Row: {
+          active: boolean | null
           auth_id: string | null
           contact_number: string
           created_at: string | null
+          delivery_time_max: number | null
+          delivery_time_min: number | null
           id: string
           image_url: string | null
+          logo_url: string | null
           mtn_number: string | null
           name: string
           orange_number: string | null
@@ -262,11 +357,15 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          active?: boolean | null
           auth_id?: string | null
           contact_number: string
           created_at?: string | null
+          delivery_time_max?: number | null
+          delivery_time_min?: number | null
           id?: string
           image_url?: string | null
+          logo_url?: string | null
           mtn_number?: string | null
           name: string
           orange_number?: string | null
@@ -274,11 +373,15 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          active?: boolean | null
           auth_id?: string | null
           contact_number?: string
           created_at?: string | null
+          delivery_time_max?: number | null
+          delivery_time_min?: number | null
           id?: string
           image_url?: string | null
+          logo_url?: string | null
           mtn_number?: string | null
           name?: string
           orange_number?: string | null
@@ -316,12 +419,37 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_delivery_fee: {
+        Args: { town_name: string; location_description: string }
+        Returns: {
+          zone_id: string
+          zone_name: string
+          fee: number
+        }[]
+      }
       generate_order_reference: {
         Args: { town_name: string }
         Returns: string
       }
+      get_order_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          total_orders: number
+          pending_orders: number
+          completed_orders: number
+          total_revenue: number
+          avg_order_value: number
+        }[]
+      }
     }
     Enums: {
+      admin_order_status:
+        | "pending"
+        | "confirmed"
+        | "preparing"
+        | "ready"
+        | "delivered"
+        | "cancelled"
       dish_category:
         | "Traditional"
         | "Soup"
@@ -451,6 +579,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      admin_order_status: [
+        "pending",
+        "confirmed",
+        "preparing",
+        "ready",
+        "delivered",
+        "cancelled",
+      ],
       dish_category: [
         "Traditional",
         "Soup",
