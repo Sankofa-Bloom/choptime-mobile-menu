@@ -7,6 +7,9 @@ import HeroSection from '@/components/HeroSection';
 import MenuSection from '@/components/MenuSection';
 import CartSection from '@/components/CartSection';
 import Footer from '@/components/Footer';
+import TownSelector from '@/components/TownSelector';
+import RestaurantSelectionModal from '@/components/RestaurantSelectionModal';
+import CustomOrderModal from '@/components/CustomOrderModal';
 
 interface OrderDetails {
   customerName: string;
@@ -19,7 +22,7 @@ interface OrderDetails {
 }
 
 const Index = () => {
-  const [selectedTown, setSelectedTown] = useState('Buea');
+  const [selectedTown, setSelectedTown] = useState('');
   const [cart, setCart] = useState<(OrderItem | CustomOrderItem)[]>([]);
   const [orderDetails, setOrderDetails] = useState<OrderDetails>({
     customerName: '',
@@ -30,6 +33,13 @@ const Index = () => {
     total: 0,
     deliveryFee: 0
   });
+
+  // Modal states
+  const [showTownSelector, setShowTownSelector] = useState(false);
+  const [showRestaurantModal, setShowRestaurantModal] = useState(false);
+  const [showCustomOrderModal, setShowCustomOrderModal] = useState(false);
+  const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
+  const [showCart, setShowCart] = useState(false);
 
   const { 
     dishes, 
@@ -53,6 +63,8 @@ const Index = () => {
       const savedTown = localStorage.getItem('choptime-town');
       if (savedTown && (savedTown === 'Buea' || savedTown === 'Limbe')) {
         setSelectedTown(savedTown);
+      } else {
+        setShowTownSelector(true);
       }
     };
     loadUserPreferences();
@@ -64,7 +76,7 @@ const Index = () => {
       if (selectedTown && orderDetails.deliveryAddress) {
         const fee = await getDeliveryFee(selectedTown, orderDetails.deliveryAddress);
         setOrderDetails(prev => ({ ...prev, deliveryFee: fee }));
-      } else {
+      } else if (selectedTown) {
         const fee = await getDeliveryFee(selectedTown);
         setOrderDetails(prev => ({ ...prev, deliveryFee: fee }));
       }
@@ -76,13 +88,26 @@ const Index = () => {
     setSelectedTown(town);
     localStorage.setItem('choptime-town', town);
     setCart([]); // Clear cart when changing towns
+    setShowTownSelector(false);
+  };
+
+  const handleDishSelect = (dish: Dish) => {
+    setSelectedDish(dish);
+    setShowRestaurantModal(true);
+  };
+
+  const handleRestaurantSelect = (restaurant: Restaurant, price: number) => {
+    if (selectedDish) {
+      addToCart(selectedDish, restaurant, price);
+    }
+    setShowRestaurantModal(false);
+    setSelectedDish(null);
   };
 
   const addToCart = (dish: Dish, restaurant: Restaurant, price: number) => {
     const existingItem = cart.find(item => 'dish' in item && item.dish.id === dish.id && item.restaurant.id === restaurant.id);
   
     if (existingItem && 'dish' in existingItem) {
-      // If the item already exists, update the quantity
       const updatedCart = cart.map(item => {
         if ('dish' in item && item.dish.id === dish.id && item.restaurant.id === restaurant.id) {
           return { ...item, quantity: item.quantity + 1 };
@@ -91,7 +116,6 @@ const Index = () => {
       });
       setCart(updatedCart);
     } else {
-      // If the item doesn't exist, add it to the cart
       const newItem: OrderItem = {
         dish: dish,
         restaurant: restaurant,
@@ -107,34 +131,35 @@ const Index = () => {
     });
   };
 
-  const addCustomToCart = (customDishName: string, restaurant: Restaurant, estimatedPrice: number, specialInstructions?: string) => {
-    const existingItem = cart.find(item => 'customDishName' in item && item.customDishName === customDishName && item.restaurant.id === restaurant.id && item.specialInstructions === specialInstructions);
+  const addCustomToCart = (customOrderItem: CustomOrderItem) => {
+    const existingItem = cart.find(item => 
+      'customDishName' in item && 
+      item.customDishName === customOrderItem.customDishName && 
+      item.restaurant.id === customOrderItem.restaurant.id && 
+      item.specialInstructions === customOrderItem.specialInstructions
+    );
   
     if (existingItem && 'customDishName' in existingItem) {
-      // If the item already exists, update the quantity
       const updatedCart = cart.map(item => {
-        if ('customDishName' in item && item.customDishName === customDishName && item.restaurant.id === restaurant.id && item.specialInstructions === specialInstructions) {
-          return { ...item, quantity: item.quantity + 1 };
+        if ('customDishName' in item && 
+            item.customDishName === customOrderItem.customDishName && 
+            item.restaurant.id === customOrderItem.restaurant.id && 
+            item.specialInstructions === customOrderItem.specialInstructions) {
+          return { ...item, quantity: item.quantity + customOrderItem.quantity };
         }
         return item;
       });
       setCart(updatedCart);
     } else {
-      // If the item doesn't exist, add it to the cart
-      const newItem: CustomOrderItem = {
-        customDishName: customDishName,
-        restaurant: restaurant,
-        quantity: 1,
-        estimatedPrice: estimatedPrice,
-        specialInstructions: specialInstructions
-      };
-      setCart([...cart, newItem]);
+      setCart([...cart, customOrderItem]);
     }
   
     toast({
       title: "Added to cart",
-      description: `${customDishName} from ${restaurant.name} added to your order.`,
+      description: `${customOrderItem.customDishName} from ${customOrderItem.restaurant.name} added to your order.`,
     });
+    
+    setShowCustomOrderModal(false);
   };
 
   const handleQuantityUpdate = (index: number, newQuantity: number) => {
@@ -328,8 +353,8 @@ const Index = () => {
       <Header 
         selectedTown={selectedTown}
         cart={cart}
-        onTownChange={() => {}}
-        onCartClick={() => {}}
+        onTownChange={() => setShowTownSelector(true)}
+        onCartClick={() => setShowCart(!showCart)}
         showPWAPrompt={false}
         onInstallPWA={() => {}}
         onDismissPWA={() => {}}
@@ -343,17 +368,11 @@ const Index = () => {
         selectedTown={selectedTown}
         getAvailableRestaurantsForDish={getAvailableRestaurantsForDish}
         getDishPrice={getDishPrice}
-        onAddToCart={(dish: Dish) => {
-          // This will be handled by the RestaurantSelectionModal
-          console.log('Dish selected:', dish.name);
-        }}
-        onCustomOrder={() => {
-          // This will be handled by the CustomOrderModal
-          console.log('Custom order requested');
-        }}
+        onAddToCart={handleDishSelect}
+        onCustomOrder={() => setShowCustomOrderModal(true)}
       />
       
-      {cart.length > 0 && (
+      {(cart.length > 0 && showCart) && (
         <CartSection 
           cart={cart}
           orderDetails={orderDetails}
@@ -367,6 +386,31 @@ const Index = () => {
       )}
       
       <Footer />
+
+      {/* Modals */}
+      <TownSelector 
+        selectedTown={selectedTown}
+        onTownSelect={handleTownChange}
+      />
+
+      <RestaurantSelectionModal
+        isOpen={showRestaurantModal}
+        onClose={() => {
+          setShowRestaurantModal(false);
+          setSelectedDish(null);
+        }}
+        dish={selectedDish}
+        restaurants={selectedDish ? getAvailableRestaurantsForDish(selectedDish.id) : []}
+        getDishPrice={(restaurantId: string) => selectedDish ? getDishPrice(selectedDish.id, restaurantId) : 0}
+        onSelectRestaurant={handleRestaurantSelect}
+      />
+
+      <CustomOrderModal
+        isOpen={showCustomOrderModal}
+        onClose={() => setShowCustomOrderModal(false)}
+        restaurants={restaurants}
+        onAddToCart={addCustomToCart}
+      />
     </div>
   );
 };
