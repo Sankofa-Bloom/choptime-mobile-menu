@@ -59,8 +59,12 @@ const Header: React.FC<HeaderProps> = ({
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-choptime-orange rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-xl">C</span>
+              <div className="w-12 h-12 rounded-full flex items-center justify-center overflow-hidden">
+                <img 
+                  src="/lovable-uploads/b3613052-5581-4dd4-a6f5-ed47b8d7a201.png" 
+                  alt="ChopTime Logo" 
+                  className="w-full h-full object-contain"
+                />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-choptime-brown">ChopTime</h1>
