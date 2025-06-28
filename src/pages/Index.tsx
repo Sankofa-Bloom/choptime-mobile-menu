@@ -309,7 +309,7 @@ const Index = () => {
 
       // Fixed WhatsApp URL - use API format for better compatibility across devices
       const encodedMessage = encodeURIComponent(message);
-      const whatsappUrl = `https://api.whatsapp.com/send/?phone=237670416449&text=${encodedMessage}&type=phone_number&app_absent=0`;
+      const whatsappUrl = `https://wa.me/237670416449?text=${encodedMessage}`;
       
       // Use window.location.href for better mobile compatibility
       window.location.href = whatsappUrl;
