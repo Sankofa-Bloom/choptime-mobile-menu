@@ -6,6 +6,7 @@ import Header from '@/components/Header';
 import HeroSection from '@/components/HeroSection';
 import MenuSection from '@/components/MenuSection';
 import CartSection from '@/components/CartSection';
+import Footer from '@/components/Footer';
 
 interface OrderDetails {
   customerName: string;
@@ -319,15 +320,14 @@ const Index = () => {
         cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
       />
       
-      <HeroSection />
+      <HeroSection selectedTown={selectedTown} deliveryFee={orderDetails.deliveryFee} />
       
       <MenuSection 
         dishes={dishes}
         restaurants={restaurants}
-        restaurantMenus={restaurantMenus}
         selectedTown={selectedTown}
-        onAddToCart={(item) => setCart([...cart, item])}
-        onAddCustomToCart={(item) => setCart([...cart, item])}
+        onAddToCart={addToCart}
+        onAddCustomToCart={addCustomToCart}
       />
       
       {cart.length > 0 && (

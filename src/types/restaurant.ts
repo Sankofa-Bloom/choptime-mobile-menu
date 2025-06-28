@@ -4,10 +4,14 @@ export interface Restaurant {
   name: string;
   town: string;
   image_url?: string;
+  logo_url?: string;
   contact_number: string;
   mtn_number?: string;
   orange_number?: string;
   auth_id?: string;
+  active?: boolean;
+  delivery_time_min?: number;
+  delivery_time_max?: number;
   created_at?: string;
   updated_at?: string;
 }
@@ -23,6 +27,8 @@ export interface Dish {
   is_vegetarian: boolean;
   cook_time: string;
   serves: string;
+  active?: boolean;
+  admin_created?: boolean;
   created_at?: string;
 }
 

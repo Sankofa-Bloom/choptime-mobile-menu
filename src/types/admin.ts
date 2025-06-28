@@ -44,7 +44,7 @@ export interface RestaurantFormData {
 export interface DishFormData {
   name: string;
   description?: string;
-  category: string;
+  category: 'Traditional' | 'Soup' | 'Rice' | 'Grilled' | 'Snacks' | 'Drinks';
   image_url?: string;
   is_popular: boolean;
   is_spicy: boolean;
