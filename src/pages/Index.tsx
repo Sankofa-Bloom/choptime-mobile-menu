@@ -372,7 +372,7 @@ const Index = () => {
         onCustomOrder={() => setShowCustomOrderModal(true)}
       />
       
-      {(cart.length > 0 && showCart) && (
+      {cart.length > 0 && (
         <CartSection 
           cart={cart}
           orderDetails={orderDetails}
