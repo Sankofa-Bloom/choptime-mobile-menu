@@ -157,6 +157,17 @@ const Index = () => {
     return calculateSubtotal() + orderDetails.deliveryFee;
   };
 
+  const getAvailableRestaurantsForDish = (dishId: string): Restaurant[] => {
+    return restaurants.filter(restaurant => 
+      restaurantMenus.some(menu => menu.dish_id === dishId && menu.restaurant_id === restaurant.id)
+    );
+  };
+
+  const getDishPrice = (dishId: string, restaurantId: string): number => {
+    const menu = restaurantMenus.find(m => m.dish_id === dishId && m.restaurant_id === restaurantId);
+    return menu?.price || 0;
+  };
+
   const generateWhatsAppMessage = async () => {
     const orderRef = await generateOrderReference(selectedTown);
     
@@ -316,8 +327,12 @@ const Index = () => {
     <div className="min-h-screen bg-choptime-beige">
       <Header 
         selectedTown={selectedTown}
-        onTownChange={() => {}} // Empty function since Header doesn't actually need to change town
-        cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
+        cart={cart}
+        onTownChange={() => {}}
+        onCartClick={() => {}}
+        showPWAPrompt={false}
+        onInstallPWA={() => {}}
+        onDismissPWA={() => {}}
       />
       
       <HeroSection selectedTown={selectedTown} deliveryFee={orderDetails.deliveryFee} />
@@ -326,11 +341,16 @@ const Index = () => {
         dishes={dishes}
         restaurants={restaurants}
         selectedTown={selectedTown}
+        getAvailableRestaurantsForDish={getAvailableRestaurantsForDish}
+        getDishPrice={getDishPrice}
         onAddToCart={(dish: Dish) => {
           // This will be handled by the RestaurantSelectionModal
           console.log('Dish selected:', dish.name);
         }}
-        onAddCustomToCart={addCustomToCart}
+        onCustomOrder={() => {
+          // This will be handled by the CustomOrderModal
+          console.log('Custom order requested');
+        }}
       />
       
       {cart.length > 0 && (
