@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Restaurant, Dish, OrderItem, CustomOrderItem, Order, CustomOrder } from '@/types/restaurant';
@@ -17,6 +16,7 @@ interface OrderDetails {
   customerName: string;
   phone: string;
   deliveryAddress: string;
+  additionalMessage: string;
   paymentMethod: string;
   total: number;
   deliveryFee: number;
@@ -33,6 +33,7 @@ const Index = () => {
     customerName: '',
     phone: '',
     deliveryAddress: '',
+    additionalMessage: '',
     paymentMethod: '',
     total: 0,
     deliveryFee: 0
@@ -221,9 +222,13 @@ const Index = () => {
     message += `📱 *Phone:* ${orderDetails.phone}\n`;
     message += `📍 *Address:* ${orderDetails.deliveryAddress}\n`;
     message += `🏙️ *Town:* ${selectedTown}\n`;
-    message += `💳 *Payment:* ${orderDetails.paymentMethod}\n\n`;
+    message += `💳 *Payment:* ${orderDetails.paymentMethod}\n`;
     
-    message += `🛒 *Order Details:*\n`;
+    if (orderDetails.additionalMessage) {
+      message += `💬 *Message:* ${orderDetails.additionalMessage}\n`;
+    }
+    
+    message += `\n🛒 *Order Details:*\n`;
     cart.forEach(item => {
       if ('dish' in item) {
         message += `• ${item.dish.name} x${item.quantity} - ${formatPrice(item.price * item.quantity)}\n`;
@@ -250,7 +255,7 @@ const Index = () => {
     
     message += `Thank you for choosing ChopTime! 🇨🇲`;
     
-    return { message: encodeURIComponent(message), orderRef };
+    return { message, orderRef };
   };
 
   const handleWhatsAppOrder = async () => {
@@ -321,9 +326,12 @@ const Index = () => {
         description: `Your order ${orderRef} has been saved successfully.`,
       });
 
-      // Open WhatsApp
-      const whatsappUrl = `https://wa.me/237670416449?text=${message}`;
-      window.open(whatsappUrl, '_blank');
+      // Fixed WhatsApp URL - use API format for better compatibility across devices
+      const encodedMessage = encodeURIComponent(message);
+      const whatsappUrl = `https://api.whatsapp.com/send/?phone=237670416449&text=${encodedMessage}&type=phone_number&app_absent=0`;
+      
+      // Use window.location.href for better mobile compatibility
+      window.location.href = whatsappUrl;
     } catch (error) {
       console.error('Error processing order:', error);
       toast({

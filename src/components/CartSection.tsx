@@ -151,6 +151,17 @@ const CartSection: React.FC<CartSectionProps> = ({
                     rows={3}
                   />
                 </div>
+
+                <div>
+                  <Label htmlFor="additionalMessage">Additional Message (Optional)</Label>
+                  <Textarea
+                    id="additionalMessage"
+                    placeholder="Any special requests or notes for your order..."
+                    value={orderDetails.additionalMessage || ''}
+                    onChange={(e) => onOrderDetailsChange({...orderDetails, additionalMessage: e.target.value})}
+                    rows={2}
+                  />
+                </div>
                 
                 <div>
                   <Label htmlFor="payment">Payment Method *</Label>
