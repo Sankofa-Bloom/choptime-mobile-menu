@@ -316,7 +316,7 @@ const Index = () => {
     <div className="min-h-screen bg-choptime-beige">
       <Header 
         selectedTown={selectedTown}
-        onTownChange={handleTownChange}
+        onTownChange={() => {}} // Empty function since Header doesn't actually need to change town
         cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
       />
       
@@ -326,7 +326,10 @@ const Index = () => {
         dishes={dishes}
         restaurants={restaurants}
         selectedTown={selectedTown}
-        onAddToCart={addToCart}
+        onAddToCart={(dish: Dish) => {
+          // This will be handled by the RestaurantSelectionModal
+          console.log('Dish selected:', dish.name);
+        }}
         onAddCustomToCart={addCustomToCart}
       />
       
