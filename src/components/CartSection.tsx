@@ -1,22 +1,30 @@
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Separator } from '@/components/ui/separator';
-import { MessageCircle, Package } from 'lucide-react';
+import { Minus, Plus, ShoppingCart, MessageCircle } from 'lucide-react';
 import { OrderItem, CustomOrderItem } from '@/types/restaurant';
-import PaymentDetails from '@/components/PaymentDetails';
+
+interface OrderDetails {
+  customerName: string;
+  phone: string;
+  deliveryAddress: string;
+  additionalMessage: string;
+  paymentMethod: string;
+  total: number;
+  deliveryFee: number;
+}
 
 interface CartSectionProps {
   cart: (OrderItem | CustomOrderItem)[];
-  orderDetails: any;
+  orderDetails: OrderDetails;
   selectedTown: string;
-  onOrderDetailsChange: (details: any) => void;
-  onQuantityUpdate: (index: number, quantity: number) => void;
+  onOrderDetailsChange: (details: OrderDetails) => void;
+  onQuantityUpdate: (index: number, newQuantity: number) => void;
   onWhatsAppOrder: () => void;
   calculateSubtotal: () => number;
   calculateTotal: () => number;
@@ -36,165 +44,171 @@ const CartSection: React.FC<CartSectionProps> = ({
     return `${price.toLocaleString()} FCFA`;
   };
 
+  const handleInputChange = (field: keyof OrderDetails, value: string | number) => {
+    onOrderDetailsChange({
+      ...orderDetails,
+      [field]: value
+    });
+  };
+
   return (
-    <section id="cart-section" className="py-8 bg-white">
+    <section id="cart-section" className="py-16 bg-white">
       <div className="container mx-auto px-4">
-        <h3 className="text-2xl font-bold text-choptime-brown mb-6">Your Order</h3>
-        
-        <div className="grid md:grid-cols-2 gap-8">
-          <div>
-            <h4 className="font-semibold text-choptime-brown mb-4">Cart Items</h4>
-            <div className="space-y-4">
-              {cart.map((item, index) => (
-                <Card key={index}>
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-4">
-                      {'dish' in item ? (
-                        <>
-                          <img 
-                            src={item.dish.image_url || 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400'} 
-                            alt={item.dish.name}
-                            className="w-16 h-16 object-cover rounded"
-                          />
-                          <div className="flex-1">
-                            <h5 className="font-semibold text-choptime-brown">{item.dish.name}</h5>
-                            <p className="text-xs text-choptime-orange font-medium">{item.restaurant.name}</p>
-                            <p className="text-sm text-choptime-brown/70">{formatPrice(item.price)} each</p>
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <div className="w-16 h-16 bg-choptime-orange/10 rounded flex items-center justify-center">
-                            <Package className="w-8 h-8 text-choptime-orange" />
-                          </div>
-                          <div className="flex-1">
-                            <h5 className="font-semibold text-choptime-brown">{item.customDishName}</h5>
-                            <p className="text-xs text-choptime-orange font-medium">{item.restaurant.name}</p>
-                            <p className="text-sm text-choptime-brown/70">{formatPrice(item.estimatedPrice)} each (Est.)</p>
-                            {item.specialInstructions && (
-                              <p className="text-xs text-choptime-brown/60 mt-1">📝 {item.specialInstructions}</p>
-                            )}
-                          </div>
-                        </>
-                      )}
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center gap-3 mb-8">
+            <ShoppingCart className="h-8 w-8 text-choptime-orange" />
+            <h2 className="text-3xl font-bold text-choptime-brown">Your Order</h2>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Cart Items */}
+            <div>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-choptime-brown">Cart Items</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {cart.map((item, index) => (
+                    <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-choptime-brown">
+                          {'dish' in item ? item.dish.name : item.customDishName}
+                          {!('dish' in item) && <span className="text-sm text-orange-600"> (Custom)</span>}
+                        </h4>
+                        <p className="text-sm text-gray-600">From: {item.restaurant.name}</p>
+                        {'specialInstructions' in item && item.specialInstructions && (
+                          <p className="text-xs text-gray-500 mt-1">Note: {item.specialInstructions}</p>
+                        )}
+                        <p className="text-sm font-medium text-choptime-orange">
+                          {formatPrice(('dish' in item ? item.price : item.estimatedPrice) * item.quantity)}
+                        </p>
+                      </div>
                       <div className="flex items-center gap-2">
-                        <Button 
-                          size="sm" 
+                        <Button
                           variant="outline"
+                          size="sm"
                           onClick={() => onQuantityUpdate(index, item.quantity - 1)}
+                          className="h-8 w-8 p-0"
                         >
-                          -
+                          <Minus className="h-4 w-4" />
                         </Button>
-                        <span className="w-8 text-center">{item.quantity}</span>
-                        <Button 
-                          size="sm" 
+                        <span className="mx-2 font-medium">{item.quantity}</span>
+                        <Button
                           variant="outline"
+                          size="sm"
                           onClick={() => onQuantityUpdate(index, item.quantity + 1)}
+                          className="h-8 w-8 p-0"
                         >
-                          +
+                          <Plus className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-            <Separator className="my-4" />
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <span>Subtotal:</span>
-                <span className="text-choptime-orange font-medium">{formatPrice(calculateSubtotal())}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span>Delivery Fee ({selectedTown}):</span>
-                <span className="text-choptime-orange font-medium">{formatPrice(orderDetails.deliveryFee)}</span>
-              </div>
-              <Separator />
-              <div className="flex justify-between items-center text-lg font-bold">
-                <span>Total:</span>
-                <span className="text-choptime-orange">{formatPrice(calculateTotal())}</span>
-              </div>
-            </div>
-          </div>
+                  ))}
 
-          <div className="space-y-6">
+                  {/* Order Summary */}
+                  <div className="border-t pt-4 space-y-2">
+                    <div className="flex justify-between">
+                      <span>Subtotal:</span>
+                      <span>{formatPrice(calculateSubtotal())}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Delivery ({selectedTown}):</span>
+                      <span>{formatPrice(orderDetails.deliveryFee)}</span>
+                    </div>
+                    <div className="flex justify-between font-bold text-lg">
+                      <span>Total:</span>
+                      <span className="text-choptime-orange">{formatPrice(calculateTotal())}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Order Details Form */}
             <div>
-              <h4 className="font-semibold text-choptime-brown mb-4">Delivery Details</h4>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="name">Full Name *</Label>
-                  <Input
-                    id="name"
-                    placeholder="Enter your full name"
-                    value={orderDetails.customerName}
-                    onChange={(e) => onOrderDetailsChange({...orderDetails, customerName: e.target.value})}
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="phone">Phone Number *</Label>
-                  <Input
-                    id="phone"
-                    placeholder="e.g., +237 6XX XXX XXX"
-                    value={orderDetails.phone}
-                    onChange={(e) => onOrderDetailsChange({...orderDetails, phone: e.target.value})}
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="address">Delivery Address in {selectedTown} *</Label>
-                  <Textarea
-                    id="address"
-                    placeholder={`Enter your complete delivery address in ${selectedTown} (neighborhood, street, landmarks)`}
-                    value={orderDetails.deliveryAddress}
-                    onChange={(e) => onOrderDetailsChange({...orderDetails, deliveryAddress: e.target.value})}
-                    rows={3}
-                  />
-                </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-choptime-brown">Delivery Details</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label htmlFor="customerName">Full Name *</Label>
+                    <Input
+                      id="customerName"
+                      value={orderDetails.customerName}
+                      onChange={(e) => handleInputChange('customerName', e.target.value)}
+                      placeholder="Enter your full name"
+                      required
+                    />
+                  </div>
 
-                <div>
-                  <Label htmlFor="additionalMessage">Additional Message (Optional)</Label>
-                  <Textarea
-                    id="additionalMessage"
-                    placeholder="Any special requests or notes for your order..."
-                    value={orderDetails.additionalMessage || ''}
-                    onChange={(e) => onOrderDetailsChange({...orderDetails, additionalMessage: e.target.value})}
-                    rows={2}
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="payment">Payment Method *</Label>
-                  <Select onValueChange={(value) => onOrderDetailsChange({...orderDetails, paymentMethod: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose payment method" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white z-50">
-                      <SelectItem value="mtn-money">MTN Mobile Money</SelectItem>
-                      <SelectItem value="orange-money">Orange Money</SelectItem>
-                      <SelectItem value="pay-on-delivery">Pay on Delivery</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+                  <div>
+                    <Label htmlFor="phone">Phone Number *</Label>
+                    <Input
+                      id="phone"
+                      value={orderDetails.phone}
+                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      placeholder="e.g., +237 6XX XXX XXX"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="deliveryAddress">Delivery Address *</Label>
+                    <Textarea
+                      id="deliveryAddress"
+                      value={orderDetails.deliveryAddress}
+                      onChange={(e) => handleInputChange('deliveryAddress', e.target.value)}
+                      placeholder="Enter your complete delivery address"
+                      rows={3}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="paymentMethod">Payment Method *</Label>
+                    <Select
+                      value={orderDetails.paymentMethod}
+                      onValueChange={(value) => handleInputChange('paymentMethod', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select payment method" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="cash">Cash on Delivery</SelectItem>
+                        <SelectItem value="mtn">MTN Mobile Money</SelectItem>
+                        <SelectItem value="orange">Orange Money</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="additionalMessage">Additional Message</Label>
+                    <Textarea
+                      id="additionalMessage"
+                      value={orderDetails.additionalMessage}
+                      onChange={(e) => handleInputChange('additionalMessage', e.target.value)}
+                      placeholder="Any special instructions or notes..."
+                      rows={2}
+                    />
+                  </div>
+
+                  <Button
+                    onClick={onWhatsAppOrder}
+                    className="w-full choptime-gradient hover:opacity-90 text-white"
+                    size="lg"
+                  >
+                    <MessageCircle className="mr-2 h-5 w-5" />
+                    Order via WhatsApp - {formatPrice(calculateTotal())}
+                  </Button>
+
+                  <p className="text-xs text-gray-500 text-center">
+                    Your order will be sent via WhatsApp for confirmation and delivery coordination.
+                  </p>
+                </CardContent>
+              </Card>
             </div>
-
-            <PaymentDetails paymentMethod={orderDetails.paymentMethod} />
           </div>
-        </div>
-
-        <div className="mt-8 text-center">
-          <Button 
-            onClick={onWhatsAppOrder}
-            size="lg"
-            className="choptime-gradient hover:opacity-90 text-white text-lg px-8 py-3 w-full md:w-auto"
-          >
-            <MessageCircle className="w-5 h-5 mr-2" />
-            Order via WhatsApp
-          </Button>
-          <p className="text-sm text-choptime-brown/70 mt-2">
-            Your order will be sent to our WhatsApp for confirmation
-          </p>
         </div>
       </div>
     </section>
