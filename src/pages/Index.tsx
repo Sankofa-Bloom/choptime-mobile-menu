@@ -84,6 +84,13 @@ const Index = () => {
     updateDeliveryFee();
   }, [selectedTown, orderDetails.deliveryAddress, getDeliveryFee]);
 
+  const scrollToCart = () => {
+    const cartSection = document.getElementById('cart-section');
+    if (cartSection) {
+      cartSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   const handleTownChange = (town: string) => {
     setSelectedTown(town);
     localStorage.setItem('choptime-town', town);
@@ -129,6 +136,11 @@ const Index = () => {
       title: "Added to cart",
       description: `${dish.name} from ${restaurant.name} added to your order.`,
     });
+
+    // Scroll to cart section after adding item
+    setTimeout(() => {
+      scrollToCart();
+    }, 100);
   };
 
   const addCustomToCart = (customOrderItem: CustomOrderItem) => {
@@ -160,6 +172,11 @@ const Index = () => {
     });
     
     setShowCustomOrderModal(false);
+
+    // Scroll to cart section after adding custom item
+    setTimeout(() => {
+      scrollToCart();
+    }, 100);
   };
 
   const handleQuantityUpdate = (index: number, newQuantity: number) => {
@@ -307,12 +324,40 @@ const Index = () => {
         description: `Your order ${orderRef} has been saved successfully.`,
       });
 
-      // Fixed WhatsApp URL - use API format for better compatibility across devices
+      // Fixed WhatsApp URL - use proper mobile detection and URL handling
       const encodedMessage = encodeURIComponent(message);
-      const whatsappUrl = `https://wa.me/237670416449?text=${encodedMessage}`;
+      const whatsappNumber = "237670416449";
       
-      // Use window.location.href for better mobile compatibility
-      window.location.href = whatsappUrl;
+      // Check if user is on mobile device
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
+      let whatsappUrl;
+      if (isMobile) {
+        // For mobile devices, use the app protocol
+        whatsappUrl = `whatsapp://send?phone=${whatsappNumber}&text=${encodedMessage}`;
+      } else {
+        // For desktop, use web WhatsApp
+        whatsappUrl = `https://web.whatsapp.com/send?phone=${whatsappNumber}&text=${encodedMessage}`;
+      }
+      
+      // Try to open WhatsApp app first, fallback to web version
+      const link = document.createElement('a');
+      link.href = whatsappUrl;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Fallback for cases where the app doesn't open
+      setTimeout(() => {
+        if (isMobile) {
+          // If mobile app didn't work, try web version
+          const webUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
+          window.open(webUrl, '_blank', 'noopener,noreferrer');
+        }
+      }, 1000);
+
     } catch (error) {
       console.error('Error processing order:', error);
       toast({
