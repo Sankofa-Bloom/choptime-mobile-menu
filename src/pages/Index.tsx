@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Restaurant, Dish, OrderItem, CustomOrderItem, Order, CustomOrder } from '@/types/restaurant';
@@ -324,39 +325,44 @@ const Index = () => {
         description: `Your order ${orderRef} has been saved successfully.`,
       });
 
-      // Fixed WhatsApp URL - use proper mobile detection and URL handling
+      // Fixed WhatsApp URL handling with proper encoding and device detection
       const encodedMessage = encodeURIComponent(message);
       const whatsappNumber = "237670416449";
       
-      // Check if user is on mobile device
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      console.log('Opening WhatsApp with message:', message);
+      console.log('WhatsApp number:', whatsappNumber);
       
-      let whatsappUrl;
-      if (isMobile) {
-        // For mobile devices, use the app protocol
-        whatsappUrl = `whatsapp://send?phone=${whatsappNumber}&text=${encodedMessage}`;
-      } else {
-        // For desktop, use web WhatsApp
-        whatsappUrl = `https://web.whatsapp.com/send?phone=${whatsappNumber}&text=${encodedMessage}`;
-      }
+      // Try multiple WhatsApp URLs in sequence
+      const tryWhatsAppUrls = [
+        `https://wa.me/${whatsappNumber}?text=${encodedMessage}`,
+        `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${encodedMessage}`,
+        `whatsapp://send?phone=${whatsappNumber}&text=${encodedMessage}`
+      ];
+
+      let urlOpened = false;
       
-      // Try to open WhatsApp app first, fallback to web version
-      const link = document.createElement('a');
-      link.href = whatsappUrl;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      // Fallback for cases where the app doesn't open
-      setTimeout(() => {
-        if (isMobile) {
-          // If mobile app didn't work, try web version
-          const webUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
-          window.open(webUrl, '_blank', 'noopener,noreferrer');
+      for (const url of tryWhatsAppUrls) {
+        try {
+          console.log('Trying WhatsApp URL:', url);
+          const newWindow = window.open(url, '_blank');
+          
+          if (newWindow) {
+            urlOpened = true;
+            break;
+          }
+        } catch (error) {
+          console.error('Error opening WhatsApp URL:', url, error);
         }
-      }, 1000);
+      }
+
+      if (!urlOpened) {
+        // Fallback: show the message and number to user
+        toast({
+          title: "WhatsApp not available",
+          description: `Please send this message to +${whatsappNumber} on WhatsApp manually.`,
+          variant: "destructive"
+        });
+      }
 
     } catch (error) {
       console.error('Error processing order:', error);

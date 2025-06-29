@@ -14,15 +14,18 @@ export const useAdminAuth = () => {
   const checkAdmin = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
+      console.log('Current session:', session);
+      
       if (session?.user) {
-        // Simple direct query without RLS policy conflicts
+        // Check if this user is an admin
         const { data: adminData, error } = await supabase
           .from('admin_users')
           .select('*')
           .eq('email', session.user.email)
           .eq('active', true)
-          .limit(1)
-          .maybeSingle();
+          .single();
+
+        console.log('Admin data query result:', { adminData, error });
 
         if (!error && adminData) {
           setAdmin(adminData);
@@ -37,50 +40,45 @@ export const useAdminAuth = () => {
 
   const loginAdmin = async (email: string, password: string) => {
     try {
-      // First try to authenticate with Supabase auth
+      console.log('Attempting admin login for:', email);
+      
+      // First, authenticate with Supabase Auth
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
 
+      console.log('Auth result:', { data, error });
+
       if (error) {
-        // If auth fails, try direct admin login
-        const { data: adminData, error: adminError } = await supabase
-          .from('admin_users')
-          .select('*')
-          .eq('email', email)
-          .eq('active', true)
-          .limit(1)
-          .maybeSingle();
-
-        if (adminError || !adminData) {
-          throw new Error('Invalid admin credentials');
-        }
-
-        // Verify password using a simple comparison for now
-        // In production, you'd want to use proper password hashing verification
-        setAdmin(adminData);
-        return { success: true };
+        console.error('Auth error:', error);
+        return { success: false, error: error.message };
       }
 
       if (data.user) {
+        // Check if authenticated user is an admin
         const { data: adminData, error: adminError } = await supabase
           .from('admin_users')
           .select('*')
           .eq('email', email)
           .eq('active', true)
-          .limit(1)
-          .maybeSingle();
+          .single();
+
+        console.log('Admin check result:', { adminData, adminError });
 
         if (adminError || !adminData) {
+          // Sign out if not an admin
           await supabase.auth.signOut();
-          throw new Error('Access denied. Admin privileges required.');
+          return { success: false, error: 'Access denied. Admin privileges required.' };
         }
 
         setAdmin(adminData);
         return { success: true };
       }
+
+      return { success: false, error: 'Authentication failed' };
     } catch (error: any) {
+      console.error('Login error:', error);
       return { success: false, error: error.message };
     }
   };
