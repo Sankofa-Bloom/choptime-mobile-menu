@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Restaurant, Dish, OrderItem, CustomOrderItem, Order, CustomOrder } from '@/types/restaurant';
@@ -11,6 +10,8 @@ import Footer from '@/components/Footer';
 import TownSelector from '@/components/TownSelector';
 import RestaurantSelectionModal from '@/components/RestaurantSelectionModal';
 import CustomOrderModal from '@/components/CustomOrderModal';
+import WhatsAppFallbackModal from '@/components/WhatsAppFallbackModal';
+import { sendWhatsAppMessage } from '@/utils/whatsappUtils';
 
 interface OrderDetails {
   customerName: string;
@@ -41,6 +42,8 @@ const Index = () => {
   const [showCustomOrderModal, setShowCustomOrderModal] = useState(false);
   const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
   const [showCart, setShowCart] = useState(false);
+  const [showWhatsAppFallback, setShowWhatsAppFallback] = useState(false);
+  const [whatsAppMessage, setWhatsAppMessage] = useState('');
 
   const { 
     dishes, 
@@ -325,43 +328,26 @@ const Index = () => {
         description: `Your order ${orderRef} has been saved successfully.`,
       });
 
-      // Fixed WhatsApp URL handling with proper encoding and device detection
-      const encodedMessage = encodeURIComponent(message);
-      const whatsappNumber = "237670416449";
-      
-      console.log('Opening WhatsApp with message:', message);
-      console.log('WhatsApp number:', whatsappNumber);
-      
-      // Try multiple WhatsApp URLs in sequence
-      const tryWhatsAppUrls = [
-        `https://wa.me/${whatsappNumber}?text=${encodedMessage}`,
-        `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${encodedMessage}`,
-        `whatsapp://send?phone=${whatsappNumber}&text=${encodedMessage}`
-      ];
-
-      let urlOpened = false;
-      
-      for (const url of tryWhatsAppUrls) {
-        try {
-          console.log('Trying WhatsApp URL:', url);
-          const newWindow = window.open(url, '_blank');
-          
-          if (newWindow) {
-            urlOpened = true;
-            break;
-          }
-        } catch (error) {
-          console.error('Error opening WhatsApp URL:', url, error);
+      // Use improved WhatsApp functionality with fallbacks
+      const whatsAppSuccess = await sendWhatsAppMessage({
+        phone: '237670416449',
+        message,
+        onSuccess: () => {
+          toast({
+            title: "WhatsApp opened!",
+            description: "Please send the message to complete your order.",
+          });
+        },
+        onError: (error) => {
+          console.error('WhatsApp redirect failed:', error);
+          setWhatsAppMessage(message);
+          setShowWhatsAppFallback(true);
         }
-      }
+      });
 
-      if (!urlOpened) {
-        // Fallback: show the message and number to user
-        toast({
-          title: "WhatsApp not available",
-          description: `Please send this message to +${whatsappNumber} on WhatsApp manually.`,
-          variant: "destructive"
-        });
+      if (!whatsAppSuccess) {
+        setWhatsAppMessage(message);
+        setShowWhatsAppFallback(true);
       }
 
     } catch (error) {
@@ -461,6 +447,13 @@ const Index = () => {
         onClose={() => setShowCustomOrderModal(false)}
         restaurants={restaurants}
         onAddToCart={addCustomToCart}
+      />
+
+      <WhatsAppFallbackModal
+        isOpen={showWhatsAppFallback}
+        onClose={() => setShowWhatsAppFallback(false)}
+        phone="237670416449"
+        message={whatsAppMessage}
       />
     </div>
   );
