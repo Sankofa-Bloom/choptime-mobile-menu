@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Restaurant, Dish, OrderItem, CustomOrderItem, Order, CustomOrder } from '@/types/restaurant';
@@ -10,8 +11,6 @@ import Footer from '@/components/Footer';
 import TownSelector from '@/components/TownSelector';
 import RestaurantSelectionModal from '@/components/RestaurantSelectionModal';
 import CustomOrderModal from '@/components/CustomOrderModal';
-import WhatsAppFallbackModal from '@/components/WhatsAppFallbackModal';
-import { sendWhatsAppMessage } from '@/utils/whatsappUtils';
 
 interface OrderDetails {
   customerName: string;
@@ -42,8 +41,6 @@ const Index = () => {
   const [showCustomOrderModal, setShowCustomOrderModal] = useState(false);
   const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
   const [showCart, setShowCart] = useState(false);
-  const [showWhatsAppFallback, setShowWhatsAppFallback] = useState(false);
-  const [whatsAppMessage, setWhatsAppMessage] = useState('');
 
   const { 
     dishes, 
@@ -328,27 +325,12 @@ const Index = () => {
         description: `Your order ${orderRef} has been saved successfully.`,
       });
 
-      // Use improved WhatsApp functionality with fallbacks
-      const whatsAppSuccess = await sendWhatsAppMessage({
-        phone: '237670416449',
-        message,
-        onSuccess: () => {
-          toast({
-            title: "WhatsApp opened!",
-            description: "Please send the message to complete your order.",
-          });
-        },
-        onError: (error) => {
-          console.error('WhatsApp redirect failed:', error);
-          setWhatsAppMessage(message);
-          setShowWhatsAppFallback(true);
-        }
-      });
-
-      if (!whatsAppSuccess) {
-        setWhatsAppMessage(message);
-        setShowWhatsAppFallback(true);
-      }
+      // Revert to simple, reliable WhatsApp URL format that was working perfectly
+      const encodedMessage = encodeURIComponent(message);
+      const whatsappUrl = `https://wa.me/237670416449?text=${encodedMessage}`;
+      
+      // Use window.location.href for direct redirect
+      window.location.href = whatsappUrl;
 
     } catch (error) {
       console.error('Error processing order:', error);
@@ -447,13 +429,6 @@ const Index = () => {
         onClose={() => setShowCustomOrderModal(false)}
         restaurants={restaurants}
         onAddToCart={addCustomToCart}
-      />
-
-      <WhatsAppFallbackModal
-        isOpen={showWhatsAppFallback}
-        onClose={() => setShowWhatsAppFallback(false)}
-        phone="237670416449"
-        message={whatsAppMessage}
       />
     </div>
   );
