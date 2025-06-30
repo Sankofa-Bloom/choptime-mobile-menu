@@ -1,60 +1,86 @@
 
-interface WhatsAppOptions {
-  phone: string;
-  message: string;
-  onSuccess?: () => void;
-  onError?: (error: string) => void;
-}
+export const generateWhatsAppMessage = (
+  userName: string,
+  userPhone: string,
+  userLocation: string,
+  dishName: string,
+  restaurantName: string,
+  quantity: number,
+  price: number,
+  totalAmount: number,
+  orderReference?: string
+): string => {
+  const message = `🍽️ *ChopTime Order*
 
-export const sendWhatsAppMessage = async ({ phone, message, onSuccess, onError }: WhatsAppOptions) => {
-  const encodedMessage = encodeURIComponent(message);
+📋 *Order Details:*
+• Dish: ${dishName}
+• Restaurant: ${restaurantName}
+• Quantity: ${quantity}
+• Price: ${price.toLocaleString()} FCFA each
+• Total: ${totalAmount.toLocaleString()} FCFA
+
+👤 *Customer Info:*
+• Name: ${userName}
+• Phone: ${userPhone}
+• Location: ${userLocation}
+
+${orderReference ? `📄 *Order Reference:* ${orderReference}` : ''}
+
+Please confirm this order and let me know the delivery time. Thank you! 🙏`;
+
+  return encodeURIComponent(message);
+};
+
+export const openWhatsApp = (
+  restaurantPhone: string,
+  message: string
+): void => {
+  const whatsappUrl = `https://wa.me/${restaurantPhone.replace(/\+/g, '').replace(/\s/g, '')}?text=${message}`;
   
-  // Multiple WhatsApp URL formats for maximum compatibility
-  const whatsappUrls = [
-    `https://wa.me/${phone}?text=${encodedMessage}`,
-    `https://api.whatsapp.com/send?phone=${phone}&text=${encodedMessage}`,
-    `https://web.whatsapp.com/send?phone=${phone}&text=${encodedMessage}`,
-    `whatsapp://send?phone=${phone}&text=${encodedMessage}`
-  ];
-
-  // Try each URL with proper error handling
-  for (let i = 0; i < whatsappUrls.length; i++) {
-    try {
-      const url = whatsappUrls[i];
-      console.log(`Attempting WhatsApp URL ${i + 1}:`, url);
-      
-      // For mobile devices, use window.location.href
-      if (isMobileDevice()) {
-        window.location.href = url;
-        // Wait a bit to see if redirect worked
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        onSuccess?.();
-        return true;
-      } else {
-        // For desktop, try opening in new window
-        const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
-        if (newWindow) {
-          onSuccess?.();
-          return true;
-        }
-      }
-    } catch (error) {
-      console.error(`WhatsApp URL ${i + 1} failed:`, error);
-      continue;
-    }
+  // Try to open in WhatsApp app first, fallback to web
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  
+  if (isMobile) {
+    // Try WhatsApp app first
+    const appUrl = `whatsapp://send?phone=${restaurantPhone.replace(/\+/g, '').replace(/\s/g, '')}&text=${message}`;
+    window.location.href = appUrl;
+    
+    // Fallback to web WhatsApp after a short delay
+    setTimeout(() => {
+      window.open(whatsappUrl, '_blank');
+    }, 1000);
+  } else {
+    // Desktop - open web WhatsApp
+    window.open(whatsappUrl, '_blank');
   }
-
-  // If all URLs fail, show fallback options
-  onError?.('All WhatsApp options failed. Please copy the message and send it manually.');
-  return false;
 };
 
-export const isMobileDevice = (): boolean => {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-};
+export const generateCustomOrderWhatsAppMessage = (
+  userName: string,
+  userPhone: string,
+  userLocation: string,
+  customDishName: string,
+  restaurantName: string,
+  quantity: number,
+  specialInstructions?: string,
+  orderReference?: string
+): string => {
+  const message = `🍽️ *ChopTime Custom Order*
 
-export const generateQRCodeUrl = (phone: string, message: string): string => {
-  const encodedMessage = encodeURIComponent(message);
-  const whatsappUrl = `https://wa.me/${phone}?text=${encodedMessage}`;
-  return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(whatsappUrl)}`;
+📋 *Order Details:*
+• Custom Dish: ${customDishName}
+• Restaurant: ${restaurantName}
+• Quantity: ${quantity}
+${specialInstructions ? `• Special Instructions: ${specialInstructions}` : ''}
+
+👤 *Customer Info:*
+• Name: ${userName}
+• Phone: ${userPhone}
+• Location: ${userLocation}
+
+${orderReference ? `📄 *Order Reference:* ${orderReference}` : ''}
+
+Please provide the price and confirm availability for this custom order. Thank you! 🙏`;
+
+  return encodeURIComponent(message);
 };
