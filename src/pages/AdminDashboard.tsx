@@ -50,7 +50,7 @@ const AdminDashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-choptime-brown">ChopTime Admin</h1>
-              <p className="text-gray-600">Welcome back, {admin.name}</p>
+              <p className="text-gray-600">Welcome back, {admin.email}</p>
             </div>
             <Button
               onClick={logoutAdmin}
