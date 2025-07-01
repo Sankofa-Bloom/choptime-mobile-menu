@@ -72,7 +72,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
   const isCustomOrder = !orderDetails && !!customOrder;
 
   // Get admin phone from environment variables and ensure it's a string
-  const adminPhone = String(import.meta.env.VITE_ADMIN_PHONE || '237670416449');
+  const adminPhone: string = (import.meta.env.VITE_ADMIN_PHONE as string) || '237670416449';
 
   useEffect(() => {
     if (currentOrder?.location && selectedRestaurant?.town) {
@@ -206,7 +206,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
       );
 
       openWhatsApp(
-        String(adminPhone),
+        adminPhone,
         message,
         (phone, msg) => {
           setFallbackModalData({ phone, message: msg });
@@ -229,7 +229,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
       );
 
       openWhatsApp(
-        String(adminPhone),
+        adminPhone,
         message,
         (phone, msg) => {
           setFallbackModalData({ phone, message: msg });
