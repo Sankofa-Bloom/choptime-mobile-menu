@@ -83,6 +83,9 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
   const currentOrder = orderDetails || customOrder;
   const isCustomOrder = !orderDetails && !!customOrder;
 
+  // Get admin phone from environment variables
+  const adminPhone = import.meta.env.VITE_ADMIN_PHONE || '237670416449';
+
   useEffect(() => {
     if (currentOrder?.location && selectedRestaurant?.town) {
       calculateDeliveryFee();
@@ -214,10 +217,8 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
         selectedRestaurant.name
       );
 
-      // Convert contact_number to string properly
-      const contactNumber = String(selectedRestaurant.contact_number);
       openWhatsApp(
-        contactNumber,
+        adminPhone,
         message,
         (phone, msg) => {
           setFallbackModalData({ phone, message: msg });
@@ -239,10 +240,8 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
         customOrder.specialInstructions
       );
 
-      // Convert contact_number to string properly
-      const contactNumber = String(selectedRestaurant.contact_number);
       openWhatsApp(
-        contactNumber,
+        adminPhone,
         message,
         (phone, msg) => {
           setFallbackModalData({ phone, message: msg });
@@ -312,17 +311,17 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
         <CardContent className="space-y-6">
           {/* Restaurant Info */}
           <div className="bg-choptime-beige/30 p-4 rounded-lg">
-            <h3 className="font-semibold text-choptime-brown mb-2">{selectedRestaurant.name}</h3>
+            <h3 className="font-semibold text-choptime-brown mb-2">{selectedRestaurant?.name}</h3>
             <div className="flex items-center gap-4 text-sm text-gray-600">
               <div className="flex items-center gap-1">
                 <Phone className="w-4 h-4" />
-                {selectedRestaurant.contact_number}
+                {selectedRestaurant?.contact_number}
               </div>
               <div className="flex items-center gap-1">
                 <MapPin className="w-4 h-4" />
-                {selectedRestaurant.town}
+                {selectedRestaurant?.town}
               </div>
-              {selectedRestaurant.delivery_time_min && selectedRestaurant.delivery_time_max && (
+              {selectedRestaurant?.delivery_time_min && selectedRestaurant?.delivery_time_max && (
                 <div className="flex items-center gap-1">
                   <Clock className="w-4 h-4" />
                   {selectedRestaurant.delivery_time_min}-{selectedRestaurant.delivery_time_max} mins
@@ -427,9 +426,11 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
                   className="text-choptime-orange"
                 />
                 <MessageCircle className="w-5 h-5 text-green-600" />
-                <div>
+                <div className="flex-1">
                   <div className="font-medium">WhatsApp Order</div>
-                  <div className="text-sm text-gray-600">Send order directly to restaurant via WhatsApp</div>
+                  <div className="text-sm text-gray-600">
+                    Send order to ChopTime Admin: +{adminPhone}
+                  </div>
                 </div>
               </label>
 
@@ -444,9 +445,11 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
                     className="text-choptime-orange"
                   />
                   <CreditCard className="w-5 h-5 text-blue-600" />
-                  <div>
+                  <div className="flex-1">
                     <div className="font-medium">Mobile Money</div>
-                    <div className="text-sm text-gray-600">Pay with MTN or Orange Money</div>
+                    <div className="text-sm text-gray-600">
+                      Pay with MTN Mobile Money or Orange Money
+                    </div>
                   </div>
                 </label>
               )}
@@ -458,12 +461,12 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
                 <Input
                   id="momoNumber"
                   type="tel"
-                  placeholder="Enter your mobile money number"
+                  placeholder="Enter your mobile money number (e.g., 237XXXXXXXXX)"
                   value={momoNumber}
                   onChange={(e) => setMomoNumber(e.target.value)}
                 />
                 <p className="text-xs text-gray-600">
-                  You'll receive a payment prompt on your phone
+                  You'll receive a payment prompt on your phone after submitting the order
                 </p>
               </div>
             )}
