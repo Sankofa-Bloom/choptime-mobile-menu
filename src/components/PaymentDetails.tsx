@@ -214,9 +214,9 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
         selectedRestaurant.name
       );
 
-      // Use the updated openWhatsApp function with fallback modal
+      // Convert contact_number to string
       openWhatsApp(
-        selectedRestaurant.contact_number,
+        selectedRestaurant.contact_number.toString(),
         message,
         (phone, msg) => {
           setFallbackModalData({ phone, message: msg });
@@ -238,9 +238,9 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
         customOrder.specialInstructions
       );
 
-      // Use the updated openWhatsApp function with fallback modal
+      // Convert contact_number to string
       openWhatsApp(
-        selectedRestaurant.contact_number,
+        selectedRestaurant.contact_number.toString(),
         message,
         (phone, msg) => {
           setFallbackModalData({ phone, message: msg });
