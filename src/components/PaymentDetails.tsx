@@ -214,7 +214,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
         selectedRestaurant.name
       );
 
-      // Convert contact_number to string
+      // Convert contact_number to string properly
       const contactNumber = String(selectedRestaurant.contact_number);
       openWhatsApp(
         contactNumber,
@@ -239,7 +239,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
         customOrder.specialInstructions
       );
 
-      // Convert contact_number to string
+      // Convert contact_number to string properly
       const contactNumber = String(selectedRestaurant.contact_number);
       openWhatsApp(
         contactNumber,
