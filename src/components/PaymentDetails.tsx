@@ -215,8 +215,9 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
       );
 
       // Convert contact_number to string
+      const contactNumber = String(selectedRestaurant.contact_number);
       openWhatsApp(
-        selectedRestaurant.contact_number.toString(),
+        contactNumber,
         message,
         (phone, msg) => {
           setFallbackModalData({ phone, message: msg });
@@ -239,8 +240,9 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
       );
 
       // Convert contact_number to string
+      const contactNumber = String(selectedRestaurant.contact_number);
       openWhatsApp(
-        selectedRestaurant.contact_number.toString(),
+        contactNumber,
         message,
         (phone, msg) => {
           setFallbackModalData({ phone, message: msg });
