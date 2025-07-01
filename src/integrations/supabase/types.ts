@@ -350,9 +350,7 @@ export type Database = {
           id: string
           image_url: string | null
           logo_url: string | null
-          mtn_number: string | null
           name: string
-          orange_number: string | null
           town: string
           updated_at: string | null
         }
@@ -366,9 +364,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           logo_url?: string | null
-          mtn_number?: string | null
           name: string
-          orange_number?: string | null
           town: string
           updated_at?: string | null
         }
@@ -382,9 +378,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           logo_url?: string | null
-          mtn_number?: string | null
           name?: string
-          orange_number?: string | null
           town?: string
           updated_at?: string | null
         }
