@@ -206,7 +206,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
       );
 
       openWhatsApp(
-        adminPhone,
+        String(adminPhone),
         message,
         (phone, msg) => {
           setFallbackModalData({ phone, message: msg });
@@ -229,7 +229,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
       );
 
       openWhatsApp(
-        adminPhone,
+        String(adminPhone),
         message,
         (phone, msg) => {
           setFallbackModalData({ phone, message: msg });
