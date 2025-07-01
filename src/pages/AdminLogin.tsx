@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, CheckCircle, UserPlus, KeyRound } from 'lucide-react';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 
 const AdminLogin = () => {
@@ -14,16 +14,19 @@ const AdminLogin = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState<'login' | 'create' | 'reset'>('login');
   const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({});
   
-  const { loginAdmin, isAdmin, loading: authLoading } = useAdminAuth();
+  const { loginAdmin, createAdmin, resetPassword, isAdmin, loading: authLoading } = useAdminAuth();
 
   // Clear errors when form changes
   useEffect(() => {
     setError('');
+    setSuccess('');
     setValidationErrors({});
-  }, [email, password]);
+  }, [email, password, mode]);
 
   if (authLoading) {
     return (
@@ -49,10 +52,12 @@ const AdminLogin = () => {
       errors.email = 'Please enter a valid email address';
     }
     
-    if (!password.trim()) {
-      errors.password = 'Password is required';
-    } else if (password.length < 6) {
-      errors.password = 'Password must be at least 6 characters';
+    if (mode !== 'reset') {
+      if (!password.trim()) {
+        errors.password = 'Password is required';
+      } else if (password.length < 6) {
+        errors.password = 'Password must be at least 6 characters';
+      }
     }
 
     setValidationErrors(errors);
@@ -68,30 +73,75 @@ const AdminLogin = () => {
 
     setLoading(true);
     setError('');
+    setSuccess('');
 
     try {
-      const result = await loginAdmin(email.trim(), password);
+      let result;
       
-      if (!result.success) {
-        setError(result.error || 'Login failed');
+      if (mode === 'login') {
+        result = await loginAdmin(email.trim(), password);
+      } else if (mode === 'create') {
+        result = await createAdmin(email.trim(), password);
+      } else if (mode === 'reset') {
+        result = await resetPassword(email.trim());
+      }
+      
+      if (result?.success) {
+        if (result.message) {
+          setSuccess(result.message);
+          if (mode !== 'login') {
+            // Switch back to login mode after success
+            setTimeout(() => setMode('login'), 3000);
+          }
+        }
+      } else {
+        setError(result?.error || 'Operation failed');
       }
     } catch (error) {
-      console.error('Login submission error:', error);
+      console.error('Form submission error:', error);
       setError('An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
+  const getModeConfig = () => {
+    switch (mode) {
+      case 'create':
+        return {
+          title: 'Create Admin Account',
+          buttonText: 'Create Account',
+          icon: <UserPlus className="w-5 h-5 text-blue-600" />
+        };
+      case 'reset':
+        return {
+          title: 'Reset Password',
+          buttonText: 'Send Reset Email',
+          icon: <KeyRound className="w-5 h-5 text-orange-600" />
+        };
+      default:
+        return {
+          title: 'ChopTime Admin',
+          buttonText: 'Sign In',
+          icon: null
+        };
+    }
+  };
+
+  const config = getModeConfig();
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-choptime-beige px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-choptime-brown">
-            ChopTime Admin
+          <CardTitle className="text-2xl font-bold text-choptime-brown flex items-center justify-center gap-2">
+            {config.icon}
+            {config.title}
           </CardTitle>
           <p className="text-sm text-choptime-brown/70 mt-2">
-            Sign in to access the admin dashboard
+            {mode === 'login' && 'Sign in to access the admin dashboard'}
+            {mode === 'create' && 'Create a new admin account'}
+            {mode === 'reset' && 'Enter your email to reset password'}
           </p>
         </CardHeader>
         <CardContent>
@@ -100,6 +150,13 @@ const AdminLogin = () => {
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            {success && (
+              <Alert className="border-green-200 bg-green-50 text-green-800">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                <AlertDescription>{success}</AlertDescription>
               </Alert>
             )}
             
@@ -120,50 +177,54 @@ const AdminLogin = () => {
               )}
             </div>
             
-            <div>
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
-                  className={validationErrors.password ? 'border-red-500 pr-10' : 'pr-10'}
-                  disabled={loading}
-                  required
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                  onClick={() => setShowPassword(!showPassword)}
-                  disabled={loading}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4 text-gray-400" />
-                  ) : (
-                    <Eye className="h-4 w-4 text-gray-400" />
-                  )}
-                </Button>
+            {mode !== 'reset' && (
+              <div>
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter your password"
+                    className={validationErrors.password ? 'border-red-500 pr-10' : 'pr-10'}
+                    disabled={loading}
+                    required
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                    disabled={loading}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4 text-gray-400" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-gray-400" />
+                    )}
+                  </Button>
+                </div>
+                {validationErrors.password && (
+                  <p className="text-sm text-red-600 mt-1">{validationErrors.password}</p>
+                )}
               </div>
-              {validationErrors.password && (
-                <p className="text-sm text-red-600 mt-1">{validationErrors.password}</p>
-              )}
-            </div>
+            )}
 
-            {/* Demo credentials hint */}
-            <div className="bg-blue-50 p-3 rounded-lg text-sm">
-              <div className="flex items-center gap-2 text-blue-700 mb-1">
-                <CheckCircle className="w-4 h-4" />
-                <span className="font-medium">Demo Credentials</span>
+            {/* Demo credentials hint - only show in login mode */}
+            {mode === 'login' && (
+              <div className="bg-blue-50 p-3 rounded-lg text-sm">
+                <div className="flex items-center gap-2 text-blue-700 mb-1">
+                  <CheckCircle className="w-4 h-4" />
+                  <span className="font-medium">Demo Credentials</span>
+                </div>
+                <p className="text-blue-600 text-xs">
+                  Email: choptime237@gmail.com<br />
+                  Password: Choptime@237Sankofa
+                </p>
               </div>
-              <p className="text-blue-600 text-xs">
-                Email: choptime237@gmail.com<br />
-                Password: Choptime@237Sankofa
-              </p>
-            </div>
+            )}
             
             <Button 
               type="submit" 
@@ -173,12 +234,47 @@ const AdminLogin = () => {
               {loading ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Signing in...
+                  {mode === 'login' ? 'Signing in...' : mode === 'create' ? 'Creating...' : 'Sending...'}
                 </>
               ) : (
-                'Sign In'
+                config.buttonText
               )}
             </Button>
+
+            {/* Mode switching buttons */}
+            <div className="flex flex-col gap-2 pt-4 border-t">
+              {mode === 'login' && (
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setMode('reset')}
+                    className="w-full text-sm"
+                  >
+                    Forgot Password?
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setMode('create')}
+                    className="w-full text-sm"
+                  >
+                    Create Admin Account
+                  </Button>
+                </>
+              )}
+              
+              {(mode === 'create' || mode === 'reset') && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setMode('login')}
+                  className="w-full text-sm"
+                >
+                  Back to Login
+                </Button>
+              )}
+            </div>
           </form>
         </CardContent>
       </Card>

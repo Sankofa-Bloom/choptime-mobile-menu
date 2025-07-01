@@ -72,28 +72,41 @@ export const openWhatsApp = (
   onFallback?: (phone: string, message: string) => void
 ): void => {
   const cleanPhone = restaurantPhone.replace(/\+/g, '').replace(/\s/g, '');
-  const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
   
+  // Try to open WhatsApp app directly first
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   
   if (isMobile) {
-    // Try WhatsApp app first
+    // Mobile: Try WhatsApp app protocol first
     const appUrl = `whatsapp://send?phone=${cleanPhone}&text=${encodeURIComponent(message)}`;
-    window.location.href = appUrl;
     
-    // Fallback to web WhatsApp after a short delay
+    // Create a hidden iframe to try opening WhatsApp app
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.src = appUrl;
+    document.body.appendChild(iframe);
+    
+    // Clean up iframe after attempt
+    setTimeout(() => {
+      document.body.removeChild(iframe);
+    }, 100);
+    
+    // If WhatsApp app doesn't open (fallback after 2 seconds)
     setTimeout(() => {
       if (onFallback) {
         onFallback(cleanPhone, message);
       } else {
-        window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+        // Fallback to web WhatsApp
+        const webUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+        window.open(webUrl, '_blank', 'noopener,noreferrer');
       }
-    }, 1500);
+    }, 2000);
   } else {
-    // Desktop - try to open WhatsApp Web
-    const newWindow = window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+    // Desktop: Try to open WhatsApp Web directly
+    const webUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+    const newWindow = window.open(webUrl, '_blank', 'noopener,noreferrer');
     
-    // If popup was blocked or WhatsApp Web doesn't open, show fallback
+    // If popup was blocked or failed to open, show fallback
     setTimeout(() => {
       if (onFallback && (!newWindow || newWindow.closed)) {
         onFallback(cleanPhone, message);
