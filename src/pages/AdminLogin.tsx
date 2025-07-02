@@ -212,19 +212,6 @@ const AdminLogin = () => {
               </div>
             )}
 
-            {/* Demo credentials hint - only show in login mode */}
-            {mode === 'login' && (
-              <div className="bg-blue-50 p-3 rounded-lg text-sm">
-                <div className="flex items-center gap-2 text-blue-700 mb-1">
-                  <CheckCircle className="w-4 h-4" />
-                  <span className="font-medium">Demo Credentials</span>
-                </div>
-                <p className="text-blue-600 text-xs">
-                  Email: choptime237@gmail.com<br />
-                  Password: Choptime@237Sankofa
-                </p>
-              </div>
-            )}
             
             <Button 
               type="submit" 
