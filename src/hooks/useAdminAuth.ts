@@ -9,31 +9,21 @@ export const useAdminAuth = () => {
 
   useEffect(() => {
     checkAdmin();
-    
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
-        
-        if (event === 'SIGNED_IN' && session?.user) {
-          await verifyAdminStatus(session.user.email!);
-        } else if (event === 'SIGNED_OUT') {
-          setAdmin(null);
-        }
-      }
-    );
-
-    return () => subscription.unsubscribe();
   }, []);
 
   const checkAdmin = async () => {
     try {
       setLoading(true);
-      const { data: { session } } = await supabase.auth.getSession();
-      console.log('Current session:', session?.user?.email);
-      
-      if (session?.user?.email) {
-        await verifyAdminStatus(session.user.email);
+      // Check if admin is stored in localStorage (simple session management)
+      const storedAdmin = localStorage.getItem('choptime_admin');
+      if (storedAdmin) {
+        try {
+          const adminData = JSON.parse(storedAdmin);
+          setAdmin(adminData);
+        } catch (error) {
+          console.error('Error parsing stored admin data:', error);
+          localStorage.removeItem('choptime_admin');
+        }
       }
     } catch (error) {
       console.error('Error checking admin status:', error);
@@ -211,8 +201,9 @@ export const useAdminAuth = () => {
         };
       }
 
-      // Set admin data directly since we're not using Supabase Auth
+      // Set admin data and store in localStorage for session management
       setAdmin(adminData);
+      localStorage.setItem('choptime_admin', JSON.stringify(adminData));
       return { success: true };
       
     } catch (error: any) {
@@ -225,7 +216,7 @@ export const useAdminAuth = () => {
 
   const logoutAdmin = async () => {
     try {
-      await supabase.auth.signOut();
+      localStorage.removeItem('choptime_admin');
       setAdmin(null);
     } catch (error) {
       console.error('Logout error:', error);

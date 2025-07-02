@@ -435,6 +435,10 @@ export type Database = {
           avg_order_value: number
         }[]
       }
+      verify_admin_password: {
+        Args: { admin_email: string; admin_password: string }
+        Returns: boolean
+      }
     }
     Enums: {
       admin_order_status:
