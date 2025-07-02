@@ -72,7 +72,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
   const isCustomOrder = !orderDetails && !!customOrder;
 
   // Get admin phone from environment variables and ensure it's a string
-  const adminPhone = String(import.meta.env.VITE_ADMIN_PHONE || '237670416449');
+  const adminPhone: string = String(import.meta.env.VITE_ADMIN_PHONE || '237670416449');
 
   useEffect(() => {
     if (currentOrder?.location && selectedRestaurant?.town) {
@@ -194,19 +194,18 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
   const handleWhatsAppOrder = () => {
     if (selectedRestaurant && orderDetails) {
       const message = generateWhatsAppMessage(
-        orderDetails.dishName,
-        orderDetails.quantity,
-        orderDetails.price,
-        deliveryFee,
-        orderDetails.total,
         orderDetails.customerName,
         orderDetails.customerPhone,
         orderDetails.location,
-        selectedRestaurant.name
+        orderDetails.dishName,
+        selectedRestaurant.name,
+        orderDetails.quantity,
+        orderDetails.price,
+        orderDetails.total + deliveryFee
       );
 
       openWhatsApp(
-        adminPhone,
+        String(adminPhone),
         message,
         (phone, msg) => {
           setFallbackModalData({ phone, message: msg });
@@ -219,17 +218,17 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
   const handleCustomWhatsAppOrder = () => {
     if (selectedRestaurant && customOrder) {
       const message = generateCustomOrderWhatsAppMessage(
-        customOrder.dishName,
-        customOrder.quantity,
         customOrder.customerName,
         customOrder.customerPhone,
         customOrder.location,
+        customOrder.dishName,
         selectedRestaurant.name,
+        customOrder.quantity,
         customOrder.specialInstructions
       );
 
       openWhatsApp(
-        adminPhone,
+        String(adminPhone),
         message,
         (phone, msg) => {
           setFallbackModalData({ phone, message: msg });
