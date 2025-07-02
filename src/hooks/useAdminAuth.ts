@@ -174,46 +174,47 @@ export const useAdminAuth = () => {
       setLoading(true);
       console.log('Attempting admin login for:', email);
       
-      // First check if user exists in admin_users table
-      const { data: adminExists, error: adminCheckError } = await supabase
+      // Check admin credentials using RPC function
+      const { data: isValid, error: rpcError } = await supabase
+        .rpc('verify_admin_password', {
+          admin_email: email,
+          admin_password: password
+        });
+
+      if (rpcError) {
+        console.error('RPC error:', rpcError);
+        return { 
+          success: false, 
+          error: 'Authentication failed. Please try again.' 
+        };
+      }
+
+      if (!isValid) {
+        return { 
+          success: false, 
+          error: 'Invalid email or password.' 
+        };
+      }
+
+      // If credentials are valid, get admin data and set session
+      const { data: adminData, error: adminError } = await supabase
         .from('admin_users')
-        .select('email, active')
+        .select('*')
         .eq('email', email)
         .eq('active', true)
         .single();
 
-      if (adminCheckError || !adminExists) {
-        console.error('Admin check failed:', adminCheckError);
+      if (adminError || !adminData) {
         return { 
           success: false, 
-          error: 'Invalid admin credentials. Access denied.' 
+          error: 'Admin account not found or inactive.' 
         };
       }
 
-      // Attempt authentication
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      console.log('Auth result:', { user: data.user?.email, error });
-
-      if (error) {
-        console.error('Auth error:', error);
-        return { 
-          success: false, 
-          error: error.message.includes('Invalid login credentials') 
-            ? 'Incorrect email or password'
-            : error.message 
-        };
-      }
-
-      if (data.user) {
-        // Admin status will be verified by the auth state change listener
-        return { success: true };
-      }
-
-      return { success: false, error: 'Authentication failed' };
+      // Set admin data directly since we're not using Supabase Auth
+      setAdmin(adminData);
+      return { success: true };
+      
     } catch (error: any) {
       console.error('Login error:', error);
       return { success: false, error: error.message || 'Login failed' };
