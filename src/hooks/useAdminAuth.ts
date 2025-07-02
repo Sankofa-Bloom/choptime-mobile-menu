@@ -159,47 +159,28 @@ export const useAdminAuth = () => {
     }
   };
 
-  const loginAdmin = async (email: string, password: string) => {
+  const loginWithPin = async (pin: string) => {
     try {
       setLoading(true);
-      console.log('Attempting admin login for:', email);
+      console.log('Attempting admin login with PIN');
       
-      // Check admin credentials using RPC function
-      const { data: isValid, error: rpcError } = await supabase
-        .rpc('verify_admin_password', {
-          admin_email: email,
-          admin_password: password
-        });
-
-      if (rpcError) {
-        console.error('RPC error:', rpcError);
+      // Check if PIN matches
+      if (pin !== '1035') {
         return { 
           success: false, 
-          error: 'Authentication failed. Please try again.' 
+          error: 'Invalid PIN' 
         };
       }
 
-      if (!isValid) {
-        return { 
-          success: false, 
-          error: 'Invalid email or password.' 
-        };
-      }
-
-      // If credentials are valid, get admin data and set session
-      const { data: adminData, error: adminError } = await supabase
-        .from('admin_users')
-        .select('*')
-        .eq('email', email)
-        .eq('active', true)
-        .single();
-
-      if (adminError || !adminData) {
-        return { 
-          success: false, 
-          error: 'Admin account not found or inactive.' 
-        };
-      }
+      // Create admin data for session
+      const adminData = {
+        id: 'admin-pin-user',
+        email: 'admin@choptime.com',
+        role: 'admin',
+        active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
 
       // Set admin data and store in localStorage for session management
       setAdmin(adminData);
@@ -226,10 +207,8 @@ export const useAdminAuth = () => {
   return {
     admin,
     loading,
-    loginAdmin,
+    loginWithPin,
     logoutAdmin,
-    createAdmin,
-    resetPassword,
     isAdmin: !!admin
   };
 };
