@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -56,7 +55,7 @@ const WhatsAppFallbackModal: React.FC<WhatsAppFallbackModalProps> = ({
         
         <div className="space-y-6">
           <p className="text-sm text-gray-600">
-            WhatsApp didn't open automatically. Choose one of these options:
+            WhatsApp didn't open automatically. Your order has already been received. You may use one of these options to contact us on WhatsApp if you wish:
           </p>
 
           {/* Direct Link Button */}

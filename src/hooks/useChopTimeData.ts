@@ -142,11 +142,13 @@ export const useChopTimeData = (selectedTown?: string) => {
     try {
       const { error } = await supabase
         .from('user_towns')
-        .upsert({ 
-          user_phone: phone, 
-          town: town,
-          updated_at: new Date().toISOString()
-        });
+        .upsert([
+          {
+            user_phone: phone,
+            town: town,
+            updated_at: new Date().toISOString()
+          }
+        ], { onConflict: 'user_phone' });
       
       if (error) throw error;
     } catch (err) {

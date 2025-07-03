@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -199,7 +198,7 @@ const CartSection: React.FC<CartSectionProps> = ({
                     size="lg"
                   >
                     <MessageCircle className="mr-2 h-5 w-5" />
-                    Order via WhatsApp - {formatPrice(calculateTotal())}
+                    Place Order (WhatsApp) &rarr;
                   </Button>
 
                   <p className="text-xs text-gray-500 text-center">

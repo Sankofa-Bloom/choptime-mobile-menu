@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Restaurant, Dish, OrderItem, CustomOrderItem, Order, CustomOrder } from '@/types/restaurant';
@@ -11,6 +10,7 @@ import Footer from '@/components/Footer';
 import TownSelector from '@/components/TownSelector';
 import RestaurantSelectionModal from '@/components/RestaurantSelectionModal';
 import CustomOrderModal from '@/components/CustomOrderModal';
+import { useNavigate } from 'react-router-dom';
 
 interface OrderDetails {
   customerName: string;
@@ -57,6 +57,7 @@ const Index = () => {
   } = useChopTimeData(selectedTown);
 
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   // Load user's town preference on mount
   useEffect(() => {
@@ -285,7 +286,7 @@ const Index = () => {
       for (const item of cart) {
         if ('dish' in item) {
           // Regular order
-          const orderData: Omit<Order, 'id' | 'created_at' | 'updated_at'> = {
+          const orderData = {
             user_name: orderDetails.customerName,
             user_phone: orderDetails.phone,
             user_location: `${selectedTown}, ${orderDetails.deliveryAddress}`,
@@ -297,12 +298,12 @@ const Index = () => {
             price: item.price,
             total_amount: calculateTotal(),
             order_reference: orderRef,
-            status: 'pending'
+            status: 'pending' as import('../types/restaurant').Order['status']
           };
           await saveOrder(orderData);
         } else {
           // Custom order
-          const customOrderData: Omit<CustomOrder, 'id' | 'created_at' | 'updated_at'> = {
+          const customOrderData = {
             user_name: orderDetails.customerName,
             user_phone: orderDetails.phone,
             user_location: `${selectedTown}, ${orderDetails.deliveryAddress}`,
@@ -314,24 +315,29 @@ const Index = () => {
             estimated_price: item.estimatedPrice,
             total_amount: calculateTotal(),
             order_reference: orderRef,
-            status: 'pending'
+            status: 'pending' as import('../types/restaurant').CustomOrder['status']
           };
           await saveCustomOrder(customOrderData);
         }
       }
 
-      toast({
-        title: "Order saved!",
-        description: `Your order ${orderRef} has been saved successfully.`,
+      // Send order to backend for WhatsApp automation
+      await fetch('https://choptime-whatsapp-bot.up.railway.app/api/place-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...orderDetails, cart, orderRef, message, user_phone: orderDetails.phone }),
       });
 
-      // Revert to simple, reliable WhatsApp URL format that was working perfectly
-      const encodedMessage = encodeURIComponent(message);
-      const whatsappUrl = `https://wa.me/237673289043?text=${encodedMessage}`;
-      
-      // Use window.location.href for direct redirect
-      window.location.href = whatsappUrl;
+      toast({
+        title: "Order placed!",
+        description: `Your order ${orderRef} has been received. Thank you!`,
+      });
 
+      // Redirect to Thank You page
+      navigate('/thank-you');
+
+      // (Optional) If you want to offer a WhatsApp link for user-initiated chat, uncomment below:
+      // window.open(`https://wa.me/237673289043?text=${encodeURIComponent(message)}`, '_blank');
     } catch (error) {
       console.error('Error processing order:', error);
       toast({
