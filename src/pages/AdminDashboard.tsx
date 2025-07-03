@@ -9,6 +9,7 @@ import RestaurantManagement from '@/components/admin/RestaurantManagement';
 import DishManagement from '@/components/admin/DishManagement';
 import OrderManagement from '@/components/admin/OrderManagement';
 import DeliveryManagement from '@/components/admin/DeliveryManagement';
+import CSVUploader from '@/components/admin/CSVUploader';
 
 const AdminDashboard = () => {
   const { admin, logoutAdmin, loading: authLoading } = useAdminAuth();
@@ -113,6 +114,7 @@ const AdminDashboard = () => {
 
         {/* Management Sections */}
         <div className="space-y-8">
+          <CSVUploader />
           <OrderManagement />
           <RestaurantManagement />
           <DishManagement />
