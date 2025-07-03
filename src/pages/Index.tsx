@@ -327,7 +327,7 @@ const Index = () => {
 
       // Revert to simple, reliable WhatsApp URL format that was working perfectly
       const encodedMessage = encodeURIComponent(message);
-      const whatsappUrl = `https://wa.me/237670416449?text=${encodedMessage}`;
+      const whatsappUrl = `https://wa.me/237673289043?text=${encodedMessage}`;
       
       // Use window.location.href for direct redirect
       window.location.href = whatsappUrl;
