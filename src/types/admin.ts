@@ -32,8 +32,6 @@ export interface RestaurantFormData {
   name: string;
   town: string;
   contact_number: string;
-  mtn_number?: string;
-  orange_number?: string;
   image_url?: string;
   logo_url?: string;
   active: boolean;

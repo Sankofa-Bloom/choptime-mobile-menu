@@ -13,6 +13,7 @@ import { Plus, Edit, Trash2, Store } from 'lucide-react';
 import { useAdminData } from '@/hooks/useAdminData';
 import { useToast } from '@/hooks/use-toast';
 import { RestaurantFormData } from '@/types/admin';
+import { supabase } from '@/integrations/supabase/client';
 
 const RestaurantManagement = () => {
   const { restaurants, createRestaurant, updateRestaurant, deleteRestaurant, loading } = useAdminData();
@@ -23,51 +24,102 @@ const RestaurantManagement = () => {
     name: '',
     town: '',
     contact_number: '',
-    mtn_number: '',
-    orange_number: '',
     image_url: '',
     logo_url: '',
     active: true,
     delivery_time_min: 15,
     delivery_time_max: 45
   });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const resetForm = () => {
     setFormData({
       name: '',
       town: '',
       contact_number: '',
-      mtn_number: '',
-      orange_number: '',
       image_url: '',
       logo_url: '',
       active: true,
       delivery_time_min: 15,
       delivery_time_max: 45
     });
+    setImageFile(null);
+    setLogoFile(null);
     setEditingRestaurant(null);
+  };
+
+  const uploadFile = async (file: File, bucket: string, path: string): Promise<string | null> => {
+    try {
+      const { data, error } = await supabase.storage
+        .from(bucket)
+        .upload(path, file, { upsert: true });
+
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(data.path);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Upload error:', error);
+      return null;
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setUploading(true);
     
-    const result = editingRestaurant 
-      ? await updateRestaurant(editingRestaurant.id, formData)
-      : await createRestaurant(formData);
+    try {
+      let updatedFormData = { ...formData };
 
-    if (result.success) {
-      toast({
-        title: "Success",
-        description: `Restaurant ${editingRestaurant ? 'updated' : 'created'} successfully`,
-      });
-      setIsDialogOpen(false);
-      resetForm();
-    } else {
+      // Upload image file if provided
+      if (imageFile) {
+        const imagePath = `restaurants/${Date.now()}-${imageFile.name}`;
+        const imageUrl = await uploadFile(imageFile, 'restaurant-images', imagePath);
+        if (imageUrl) {
+          updatedFormData.image_url = imageUrl;
+        }
+      }
+
+      // Upload logo file if provided
+      if (logoFile) {
+        const logoPath = `logos/${Date.now()}-${logoFile.name}`;
+        const logoUrl = await uploadFile(logoFile, 'restaurant-images', logoPath);
+        if (logoUrl) {
+          updatedFormData.logo_url = logoUrl;
+        }
+      }
+
+      const result = editingRestaurant 
+        ? await updateRestaurant(editingRestaurant.id, updatedFormData)
+        : await createRestaurant(updatedFormData);
+
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: `Restaurant ${editingRestaurant ? 'updated' : 'created'} successfully`,
+        });
+        setIsDialogOpen(false);
+        resetForm();
+      } else {
+        toast({
+          title: "Error",
+          description: result.error,
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
       toast({
         title: "Error",
-        description: result.error,
+        description: "Failed to process request",
         variant: "destructive"
       });
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -77,14 +129,14 @@ const RestaurantManagement = () => {
       name: restaurant.name,
       town: restaurant.town,
       contact_number: restaurant.contact_number,
-      mtn_number: restaurant.mtn_number || '',
-      orange_number: restaurant.orange_number || '',
       image_url: restaurant.image_url || '',
       logo_url: restaurant.logo_url || '',
       active: restaurant.active,
       delivery_time_min: restaurant.delivery_time_min,
       delivery_time_max: restaurant.delivery_time_max
     });
+    setImageFile(null);
+    setLogoFile(null);
     setIsDialogOpen(true);
   };
 
@@ -162,27 +214,6 @@ const RestaurantManagement = () => {
                     required
                   />
                 </div>
-                <div>
-                  <Label htmlFor="mtn">MTN Money Number</Label>
-                  <Input
-                    id="mtn"
-                    value={formData.mtn_number}
-                    onChange={(e) => setFormData({...formData, mtn_number: e.target.value})}
-                    placeholder="+237 6XX XXX XXX"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="orange">Orange Money Number</Label>
-                  <Input
-                    id="orange"
-                    value={formData.orange_number}
-                    onChange={(e) => setFormData({...formData, orange_number: e.target.value})}
-                    placeholder="+237 6XX XXX XXX"
-                  />
-                </div>
                 <div className="flex items-center space-x-2 pt-6">
                   <Switch
                     id="active"
@@ -195,22 +226,32 @@ const RestaurantManagement = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="image_url">Restaurant Image URL</Label>
+                  <Label htmlFor="image_file">Restaurant Image</Label>
                   <Input
-                    id="image_url"
-                    value={formData.image_url}
-                    onChange={(e) => setFormData({...formData, image_url: e.target.value})}
-                    placeholder="https://..."
+                    id="image_file"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setImageFile(e.target.files?.[0] || null)}
                   />
+                  {formData.image_url && (
+                    <div className="mt-2">
+                      <img src={formData.image_url} alt="Current" className="w-20 h-20 object-cover rounded" />
+                    </div>
+                  )}
                 </div>
                 <div>
-                  <Label htmlFor="logo_url">Logo URL</Label>
+                  <Label htmlFor="logo_file">Restaurant Logo</Label>
                   <Input
-                    id="logo_url"
-                    value={formData.logo_url}
-                    onChange={(e) => setFormData({...formData, logo_url: e.target.value})}
-                    placeholder="https://..."
+                    id="logo_file"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setLogoFile(e.target.files?.[0] || null)}
                   />
+                  {formData.logo_url && (
+                    <div className="mt-2">
+                      <img src={formData.logo_url} alt="Current logo" className="w-20 h-20 object-cover rounded" />
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -249,9 +290,10 @@ const RestaurantManagement = () => {
                 </Button>
                 <Button 
                   type="submit"
+                  disabled={uploading}
                   className="choptime-gradient hover:opacity-90 text-white"
                 >
-                  {editingRestaurant ? 'Update' : 'Create'} Restaurant
+                  {uploading ? 'Processing...' : editingRestaurant ? 'Update' : 'Create'} Restaurant
                 </Button>
               </div>
             </form>
