@@ -144,7 +144,7 @@ const CartSection: React.FC<CartSectionProps> = ({
                   <div>
                     <Label htmlFor="phone">Phone Number *</Label>
                     <div className="flex gap-2">
-                      <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-input bg-gray-50 text-gray-700 text-base select-none">+237</span>
+                      <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-input bg-gray-50 text-gray-700 text-base select-none">237</span>
                       <Input
                         id="phone"
                         value={orderDetails.phone}
