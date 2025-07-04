@@ -282,64 +282,65 @@ const Index = () => {
         await saveUserTown(orderDetails.phone, selectedTown);
       }
 
-      // Save orders to database
-      for (const item of cart) {
-        if ('dish' in item) {
-          // Regular order
-          const orderData = {
-            user_name: orderDetails.customerName,
-            user_phone: orderDetails.phone,
-            user_location: `${selectedTown}, ${orderDetails.deliveryAddress}`,
-            dish_name: item.dish.name,
-            restaurant_name: item.restaurant.name,
-            restaurant_id: item.restaurant.id,
-            dish_id: item.dish.id,
-            quantity: item.quantity,
-            price: item.price,
-            total_amount: calculateTotal(),
-            order_reference: orderRef,
-            status: 'pending' as import('../types/restaurant').Order['status']
-          };
-          await saveOrder(orderData);
-        } else {
-          // Custom order
-          const customOrderData = {
-            user_name: orderDetails.customerName,
-            user_phone: orderDetails.phone,
-            user_location: `${selectedTown}, ${orderDetails.deliveryAddress}`,
-            custom_dish_name: item.customDishName,
-            restaurant_name: item.restaurant.name,
-            restaurant_id: item.restaurant.id,
-            quantity: item.quantity,
-            special_instructions: item.specialInstructions,
-            estimated_price: item.estimatedPrice,
-            total_amount: calculateTotal(),
-            order_reference: orderRef,
-            status: 'pending' as import('../types/restaurant').CustomOrder['status']
-          };
-          await saveCustomOrder(customOrderData);
-        }
-      }
-
-      // Send order to backend for WhatsApp automation
-      await fetch('https://choptime-whatsapp-bot.up.railway.app/api/place-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...orderDetails, cart, orderRef, message, user_phone: orderDetails.phone }),
-      });
-
-      toast({
-        title: "Order placed!",
-        description: `Your order ${orderRef} has been received. Thank you!`,
-      });
-
-      // Redirect to Thank You page
+      // Show Thank You page immediately
       navigate('/thank-you');
 
-      // (Optional) If you want to offer a WhatsApp link for user-initiated chat, uncomment below:
-      // window.open(`https://wa.me/237673289043?text=${encodeURIComponent(message)}`, '_blank');
+      // Send order to backend for WhatsApp automation in the background
+      (async () => {
+        try {
+          // Save orders to database
+          for (const item of cart) {
+            if ('dish' in item) {
+              const orderData = {
+                user_name: orderDetails.customerName,
+                user_phone: orderDetails.phone,
+                user_location: `${selectedTown}, ${orderDetails.deliveryAddress}`,
+                dish_name: item.dish.name,
+                restaurant_name: item.restaurant.name,
+                restaurant_id: item.restaurant.id,
+                dish_id: item.dish.id,
+                quantity: item.quantity,
+                price: item.price,
+                total_amount: calculateTotal(),
+                order_reference: orderRef,
+                status: 'pending' as import('../types/restaurant').Order['status']
+              };
+              await saveOrder(orderData);
+            } else {
+              const customOrderData = {
+                user_name: orderDetails.customerName,
+                user_phone: orderDetails.phone,
+                user_location: `${selectedTown}, ${orderDetails.deliveryAddress}`,
+                custom_dish_name: item.customDishName,
+                restaurant_name: item.restaurant.name,
+                restaurant_id: item.restaurant.id,
+                quantity: item.quantity,
+                special_instructions: item.specialInstructions,
+                estimated_price: item.estimatedPrice,
+                total_amount: calculateTotal(),
+                order_reference: orderRef,
+                status: 'pending' as import('../types/restaurant').CustomOrder['status']
+              };
+              await saveCustomOrder(customOrderData);
+            }
+          }
+
+          await fetch('https://choptime-whatsapp-bot.up.railway.app/api/place-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...orderDetails, cart, orderRef, message, user_phone: orderDetails.phone }),
+          });
+        } catch (error) {
+          console.error('Error processing order:', error);
+          toast({
+            title: "Order Issue",
+            description: "Your order was submitted, but there was a problem processing it. Please contact support if you do not receive confirmation.",
+            variant: "destructive"
+          });
+        }
+      })();
     } catch (error) {
-      console.error('Error processing order:', error);
+      console.error('Error preparing order:', error);
       toast({
         title: "Error",
         description: "Failed to process your order. Please try again.",
