@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -68,16 +67,22 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
 
       {paymentMethod === 'momo' && !isCustomOrder && (
         <div className="space-y-2">
-          <Label htmlFor="momoNumber">Mobile Money Number</Label>
-          <Input
-            id="momoNumber"
-            type="tel"
-            placeholder="Enter your mobile money number (e.g., 237XXXXXXXXX)"
-            value={momoNumber}
-            onChange={(e) => setMomoNumber(e.target.value)}
-          />
+          <Label htmlFor="momoNumber">Mobile Money Number (Cameroon only)</Label>
+          <div className="flex gap-2">
+            <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-input bg-gray-50 text-gray-700 text-base select-none">+237</span>
+            <Input
+              id="momoNumber"
+              type="tel"
+              placeholder="6XX XXX XXX"
+              value={momoNumber}
+              onChange={(e) => setMomoNumber(e.target.value)}
+              className="flex-1 rounded-l-none"
+              pattern="[6][0-9]{8}"
+              maxLength={9}
+            />
+          </div>
           <p className="text-xs text-gray-600">
-            You'll receive a payment prompt on your phone after submitting the order
+            You'll receive a payment prompt on your Cameroon phone after submitting the order
           </p>
         </div>
       )}

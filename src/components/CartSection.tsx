@@ -143,13 +143,20 @@ const CartSection: React.FC<CartSectionProps> = ({
 
                   <div>
                     <Label htmlFor="phone">Phone Number *</Label>
-                    <Input
-                      id="phone"
-                      value={orderDetails.phone}
-                      onChange={(e) => handleInputChange('phone', e.target.value)}
-                      placeholder="e.g., +237 6XX XXX XXX"
-                      required
-                    />
+                    <div className="flex gap-2">
+                      <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-input bg-gray-50 text-gray-700 text-base select-none">+237</span>
+                      <Input
+                        id="phone"
+                        value={orderDetails.phone}
+                        onChange={(e) => handleInputChange('phone', e.target.value)}
+                        placeholder="6XX XXX XXX"
+                        required
+                        className="flex-1 rounded-l-none"
+                        type="tel"
+                        pattern="[6][0-9]{8}"
+                        maxLength={9}
+                      />
+                    </div>
                   </div>
 
                   <div>

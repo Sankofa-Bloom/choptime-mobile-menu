@@ -9,6 +9,7 @@ import WhatsAppFallbackModal from './WhatsAppFallbackModal';
 import RestaurantInfo from './payment/RestaurantInfo';
 import OrderSummary from './payment/OrderSummary';
 import PaymentMethodSelector from './payment/PaymentMethodSelector';
+import { Input } from '@/components/ui/input';
 
 interface Restaurant {
   id: string;

@@ -278,8 +278,9 @@ const Index = () => {
       const { message, orderRef } = await generateWhatsAppMessage();
 
       // Save user's town preference
+      const fullPhone = `+237${orderDetails.phone.replace(/\D/g, '')}`;
       if (orderDetails.phone) {
-        await saveUserTown(orderDetails.phone, selectedTown);
+        await saveUserTown(fullPhone, selectedTown);
       }
 
       // Show Thank You page immediately
@@ -293,7 +294,7 @@ const Index = () => {
             if ('dish' in item) {
               const orderData = {
                 user_name: orderDetails.customerName,
-                user_phone: orderDetails.phone,
+                user_phone: fullPhone,
                 user_location: `${selectedTown}, ${orderDetails.deliveryAddress}`,
                 dish_name: item.dish.name,
                 restaurant_name: item.restaurant.name,
@@ -309,7 +310,7 @@ const Index = () => {
             } else {
               const customOrderData = {
                 user_name: orderDetails.customerName,
-                user_phone: orderDetails.phone,
+                user_phone: fullPhone,
                 user_location: `${selectedTown}, ${orderDetails.deliveryAddress}`,
                 custom_dish_name: item.customDishName,
                 restaurant_name: item.restaurant.name,
@@ -328,7 +329,7 @@ const Index = () => {
           await fetch('https://choptime-whatsapp-bot.up.railway.app/api/place-order', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...orderDetails, cart, orderRef, message, user_phone: orderDetails.phone }),
+            body: JSON.stringify({ ...orderDetails, cart, orderRef, message, user_phone: fullPhone, phone: fullPhone }),
           });
         } catch (error) {
           console.error('Error processing order:', error);
