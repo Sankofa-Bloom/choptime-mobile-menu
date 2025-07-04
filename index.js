@@ -30,6 +30,23 @@ const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
+// Allowed WhatsApp numbers for status updates (admin and delivery)
+const ALLOWED_STATUS_UPDATE_NUMBERS = [
+  (process.env.ADMIN_PHONE || '').replace(/\D/g, ''),
+  (process.env.DELIVERY_PHONE || '').replace(/\D/g, ''),
+  (process.env.DELIVERY_PHONE_BUEA || '').replace(/\D/g, ''),
+  (process.env.DELIVERY_PHONE_LIMBE || '').replace(/\D/g, ''),
+  // Add more delivery/admin numbers as needed
+].filter(Boolean);
+
+// In-memory session state for WhatsApp chat onboarding
+const userSessions = {};
+
+const VENDOR_RIDER_PHONE = '237673289043';
+const SUPPORT_EMAIL = 'choptime237@gmail.com';
+const SUPPORT_PHONE = '237673289043';
+const WEBSITE_LINK = 'https://choptime.vercel.app';
+
 app.use(bodyParser.json());
 app.use(cors({
   origin: '*', // For development. For production, specify your frontend domain.
@@ -56,21 +73,56 @@ async function sendWhatsAppMessage(to, body) {
     return;
   }
   console.log('Sending WhatsApp message to:', to, 'with body:', body);
-  await axios.post(
-    `https://graph.facebook.com/v18.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`,
-    {
-      messaging_product: 'whatsapp',
-      to,
-      type: 'text',
-      text: { body }
-    },
-    {
-      headers: {
-        'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
-        'Content-Type': 'application/json'
+  try {
+    await axios.post(
+      `https://graph.facebook.com/v18.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`,
+      {
+        messaging_product: 'whatsapp',
+        to,
+        type: 'text',
+        text: { body }
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
+          'Content-Type': 'application/json'
+        }
       }
+    );
+  } catch (error) {
+    console.error('WhatsApp API error:', error.response?.data || error.message);
+    throw error;
+  }
+}
+
+// Helper to fetch menu from Supabase
+async function fetchMenu() {
+  // Fetch available dishes and their prices (first available restaurant per dish)
+  const { data, error } = await supabase
+    .from('restaurant_menus')
+    .select(`id, price, dish:dishes(id, name, description, category, is_spicy, is_vegetarian, is_popular, active)`) 
+    .eq('availability', true)
+    .eq('dish.active', true);
+  if (error) {
+    console.error('Error fetching menu:', error.message);
+    return [];
+  }
+  // Group by dish name, pick first price/restaurant
+  const menuMap = {};
+  for (const item of data) {
+    if (item.dish && !menuMap[item.dish.name]) {
+      menuMap[item.dish.name] = {
+        name: item.dish.name,
+        description: item.dish.description,
+        price: item.price,
+        category: item.dish.category,
+        is_spicy: item.dish.is_spicy,
+        is_vegetarian: item.dish.is_vegetarian,
+        is_popular: item.dish.is_popular
+      };
     }
-  );
+  }
+  return Object.values(menuMap);
 }
 
 // API endpoint for frontend order submission
@@ -89,7 +141,7 @@ app.post('/api/place-order', async (req, res) => {
     // Send to admin
     await sendWhatsAppMessage(ADMIN_PHONE, message);
 
-    // Send to all delivery agents for the town
+    // Send to all delivery agents for the town (using WhatsApp Cloud API only)
     for (const phone of Array.isArray(deliveryPhones) ? deliveryPhones : [deliveryPhones]) {
       await sendWhatsAppMessage(phone, message);
     }
@@ -114,43 +166,12 @@ app.post('/api/place-order', async (req, res) => {
   }
 });
 
-// Webhook for incoming WhatsApp messages (keep as is, but use env vars)
-app.post('/ultramsg-webhook', async (req, res) => {
-  try {
-    const message = req.body.body;
+// WhatsApp Cloud API webhook for new conversational onboarding
+const originalWebhook = app._router.stack.find(r => r.route && r.route.path === '/webhook');
+if (originalWebhook) {
+  app._router.stack = app._router.stack.filter(r => !(r.route && r.route.path === '/webhook'));
+}
 
-    // Process only ChopTime Order messages
-    if (message && message.includes('ChopTime Order')) {
-      // Extract relevant fields from message using regex
-      const customer = message.match(/Customer: (.+)/)?.[1] || 'N/A';
-      const phone = message.match(/Phone: (.+)/)?.[1] || 'N/A';
-      const address = message.match(/Address: (.+)/)?.[1] || 'N/A';
-      const food = message.match(/• (.+) -/i)?.[1] || 'Food item not found';
-
-      // Create delivery message
-      const forwardMessage = `🚴 *New Delivery Order*\n📦 ${food}\n🏠 ${address}\n👤 ${customer}\n📞 ${phone}`;
-
-      // Forward to delivery person via UltraMsg
-      await axios.post(`https://api.ultramsg.com/${ULTRA_INSTANCE_ID}/messages/chat`, {
-        token: ULTRA_TOKEN,
-        to: DELIVERY_PHONE,
-        body: forwardMessage,
-        priority: 10
-      }, {
-        headers: { 'Content-Type': 'application/json' }
-      });
-
-      console.log('Forwarded message to delivery number.');
-    }
-
-    res.sendStatus(200);
-  } catch (error) {
-    console.error('Error processing webhook:', error.message);
-    res.sendStatus(500);
-  }
-});
-
-// WhatsApp Cloud API webhook for status updates
 app.post('/webhook', async (req, res) => {
   try {
     const entry = req.body.entry?.[0];
@@ -159,49 +180,159 @@ app.post('/webhook', async (req, res) => {
     if (!messages) return res.sendStatus(200);
 
     for (const msg of messages) {
-      const from = msg.from; // sender's WhatsApp number
-      const text = msg.text?.body?.trim().toUpperCase();
+      const from = msg.from.replace(/\D/g, '');
+      const text = msg.text?.body?.trim();
+      if (!text) continue;
 
-      // Example: "CONFIRM CHP-12345"
-      if (text && (text.startsWith('CONFIRM') || text.startsWith('DELIVERED') || text.startsWith('CANCEL'))) {
-        const [status, orderRef] = text.split(' ');
-        let newStatus = '';
-        if (status === 'CONFIRM') newStatus = 'confirmed';
-        else if (status === 'DELIVERED') newStatus = 'delivered';
-        else if (status === 'CANCEL') newStatus = 'cancelled';
-
-        // Update order in Supabase
-        if (orderRef && newStatus) {
-          await supabase
-            .from('orders')
-            .update({ status: newStatus })
-            .eq('order_reference', orderRef);
-
-          // Optionally, notify the user
-          // 1. Fetch user_phone from the order
-          const { data: order } = await supabase
-            .from('orders')
-            .select('user_phone')
-            .eq('order_reference', orderRef)
-            .single();
-
-          if (order?.user_phone) {
-            const statusMessages = {
-              confirmed: 'Your order has been confirmed! 🎉',
-              delivered: 'Your order has been delivered. Enjoy your meal! 🍽️',
-              cancelled: 'Your order has been cancelled. If you have questions, contact support.',
-            };
-            await sendWhatsAppMessage(
-              normalizeCameroonPhone(order.user_phone),
-              statusMessages[newStatus] || `Order status updated: ${newStatus}`
-            );
+      // Restrict status update commands to allowed numbers
+      if (ALLOWED_STATUS_UPDATE_NUMBERS.includes(from)) {
+        const upperText = text.toUpperCase();
+        if (upperText.startsWith('CONFIRM') || upperText.startsWith('DELIVERED') || upperText.startsWith('CANCEL')) {
+          const [status, orderRef] = upperText.split(' ');
+          let newStatus = '';
+          if (status === 'CONFIRM') newStatus = 'confirmed';
+          else if (status === 'DELIVERED') newStatus = 'delivered';
+          else if (status === 'CANCEL') newStatus = 'cancelled';
+          if (orderRef && newStatus) {
+            await supabase
+              .from('orders')
+              .update({ status: newStatus })
+              .eq('order_reference', orderRef);
+            // Notify user
+            const { data: order } = await supabase
+              .from('orders')
+              .select('user_phone')
+              .eq('order_reference', orderRef)
+              .single();
+            if (order?.user_phone) {
+              const statusMessages = {
+                confirmed: 'Your order has been confirmed! 🎉',
+                delivered: 'Your order has been delivered. Enjoy your meal! 🍽️',
+                cancelled: 'Your order has been cancelled. If you have questions, contact support.',
+              };
+              await sendWhatsAppMessage(
+                normalizeCameroonPhone(order.user_phone),
+                statusMessages[newStatus] || `Order status updated: ${newStatus}`
+              );
+            }
           }
+          continue;
         }
       }
+
+      // New onboarding menu
+      if (!userSessions[from]) {
+        userSessions[from] = { step: 'init', type: null, details: {} };
+      }
+      const session = userSessions[from];
+      const lowerText = text.toLowerCase();
+
+      if (session.step === 'init') {
+        let menuMsg =
+          '👋 Welcome to ChopTime!\n\n' +
+          'Reply with a number to choose an option:\n' +
+          '1. Order\n' +
+          '2. Become a Vendor\n' +
+          '3. Become a Rider\n' +
+          '4. Contact Support';
+        await sendWhatsAppMessage(from, menuMsg);
+        session.step = 'await_main_choice';
+        continue;
+      }
+
+      if (session.step === 'await_main_choice') {
+        if (lowerText === '1' || lowerText.includes('order')) {
+          await sendWhatsAppMessage(from, `You can place your order directly on our website: ${WEBSITE_LINK}`);
+          delete userSessions[from];
+          continue;
+        } else if (lowerText === '2' || lowerText.includes('vendor')) {
+          session.type = 'vendor';
+          session.step = 'await_vendor_name';
+          await sendWhatsAppMessage(from, 'Great! Please enter your full name to become a vendor.');
+          continue;
+        } else if (lowerText === '3' || lowerText.includes('rider')) {
+          session.type = 'rider';
+          session.step = 'await_rider_name';
+          await sendWhatsAppMessage(from, 'Awesome! Please enter your full name to become a rider.');
+          continue;
+        } else if (lowerText === '4' || lowerText.includes('support')) {
+          await sendWhatsAppMessage(from, `Contact Support:\nEmail: ${SUPPORT_EMAIL}\nPhone: ${SUPPORT_PHONE}`);
+          delete userSessions[from];
+          continue;
+        } else {
+          await sendWhatsAppMessage(from, 'Please reply with 1, 2, 3, or 4.');
+          continue;
+        }
+      }
+
+      // Vendor onboarding
+      if (session.type === 'vendor') {
+        if (session.step === 'await_vendor_name') {
+          session.details.name = text;
+          session.step = 'await_vendor_business';
+          await sendWhatsAppMessage(from, 'What is your business name?');
+          continue;
+        }
+        if (session.step === 'await_vendor_business') {
+          session.details.business = text;
+          session.step = 'await_vendor_location';
+          await sendWhatsAppMessage(from, 'Where is your business located?');
+          continue;
+        }
+        if (session.step === 'await_vendor_location') {
+          session.details.location = text;
+          session.step = 'await_vendor_phone';
+          await sendWhatsAppMessage(from, 'What is your business phone number?');
+          continue;
+        }
+        if (session.step === 'await_vendor_phone') {
+          session.details.phone = text;
+          // Send details to admin number
+          const vendorMsg = `🛒 *New Vendor Application*\nName: ${session.details.name}\nBusiness: ${session.details.business}\nLocation: ${session.details.location}\nPhone: ${session.details.phone}\nWhatsApp: ${from}`;
+          await sendWhatsAppMessage(VENDOR_RIDER_PHONE, vendorMsg);
+          await sendWhatsAppMessage(from, 'Thank you! Your vendor application has been received. We will contact you soon.');
+          delete userSessions[from];
+          continue;
+        }
+      }
+
+      // Rider onboarding
+      if (session.type === 'rider') {
+        if (session.step === 'await_rider_name') {
+          session.details.name = text;
+          session.step = 'await_rider_location';
+          await sendWhatsAppMessage(from, 'Where are you based?');
+          continue;
+        }
+        if (session.step === 'await_rider_location') {
+          session.details.location = text;
+          session.step = 'await_rider_phone';
+          await sendWhatsAppMessage(from, 'What is your phone number?');
+          continue;
+        }
+        if (session.step === 'await_rider_phone') {
+          session.details.phone = text;
+          // Send details to admin number
+          const riderMsg = `🚴 *New Rider Application*\nName: ${session.details.name}\nLocation: ${session.details.location}\nPhone: ${session.details.phone}\nWhatsApp: ${from}`;
+          await sendWhatsAppMessage(VENDOR_RIDER_PHONE, riderMsg);
+          await sendWhatsAppMessage(from, 'Thank you! Your rider application has been received. We will contact you soon.');
+          delete userSessions[from];
+          continue;
+        }
+      }
+
+      // Fallback: restart menu
+      await sendWhatsAppMessage(from, 'To get started, reply with any message.');
+      delete userSessions[from];
     }
     res.sendStatus(200);
   } catch (error) {
     console.error('Error processing WhatsApp webhook:', error.message);
+    if (error.response) {
+      console.error('WhatsApp webhook error response data:', error.response.data);
+      console.error('WhatsApp webhook error response status:', error.response.status);
+      console.error('WhatsApp webhook error response headers:', error.response.headers);
+    }
     res.sendStatus(500);
   }
 });

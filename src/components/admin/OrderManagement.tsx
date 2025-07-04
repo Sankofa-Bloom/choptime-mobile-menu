@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ShoppingBag, Search, Filter } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Order, CustomOrder } from '@/types/restaurant';
+import { toast } from '@/components/ui/use-toast';
 
 const OrderManagement = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -90,6 +90,49 @@ const OrderManagement = () => {
     
     return matchesSearch && matchesStatus;
   }).sort((a, b) => new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime());
+
+  const handleStatusChange = async (
+    order: any,
+    newStatus: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
+  ) => {
+    try {
+      const table = order.type === 'regular' ? 'orders' : 'custom_orders';
+      const { error } = await supabase
+        .from(table)
+        .update({ status: newStatus })
+        .eq('id', order.id);
+      if (error) throw error;
+      toast({
+        title: 'Status Updated',
+        description: `Order status updated to ${newStatus}.`,
+      });
+      // Send WhatsApp notification to user
+      try {
+        await fetch('https://choptime-whatsapp-bot.up.railway.app/api/notify-status-update', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_phone: order.user_phone,
+            status: newStatus,
+            order_reference: order.order_reference
+          })
+        });
+      } catch (err) {
+        toast({
+          title: 'WhatsApp Notification Failed',
+          description: 'Could not send WhatsApp notification to user.',
+          variant: 'destructive',
+        });
+      }
+      fetchOrders();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to update order status.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   return (
     <div className="space-y-6">

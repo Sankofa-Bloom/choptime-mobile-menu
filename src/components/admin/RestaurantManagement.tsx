@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -55,13 +54,10 @@ const RestaurantManagement = () => {
       const { data, error } = await supabase.storage
         .from(bucket)
         .upload(path, file, { upsert: true });
-
       if (error) throw error;
-
       const { data: { publicUrl } } = supabase.storage
         .from(bucket)
         .getPublicUrl(data.path);
-
       return publicUrl;
     } catch (error) {
       console.error('Upload error:', error);
@@ -72,10 +68,8 @@ const RestaurantManagement = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setUploading(true);
-    
     try {
       let updatedFormData = { ...formData };
-
       // Upload image file if provided
       if (imageFile) {
         const imagePath = `restaurants/${Date.now()}-${imageFile.name}`;
@@ -84,7 +78,6 @@ const RestaurantManagement = () => {
           updatedFormData.image_url = imageUrl;
         }
       }
-
       // Upload logo file if provided
       if (logoFile) {
         const logoPath = `logos/${Date.now()}-${logoFile.name}`;
@@ -93,11 +86,9 @@ const RestaurantManagement = () => {
           updatedFormData.logo_url = logoUrl;
         }
       }
-
       const result = editingRestaurant 
         ? await updateRestaurant(editingRestaurant.id, updatedFormData)
         : await createRestaurant(updatedFormData);
-
       if (result.success) {
         toast({
           title: "Success",
@@ -238,6 +229,11 @@ const RestaurantManagement = () => {
                       <img src={formData.image_url} alt="Current" className="w-20 h-20 object-cover rounded" />
                     </div>
                   )}
+                  {imageFile && (
+                    <div className="mt-2">
+                      <span className="text-xs text-gray-500">Selected: {imageFile.name}</span>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="logo_file">Restaurant Logo</Label>
@@ -250,6 +246,11 @@ const RestaurantManagement = () => {
                   {formData.logo_url && (
                     <div className="mt-2">
                       <img src={formData.logo_url} alt="Current logo" className="w-20 h-20 object-cover rounded" />
+                    </div>
+                  )}
+                  {logoFile && (
+                    <div className="mt-2">
+                      <span className="text-xs text-gray-500">Selected: {logoFile.name}</span>
                     </div>
                   )}
                 </div>

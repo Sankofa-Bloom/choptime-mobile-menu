@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,6 +13,7 @@ import { Plus, Edit, Trash2, Utensils } from 'lucide-react';
 import { useAdminData } from '@/hooks/useAdminData';
 import { useToast } from '@/hooks/use-toast';
 import { DishFormData } from '@/types/admin';
+import { supabase } from '@/integrations/supabase/client';
 
 const DISH_CATEGORIES: Array<'Traditional' | 'Soup' | 'Rice' | 'Grilled' | 'Snacks' | 'Drinks'> = [
   'Traditional', 'Soup', 'Rice', 'Grilled', 'Snacks', 'Drinks'
@@ -36,6 +36,8 @@ const DishManagement = () => {
     serves: '1-2 people',
     active: true
   });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const resetForm = () => {
     setFormData({
@@ -50,29 +52,64 @@ const DishManagement = () => {
       serves: '1-2 people',
       active: true
     });
+    setImageFile(null);
     setEditingDish(null);
+  };
+
+  const uploadFile = async (file: File, bucket: string, path: string): Promise<string | null> => {
+    try {
+      const { data, error } = await supabase.storage
+        .from(bucket)
+        .upload(path, file, { upsert: true });
+      if (error) throw error;
+      const { data: { publicUrl } } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(data.path);
+      return publicUrl;
+    } catch (error) {
+      console.error('Upload error:', error);
+      return null;
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const result = editingDish 
-      ? await updateDish(editingDish.id, formData)
-      : await createDish(formData);
-
-    if (result.success) {
-      toast({
-        title: "Success",
-        description: `Dish ${editingDish ? 'updated' : 'created'} successfully`,
-      });
-      setIsDialogOpen(false);
-      resetForm();
-    } else {
+    setUploading(true);
+    try {
+      let updatedFormData = { ...formData };
+      // Upload image file if provided
+      if (imageFile) {
+        const imagePath = `dishes/${Date.now()}-${imageFile.name}`;
+        const imageUrl = await uploadFile(imageFile, 'restaurant-images', imagePath);
+        if (imageUrl) {
+          updatedFormData.image_url = imageUrl;
+        }
+      }
+      const result = editingDish
+        ? await updateDish(editingDish.id, updatedFormData)
+        : await createDish(updatedFormData);
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: `Dish ${editingDish ? 'updated' : 'created'} successfully`,
+        });
+        setIsDialogOpen(false);
+        resetForm();
+      } else {
+        toast({
+          title: "Error",
+          description: result.error,
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
       toast({
         title: "Error",
-        description: result.error,
+        description: "Failed to process request",
         variant: "destructive"
       });
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -90,6 +127,7 @@ const DishManagement = () => {
       serves: dish.serves,
       active: dish.active
     });
+    setImageFile(null);
     setIsDialogOpen(true);
   };
 
@@ -178,13 +216,23 @@ const DishManagement = () => {
               </div>
 
               <div>
-                <Label htmlFor="image_url">Image URL</Label>
+                <Label htmlFor="image_file">Dish Image</Label>
                 <Input
-                  id="image_url"
-                  value={formData.image_url}
-                  onChange={(e) => setFormData({...formData, image_url: e.target.value})}
-                  placeholder="https://..."
+                  id="image_file"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setImageFile(e.target.files?.[0] || null)}
                 />
+                {formData.image_url && (
+                  <div className="mt-2">
+                    <img src={formData.image_url} alt="Current" className="w-20 h-20 object-cover rounded" />
+                  </div>
+                )}
+                {imageFile && (
+                  <div className="mt-2">
+                    <span className="text-xs text-gray-500">Selected: {imageFile.name}</span>
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -208,41 +256,30 @@ const DishManagement = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex items-center space-x-2">
+              <div className="flex gap-4 items-center">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="is_popular">Popular</Label>
                   <Switch
-                    id="popular"
+                    id="is_popular"
                     checked={formData.is_popular}
                     onCheckedChange={(checked) => setFormData({...formData, is_popular: checked})}
                   />
-                  <Label htmlFor="popular">Popular Dish</Label>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="is_spicy">Spicy</Label>
                   <Switch
-                    id="spicy"
+                    id="is_spicy"
                     checked={formData.is_spicy}
                     onCheckedChange={(checked) => setFormData({...formData, is_spicy: checked})}
                   />
-                  <Label htmlFor="spicy">Spicy</Label>
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="is_vegetarian">Vegetarian</Label>
                   <Switch
-                    id="vegetarian"
+                    id="is_vegetarian"
                     checked={formData.is_vegetarian}
                     onCheckedChange={(checked) => setFormData({...formData, is_vegetarian: checked})}
                   />
-                  <Label htmlFor="vegetarian">Vegetarian</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="active"
-                    checked={formData.active}
-                    onCheckedChange={(checked) => setFormData({...formData, active: checked})}
-                  />
-                  <Label htmlFor="active">Active</Label>
                 </div>
               </div>
 
@@ -256,9 +293,10 @@ const DishManagement = () => {
                 </Button>
                 <Button 
                   type="submit"
+                  disabled={uploading}
                   className="choptime-gradient hover:opacity-90 text-white"
                 >
-                  {editingDish ? 'Update' : 'Create'} Dish
+                  {uploading ? 'Processing...' : editingDish ? 'Update' : 'Create'} Dish
                 </Button>
               </div>
             </form>

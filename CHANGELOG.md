@@ -1,4 +1,3 @@
-
 # ChopTime Changelog
 
 All notable changes to the ChopTime food delivery platform will be documented in this file.
@@ -169,6 +168,41 @@ This release transforms ChopTime from a basic MVP to a comprehensive food delive
 - Supabase backend integration
 - Tailwind CSS styling
 - Component-based architecture
+
+---
+
+## [Unreleased]
+
+### Added
+- **WhatsApp Cloud API Integration:**
+  - Orders are now sent to the backend, which uses the WhatsApp Cloud API to notify admin, delivery agents (per town), and the user.
+  - Supports multiple delivery agents per town.
+  - Users receive a WhatsApp confirmation message after placing an order.
+  - Phone numbers are normalized to international format before sending messages.
+- **Order Status Updates:**
+  - Delivery agents/admins can update order status by sending WhatsApp messages (e.g., "CONFIRM CHP-12345") to the business number.
+  - Backend webhook processes incoming WhatsApp messages, updates order status in Supabase, and notifies the user.
+  - Admins can update order status directly from the backend dashboard.
+- **Frontend User Experience:**
+  - Thank You page is shown instantly after order submission and auto-redirects to the homepage after 3 seconds.
+  - Order saving and WhatsApp messaging are handled in the background for a faster user experience.
+  - Users are notified via toast if backend processing fails, but the Thank You flow is not interrupted.
+- **Admin Backend Improvements:**
+  - Restaurant and dish image/logo fields now use file uploads to Supabase Storage (no manual URLs).
+  - Improved UI/UX for image uploads, including previews and file name display.
+- **Security & Best Practices:**
+  - All secrets (API keys, tokens, phone numbers) are handled via environment variables.
+  - No sensitive data is exposed in the frontend or committed to the repo.
+  - Backend logs detailed error responses for easier debugging.
+  - CORS is enabled for backend endpoints.
+- **Supabase Integration:**
+  - Order status is stored and updated in Supabase.
+  - Saving user town now uses upsert to avoid duplicate key errors.
+
+### Changed
+- **Codebase/Deployment:**
+  - All changes committed and pushed to the git repository.
+  - Backend and frontend are decoupled: the frontend never exposes secrets or handles WhatsApp logic directly.
 
 ---
 
