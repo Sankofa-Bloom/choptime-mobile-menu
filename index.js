@@ -54,18 +54,6 @@ app.use(cors({
   allowedHeaders: ['Content-Type']
 }));
 
-// Helper to normalize Cameroon phone numbers to 2376xxxxxxxx
-function normalizeCameroonPhone(phone) {
-  let digits = String(phone).replace(/\D/g, '');
-  if (digits.length === 9 && digits.startsWith('6')) {
-    digits = '237' + digits;
-  }
-  if (digits.length === 12 && digits.startsWith('237')) {
-    return digits;
-  }
-  return digits;
-}
-
 // Helper to send WhatsApp message via Cloud API
 async function sendWhatsAppMessage(to, body) {
   if (!to) {
@@ -75,7 +63,7 @@ async function sendWhatsAppMessage(to, body) {
   console.log('Sending WhatsApp message to:', to, 'with body:', body);
   try {
     await axios.post(
-      `https://graph.facebook.com/v18.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`,
+      `https://graph.facebook.com/v23.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`,
       {
         messaging_product: 'whatsapp',
         to,
@@ -125,36 +113,95 @@ async function fetchMenu() {
   return Object.values(menuMap);
 }
 
+// Helper to normalize phone numbers to WhatsApp format (E.164, no spaces, starts with country code)
+function normalizePhoneNumber(number) {
+  if (!number) return '';
+  // Remove all non-digit characters
+  let num = String(number).replace(/\D/g, '');
+  // Ensure it starts with country code (assume Cameroon: 237)
+  if (num.length === 9 && num.startsWith('6')) {
+    num = '237' + num;
+  }
+  if (!num.startsWith('237')) {
+    // fallback: prepend Cameroon code if missing
+    num = '237' + num;
+  }
+  return num;
+}
+
 // API endpoint for frontend order submission
 app.post('/api/place-order', async (req, res) => {
   try {
-    const { message, user_phone, selectedTown, town } = req.body;
+    const { message, user_phone, selectedTown, town, orderRef } = req.body;
 
     if (!message) {
       return res.status(400).json({ error: 'Missing order message' });
     }
 
-    // Determine delivery phone based on town
+    // Determine delivery phone(s) based on town
     const orderTown = selectedTown || town || '';
-    const deliveryPhones = DELIVERY_PHONE_MAP[orderTown] || [DELIVERY_PHONE];
+    const deliveryPhonesRaw = DELIVERY_PHONE_MAP[orderTown] || [DELIVERY_PHONE];
+    const deliveryPhones = Array.isArray(deliveryPhonesRaw) ? deliveryPhonesRaw : [deliveryPhonesRaw];
+
+    // Normalize all phone numbers
+    const adminPhone = normalizePhoneNumber(ADMIN_PHONE);
+    const userPhone = normalizePhoneNumber(user_phone);
+    const normalizedDeliveryPhones = deliveryPhones.map(normalizePhoneNumber);
+
+    // Track errors
+    let userSendError = null;
+    let failedDeliveryPhones = [];
 
     // Send to admin
-    await sendWhatsAppMessage(ADMIN_PHONE, message);
+    try {
+      await sendWhatsAppMessage(adminPhone, message);
+    } catch (err) {
+      console.error('Failed to send WhatsApp to admin:', err.message);
+    }
 
-    // Send to all delivery agents for the town (using WhatsApp Cloud API only)
-    for (const phone of Array.isArray(deliveryPhones) ? deliveryPhones : [deliveryPhones]) {
-      await sendWhatsAppMessage(phone, message);
+    // Send to all delivery agents for the town (continue on error)
+    for (const phone of normalizedDeliveryPhones) {
+      try {
+        await sendWhatsAppMessage(phone, message);
+      } catch (err) {
+        console.error('Failed to send WhatsApp to delivery phone:', phone, err.message);
+        failedDeliveryPhones.push(phone);
+      }
     }
 
     // Send confirmation to user
-    if (user_phone) {
-      const normalizedUserPhone = normalizeCameroonPhone(user_phone);
-      const confirmationMessage =
-        '✅ Thank you for your order! We have received it and will contact you soon to confirm delivery.\n\nIf you have any questions, reply to this message.';
-      await sendWhatsAppMessage(normalizedUserPhone, confirmationMessage);
+    if (userPhone && typeof userPhone === 'string' && userPhone.trim().length > 0) {
+      let confirmationMessage =
+        '✅ Thank you for your order! We have received it and will contact you soon to confirm delivery.';
+      if (orderRef) {
+        confirmationMessage += `\n\n📄 Order Number: ${orderRef}`;
+      }
+      confirmationMessage += '\n\nIf you have any questions, reply to this message.';
+      try {
+        await sendWhatsAppMessage(userPhone.trim(), confirmationMessage);
+      } catch (err) {
+        userSendError = err;
+        console.error('Failed to send WhatsApp confirmation to user:', userPhone, err.message);
+        // Fallback: alert admin
+        const fallbackMsg = `⚠️ Order confirmation could NOT be sent to user number: ${userPhone}\nOrder Ref: ${orderRef || 'N/A'}\nPlease follow up manually.`;
+        try {
+          await sendWhatsAppMessage(adminPhone, fallbackMsg);
+        } catch (adminErr) {
+          console.error('Failed to send fallback alert to admin:', adminPhone, adminErr.message);
+        }
+      }
+    } else {
+      console.error('No user_phone provided in order payload, not sending WhatsApp confirmation.');
+      // Fallback: alert admin
+      const fallbackMsg = `⚠️ No valid user phone provided for order confirmation.\nOrder Ref: ${orderRef || 'N/A'}\nPlease follow up manually.`;
+      try {
+        await sendWhatsAppMessage(adminPhone, fallbackMsg);
+      } catch (adminErr) {
+        console.error('Failed to send fallback alert to admin:', adminPhone, adminErr.message);
+      }
     }
 
-    res.status(200).json({ success: true });
+    res.status(200).json({ success: true, failedDeliveryPhones, userSendError: userSendError ? userSendError.message : null });
   } catch (error) {
     console.error('Error processing order:', error.message);
     if (error.response) {
@@ -211,7 +258,7 @@ app.post('/webhook', async (req, res) => {
                 cancelled: 'Your order has been cancelled. If you have questions, contact support.',
               };
               await sendWhatsAppMessage(
-                normalizeCameroonPhone(order.user_phone),
+                order.user_phone,
                 statusMessages[newStatus] || `Order status updated: ${newStatus}`
               );
             }
@@ -224,6 +271,7 @@ app.post('/webhook', async (req, res) => {
       if (!userSessions[from]) {
         userSessions[from] = { step: 'init', type: null, details: {} };
       }
+      setSessionTimeout(from); // reset session timeout on every message
       const session = userSessions[from];
       const lowerText = text.toLowerCase();
 
@@ -249,11 +297,13 @@ app.post('/webhook', async (req, res) => {
           session.type = 'vendor';
           session.step = 'await_vendor_name';
           await sendWhatsAppMessage(from, 'Great! Please enter your full name to become a vendor.');
+          setSessionTimeout(from);
           continue;
         } else if (lowerText === '3' || lowerText.includes('rider')) {
           session.type = 'rider';
           session.step = 'await_rider_name';
           await sendWhatsAppMessage(from, 'Awesome! Please enter your full name to become a rider.');
+          setSessionTimeout(from);
           continue;
         } else if (lowerText === '4' || lowerText.includes('support')) {
           await sendWhatsAppMessage(from, `Contact Support:\nEmail: ${SUPPORT_EMAIL}\nPhone: ${SUPPORT_PHONE}`);
@@ -261,6 +311,7 @@ app.post('/webhook', async (req, res) => {
           continue;
         } else {
           await sendWhatsAppMessage(from, 'Please reply with 1, 2, 3, or 4.');
+          setSessionTimeout(from);
           continue;
         }
       }
@@ -307,12 +358,6 @@ app.post('/webhook', async (req, res) => {
         if (session.step === 'await_rider_location') {
           session.details.location = text;
           session.step = 'await_rider_phone';
-          await sendWhatsAppMessage(from, 'What is your phone number?');
-          continue;
-        }
-        if (session.step === 'await_rider_phone') {
-          session.details.phone = text;
-          // Send details to admin number
           const riderMsg = `🚴 *New Rider Application*\nName: ${session.details.name}\nLocation: ${session.details.location}\nPhone: ${session.details.phone}\nWhatsApp: ${from}`;
           await sendWhatsAppMessage(VENDOR_RIDER_PHONE, riderMsg);
           await sendWhatsAppMessage(from, 'Thank you! Your rider application has been received. We will contact you soon.');
@@ -343,4 +388,17 @@ app.get('/', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-}); 
+});
+
+// Add session timeout logic for userSessions
+function setSessionTimeout(phone) {
+  if (!userSessions[phone]) return;
+  if (userSessions[phone]._timeout) clearTimeout(userSessions[phone]._timeout);
+  userSessions[phone]._timeout = setTimeout(() => {
+    delete userSessions[phone];
+  }, 5 * 60 * 1000); // 5 minutes
+} 
+
+
+
+
