@@ -8,7 +8,7 @@
   </defs>
   
   <!-- Location Pin -->
-  <g transform="translate(100, 60)">
+  <g transform="translate(100, 80)">
     <!-- Pin shadow -->
     <ellipse cx="0" cy="45" rx="8" ry="3" fill="#D57A1F" opacity="0.3"/>
     
@@ -21,7 +21,7 @@
   </g>
   
   <!-- Link elements -->
-  <g transform="translate(85, 85)">
+  <g transform="translate(85, 105)">
     <!-- First link segment -->
     <rect x="0" y="0" width="12" height="8" rx="4" fill="url(#orangeGradient)" stroke="#D57A1F" stroke-width="1"/>
     
@@ -31,9 +31,4 @@
     <!-- Connection line -->
     <line x1="12" y1="4" x2="8" y2="4" stroke="#D57A1F" stroke-width="2" stroke-linecap="round"/>
   </g>
-  
-  <!-- Text: KwataLink -->
-  <text x="100" y="140" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="24" font-weight="700" fill="#FF6B35">
-    Kwata<tspan font-weight="400">Link</tspan>
-  </text>
 </svg>

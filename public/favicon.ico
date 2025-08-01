@@ -8,7 +8,7 @@
   </defs>
   
   <!-- Location Pin -->
-  <g transform="translate(16, 10)">
+  <g transform="translate(16, 8)">
     <!-- Pin body -->
     <path d="M0,-8 L-3,3 L0,5 L3,3 Z" fill="url(#orangeGradient)" stroke="#D57A1F" stroke-width="0.5"/>
     
@@ -18,7 +18,7 @@
   </g>
   
   <!-- Link elements -->
-  <g transform="translate(13, 18)">
+  <g transform="translate(13, 16)">
     <!-- First link segment -->
     <rect x="0" y="0" width="3" height="2" rx="0.5" fill="url(#orangeGradient)" stroke="#D57A1F" stroke-width="0.2"/>
     
