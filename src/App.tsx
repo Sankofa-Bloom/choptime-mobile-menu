@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import Index from '@/pages/Index';
 import NotFound from '@/pages/NotFound';
 import AdminLogin from '@/pages/AdminLogin';
@@ -7,9 +8,31 @@ import ThankYou from '@/pages/ThankYou';
 import PaymentSuccess from '@/pages/PaymentSuccess';
 import Payment from '@/pages/Payment';
 import WhatsAppButton from '@/components/WhatsAppButton';
+import { SplashScreen } from '@/components/SplashScreen';
 import { Toaster } from '@/components/ui/toaster';
 
 function App() {
+  const [showSplash, setShowSplash] = useState(false);
+
+  useEffect(() => {
+    // Check if this is the first time visiting the app
+    const hasVisited = localStorage.getItem('kwatalink_visited');
+    
+    if (!hasVisited) {
+      setShowSplash(true);
+      // Mark as visited after showing splash
+      localStorage.setItem('kwatalink_visited', 'true');
+    }
+  }, []);
+
+  const handleSplashComplete = () => {
+    setShowSplash(false);
+  };
+
+  if (showSplash) {
+    return <SplashScreen onComplete={handleSplashComplete} duration={3000} />;
+  }
+
   return (
     <BrowserRouter
       future={{

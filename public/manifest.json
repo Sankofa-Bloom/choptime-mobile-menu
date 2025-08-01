@@ -58,6 +58,15 @@
       "purpose": "maskable any"
     }
   ],
+  "screenshots": [
+    {
+      "src": "/splash-logo.svg",
+      "sizes": "400x300",
+      "type": "image/svg+xml",
+      "form_factor": "wide",
+      "label": "KwataLink - Cameroonian Food Delivery"
+    }
+  ],
   "categories": ["food", "delivery", "restaurant"],
   "lang": "en",
   "scope": "/",

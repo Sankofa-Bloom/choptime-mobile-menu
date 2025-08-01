@@ -41,22 +41,32 @@ export default defineConfig(({ mode }) => ({
           }
         ]
       },
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+      includeAssets: ['favicon.ico', 'logo.svg', 'splash-logo.svg'],
       manifest: {
-        name: 'KwataLink',
+        name: 'KwataLink - Cameroonian Food Delivery',
         short_name: 'KwataLink',
-        description: 'Food delivery app',
-        theme_color: '#ffffff',
+        description: 'Authentic Cameroonian cuisine delivered fresh to your doorstep',
+        theme_color: '#D57A1F',
+        background_color: '#FDF1E0',
+        display: 'standalone',
+        orientation: 'portrait-primary',
+        start_url: '/',
+        scope: '/',
         icons: [
           {
-            src: 'pwa-icon-192x192.png',
-            sizes: '192x192',
-            type: 'image/png'
-          },
+            src: '/logo.svg',
+            sizes: '72x72 96x96 128x128 144x144 152x152 192x192 384x384 512x512',
+            type: 'image/svg+xml',
+            purpose: 'maskable any'
+          }
+        ],
+        screenshots: [
           {
-            src: 'pwa-icon-512x512.png',
-            sizes: '512x512',
-            type: 'image/png'
+            src: '/splash-logo.svg',
+            sizes: '400x300',
+            type: 'image/svg+xml',
+            form_factor: 'wide',
+            label: 'KwataLink - Cameroonian Food Delivery'
           }
         ]
       }

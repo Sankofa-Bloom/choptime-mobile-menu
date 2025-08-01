@@ -1,0 +1,44 @@
+<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+  <title>KwataLink Splash Logo</title>
+  <defs>
+    <linearGradient id="orangeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF6B35;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#E89A4D;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Location Pin -->
+  <g transform="translate(200, 120)">
+    <!-- Pin shadow -->
+    <ellipse cx="0" cy="60" rx="12" ry="4" fill="#D57A1F" opacity="0.3"/>
+    
+    <!-- Pin body -->
+    <path d="M0,-45 L-15,20 L0,35 L15,20 Z" fill="url(#orangeGradient)" stroke="#D57A1F" stroke-width="3"/>
+    
+    <!-- Pin hole -->
+    <circle cx="0" cy="0" r="6" fill="white"/>
+    <circle cx="0" cy="0" r="3" fill="#D57A1F"/>
+  </g>
+  
+  <!-- Link elements -->
+  <g transform="translate(170, 140)">
+    <!-- First link segment -->
+    <rect x="0" y="0" width="16" height="10" rx="5" fill="url(#orangeGradient)" stroke="#D57A1F" stroke-width="1.5"/>
+    
+    <!-- Second link segment -->
+    <rect x="11" y="0" width="16" height="10" rx="5" fill="url(#orangeGradient)" stroke="#D57A1F" stroke-width="1.5"/>
+    
+    <!-- Connection line -->
+    <line x1="16" y1="5" x2="11" y2="5" stroke="#D57A1F" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Text: KwataLink -->
+  <text x="200" y="220" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="36" font-weight="700" fill="#FF6B35">
+    Kwata<tspan font-weight="400">Link</tspan>
+  </text>
+  
+  <!-- Subtitle -->
+  <text x="200" y="250" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="400" fill="#8B4513" opacity="0.8">
+    Cameroonian Food Delivery
+  </text>
+</svg> 
