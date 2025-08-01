@@ -15,7 +15,31 @@ export default defineConfig(({ mode }) => ({
     VitePWA({
       registerType: 'autoUpdate',
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}']
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/api\.fapshi\.com\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'fapshi-api-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24 // 24 hours
+              }
+            }
+          },
+          {
+            urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'supabase-api-cache',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 // 24 hours
+              }
+            }
+          }
+        ]
       },
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
@@ -45,4 +69,27 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    outDir: 'dist',
+    sourcemap: mode === 'development',
+    minify: mode === 'production' ? 'terser' : false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-toast'],
+          utils: ['emailjs-com', 'date-fns']
+        }
+      }
+    },
+    terserOptions: mode === 'production' ? {
+      compress: {
+        drop_console: true,
+        drop_debugger: true
+      }
+    } : undefined
+  },
+  define: {
+    __DEV__: mode === 'development'
+  }
 }));

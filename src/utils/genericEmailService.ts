@@ -293,21 +293,6 @@ export class GenericEmailService {
     return this.sendEmail(paramsWithActions as any);
   }
 
-  /**
-   * Test the generic email template
-   */
-  static async testTemplate(): Promise<boolean> {
-    const testParams: CustomEmailParams = {
-      email_type: 'custom',
-      custom_title: 'Test Email - KwataLink',
-      custom_message: 'This is a test email to verify the generic template is working correctly.',
-      custom_success: '✅ Template test successful!',
-      email_title: 'Test Email',
-      email_subtitle: 'Template Verification'
-    };
-
-    return this.sendEmail(testParams);
-  }
 }
 
 // Export convenience functions
@@ -316,5 +301,4 @@ export const sendOrderConfirmation = GenericEmailService.sendOrderConfirmation;
 export const sendAdminNotification = GenericEmailService.sendAdminNotification;
 export const sendPaymentConfirmation = GenericEmailService.sendPaymentConfirmation;
 export const sendCustomEmail = GenericEmailService.sendCustomEmail;
-export const sendEmailWithActions = GenericEmailService.sendEmailWithActions;
-export const testEmailTemplate = GenericEmailService.testTemplate; 
+export const sendEmailWithActions = GenericEmailService.sendEmailWithActions; 

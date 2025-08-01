@@ -69,7 +69,7 @@ const RestaurantManagement = () => {
     e.preventDefault();
     setUploading(true);
     try {
-      let updatedFormData = { ...formData };
+      const updatedFormData = { ...formData };
       // Upload image file if provided
       if (imageFile) {
         const imagePath = `restaurants/${Date.now()}-${imageFile.name}`;

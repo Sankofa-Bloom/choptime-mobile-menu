@@ -70,26 +70,13 @@ class FapshiService {
       this.baseUrl = 'https://api.fapshi.com';
     }
     
-    // Log configuration for debugging
-    console.log('FapshiService initialized:', {
-      hasApiKey: !!this.apiKey,
-      hasApiUser: !!this.apiUser,
-      baseUrl: this.baseUrl,
-      isTestMode: this.isTestMode
-    });
+
   }
 
   private async makeRequest(endpoint: string, method: 'GET' | 'POST' = 'GET', body?: any): Promise<any> {
     const url = `${this.baseUrl}${endpoint}`;
     
-    console.log('Fapshi API Request:', {
-      url,
-      method,
-      apiUser: this.apiUser ? '***' + this.apiUser.slice(-4) : 'NOT_SET',
-      apiKey: this.apiKey ? '***' + this.apiKey.slice(-4) : 'NOT_SET',
-      isTestMode: this.isTestMode,
-      body: body ? JSON.stringify(body) : undefined
-    });
+
     
     // Fapshi uses specific header format
     const headers: Record<string, string> = {
@@ -159,41 +146,7 @@ class FapshiService {
 
 
 
-  // Test API credentials
-  async testCredentials(): Promise<boolean> {
-    try {
-      console.log('Testing Fapshi API credentials...');
-      console.log('API User:', this.apiUser ? '***' + this.apiUser.slice(-4) : 'NOT_SET');
-      console.log('API Key:', this.apiKey ? '***' + this.apiKey.slice(-4) : 'NOT_SET');
-      console.log('Base URL:', this.baseUrl);
-      console.log('Test Mode:', this.isTestMode);
-      
-      // Validate that credentials are present and properly formatted
-      if (!this.apiUser || !this.apiKey) {
-        console.log('Credential test failed: Missing API credentials');
-        return false;
-      }
-      
-      // Check if API user is a valid UUID format (Fapshi uses UUID for API user)
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      if (!uuidRegex.test(this.apiUser)) {
-        console.log('Credential test failed: Invalid API user format (should be UUID)');
-        return false;
-      }
-      
-      // Check if API key has the expected format (starts with FAK_TEST_ for test mode)
-      if (this.isTestMode && !this.apiKey.startsWith('FAK_TEST_')) {
-        console.log('Credential test failed: Invalid test API key format (should start with FAK_TEST_)');
-        return false;
-      }
-      
-      console.log('Credential test passed: Credentials are properly formatted');
-      return true;
-    } catch (error) {
-      console.error('Credential test failed:', error);
-      return false;
-    }
-  }
+
 
   async initializePayment(paymentData: FapshiPaymentRequest): Promise<FapshiPaymentResponse> {
     try {
@@ -213,11 +166,7 @@ class FapshiService {
         };
       }
       
-      // Test credentials first
-      const credentialsValid = await this.testCredentials();
-      if (!credentialsValid) {
-        throw new Error('Fapshi API credentials are invalid. Please check your API User and API Key.');
-      }
+
       
       // Convert to Fapshi API format
       const fapshiRequest = {
@@ -247,26 +196,12 @@ class FapshiService {
     } catch (error) {
       console.error('Fapshi API failed:', error);
       
-      // Log additional details for debugging
-      if (error instanceof Error) {
-        console.error('Error details:', {
-          message: error.message,
-          stack: error.stack,
-          apiUser: this.apiUser ? '***' + this.apiUser.slice(-4) : 'NOT_SET',
-          apiKey: this.apiKey ? '***' + this.apiKey.slice(-4) : 'NOT_SET',
-          baseUrl: this.baseUrl,
-          isTestMode: this.isTestMode
-        });
-      }
-      
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to initialize payment'
       };
     }
   }
-
-
 
   async checkPaymentStatus(reference: string): Promise<FapshiPaymentStatus> {
     try {
@@ -293,8 +228,6 @@ class FapshiService {
       };
     }
   }
-
-
 
   async createPaymentLink(paymentData: Omit<FapshiPaymentRequest, 'callback_url' | 'return_url'>): Promise<FapshiPaymentResponse> {
     try {
