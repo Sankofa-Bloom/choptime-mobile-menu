@@ -79,11 +79,11 @@ class CampayService {
       'Content-Type': 'application/json',
     };
 
-    // Add API key if available
+    // Add API key if available (Campay uses Token authentication)
     if (this.apiKey) {
       headers['Authorization'] = `Token ${this.apiKey}`;
     } else {
-      console.warn('Campay API key not configured. Please set VITE_CAMPAY_API_KEY');
+      console.warn('Campay API key not configured. Please set VITE_CAMPAY_API_KEY with your Permanent Access Token');
     }
 
     const config: RequestInit = {
@@ -228,7 +228,15 @@ class CampayService {
 
   verifyWebhookSignature(payload: string, signature: string): boolean {
     // Campay webhook signature verification
-    // Implementation depends on Campay's signature method
+    const webhookKey = import.meta.env.VITE_CAMPAY_WEBHOOK_KEY;
+    
+    if (!webhookKey) {
+      console.warn('Campay webhook key not configured. Skipping signature verification.');
+      return true; // Allow in development
+    }
+    
+    // TODO: Implement proper webhook signature verification
+    // This should verify the signature using the webhook key
     // For now, return true (implement proper verification later)
     return true;
   }
