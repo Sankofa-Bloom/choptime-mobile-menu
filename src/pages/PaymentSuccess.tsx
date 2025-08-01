@@ -193,7 +193,7 @@ const PaymentSuccess: React.FC = () => {
 
           {/* Support Info */}
           <div className="text-center text-xs text-gray-500">
-            <p>Need help? Contact us at support@kwatalink.app</p>
+            <p>Need help? Contact us at support@kwatalink.com</p>
             <p>Order Reference: {reference}</p>
           </div>
         </CardContent>
