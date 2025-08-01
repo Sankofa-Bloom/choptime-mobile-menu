@@ -4,7 +4,7 @@ const urlsToCache = [
   '/',
   '/manifest.json',
   '/favicon.ico',
-  '/logo.svg'
+  '/logo.png'
 ];
 
 // Install event
@@ -69,8 +69,8 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('push', (event) => {
   const options = {
             body: event.data ? event.data.text() : 'Your KwataLink order is ready!',
-    icon: '/logo.svg',
-    badge: '/logo.svg',
+    icon: '/logo.png',
+    badge: '/logo.png',
           tag: 'kwatalink-notification'
   };
 

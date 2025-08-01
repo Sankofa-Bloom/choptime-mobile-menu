@@ -41,7 +41,7 @@ export default defineConfig(({ mode }) => ({
           }
         ]
       },
-      includeAssets: ['favicon.ico', 'logo.svg', 'splash-logo.svg', 'header-logo.svg'],
+      includeAssets: ['favicon.png', 'logo.png', 'splash-logo.svg', 'header-logo.svg'],
       manifest: {
         name: 'KwataLink - Cameroonian Food Delivery',
         short_name: 'KwataLink',
@@ -54,9 +54,9 @@ export default defineConfig(({ mode }) => ({
         scope: '/',
         icons: [
           {
-            src: '/logo.svg',
+            src: '/logo.png',
             sizes: '72x72 96x96 128x128 144x144 152x152 192x192 384x384 512x512',
-            type: 'image/svg+xml',
+            type: 'image/png',
             purpose: 'maskable any'
           }
         ],
