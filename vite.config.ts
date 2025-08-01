@@ -41,7 +41,7 @@ export default defineConfig(({ mode }) => ({
           }
         ]
       },
-      includeAssets: ['favicon.ico', 'logo.svg', 'splash-logo.svg'],
+      includeAssets: ['favicon.ico', 'logo.svg', 'splash-logo.svg', 'header-logo.svg'],
       manifest: {
         name: 'KwataLink - Cameroonian Food Delivery',
         short_name: 'KwataLink',

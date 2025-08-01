@@ -30,5 +30,5 @@
     
     <!-- Connection line -->
     <line x1="12" y1="4" x2="8" y2="4" stroke="#D57A1F" stroke-width="2" stroke-linecap="round"/>
-  </g>
+</g>
 </svg>

@@ -61,15 +61,14 @@ const Header: React.FC<HeaderProps> = ({
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full flex items-center justify-center overflow-hidden bg-white">
+              <div className="flex items-center">
                 <img 
-                  src="/logo.svg" 
-                  alt="ChopTime Logo" 
-                  className="w-full h-full object-contain"
+                  src="/header-logo.svg" 
+                  alt="KwataLink Logo" 
+                  className="h-12 w-auto"
                 />
               </div>
-              <div>
-                <h1 className="text-2xl font-bold text-choptime-brown">KwataLink</h1>
+              <div className="hidden sm:block">
                 <p className="text-sm text-choptime-brown/70">
                   {selectedTown ? `Delivering in ${selectedTown}` : 'Authentic Cameroonian Cuisine'}
                 </p>
