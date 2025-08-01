@@ -3,9 +3,14 @@ import emailjs from '@emailjs/browser';
 // EmailJS configuration
 const EMAILJS_CONFIG = {
   serviceId: import.meta.env.VITE_EMAILJS_SERVICE_ID || 'default_service',
-  templateId: import.meta.env.VITE_EMAILJS_ORDER_TEMPLATE_ID || 'default_template',
+  templateId: import.meta.env.VITE_EMAILJS_GENERIC_TEMPLATE_ID || 'default_template',
   userId: import.meta.env.VITE_EMAILJS_USER_ID || 'default_user'
 };
+
+// Ensure EmailJS is initialized
+if (typeof window !== 'undefined') {
+  emailjs.init(import.meta.env.VITE_EMAILJS_USER_ID || 'default_user');
+}
 
 export interface EmailConfig {
   serviceId: string;
@@ -18,6 +23,12 @@ export const sendEmailViaEmailJS = async (
   config: EmailConfig = EMAILJS_CONFIG
 ): Promise<boolean> => {
   try {
+    // Check if emailjs is available
+    if (!emailjs || typeof emailjs.send !== 'function') {
+      console.error('EmailJS is not properly initialized or available');
+      return false;
+    }
+
     console.log('EmailJS Configuration:', {
       serviceId: config.serviceId,
       templateId: config.templateId,

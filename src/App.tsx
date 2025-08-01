@@ -6,7 +6,7 @@ import AdminDashboard from '@/pages/AdminDashboard';
 import ThankYou from '@/pages/ThankYou';
 import PaymentSuccess from '@/pages/PaymentSuccess';
 import Payment from '@/pages/Payment';
-import Contact from '@/pages/Contact';
+import WhatsAppButton from '@/components/WhatsAppButton';
 import { Toaster } from '@/components/ui/toaster';
 
 function App() {
@@ -19,7 +19,6 @@ function App() {
     >
       <Routes>
         <Route path="/" element={<Index />} />
-        <Route path="/contact" element={<Contact />} />
         <Route path="/dash/login" element={<AdminLogin />} />
         <Route path="/dash/chp-ctrl" element={<AdminDashboard />} />
         <Route path="/thank-you" element={<ThankYou />} />
@@ -27,6 +26,10 @@ function App() {
         <Route path="/payment" element={<Payment />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
+      
+      {/* Floating WhatsApp Button - appears on all pages */}
+      <WhatsAppButton />
+      
       <Toaster />
     </BrowserRouter>
   );

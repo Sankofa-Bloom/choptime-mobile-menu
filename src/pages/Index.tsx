@@ -350,7 +350,64 @@ const Index = () => {
       <Footer />
 
       {/* Email Test Component - Remove this after testing */}
-      
+      <div className="bg-white border-t border-gray-200 py-8">
+        <div className="max-w-4xl mx-auto px-4">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Email Test (Development Only)</h3>
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <p className="text-sm text-gray-600 mb-4">
+              Test EmailJS configuration and email sending functionality.
+            </p>
+            <div className="flex gap-4">
+              <button
+                onClick={async () => {
+                  try {
+                    const { testEmailTemplate } = await import('@/utils/genericEmailService');
+                    const success = await testEmailTemplate();
+                    if (success) {
+                      toast({
+                        title: "Email Test Successful!",
+                        description: "Check your email inbox for the test message.",
+                      });
+                    } else {
+                      toast({
+                        title: "Email Test Failed",
+                        description: "Check console for error details.",
+                        variant: "destructive"
+                      });
+                    }
+                  } catch (error) {
+                    console.error('Email test error:', error);
+                    toast({
+                      title: "Email Test Error",
+                      description: "Check console for error details.",
+                      variant: "destructive"
+                    });
+                  }
+                }}
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+              >
+                Test Email Template
+              </button>
+              <button
+                onClick={() => {
+                  console.log('EmailJS Config:', {
+                    serviceId: import.meta.env.VITE_EMAILJS_SERVICE_ID,
+                    templateId: import.meta.env.VITE_EMAILJS_GENERIC_TEMPLATE_ID,
+                    userId: import.meta.env.VITE_EMAILJS_USER_ID
+                  });
+                  toast({
+                    title: "Config Logged",
+                    description: "Check browser console for EmailJS configuration.",
+                  });
+                }}
+                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 text-sm"
+              >
+                Log Config
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Modals */}
       <TownSelector 

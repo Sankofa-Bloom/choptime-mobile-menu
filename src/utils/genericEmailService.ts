@@ -97,6 +97,7 @@ export interface ActionButton {
 
 // Generic email service class
 export class GenericEmailService {
+  // All emails use the same generic template
   private static readonly TEMPLATE_ID = import.meta.env.VITE_EMAILJS_GENERIC_TEMPLATE_ID || 'generic_template';
   private static readonly SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || '';
   private static readonly USER_ID = import.meta.env.VITE_EMAILJS_USER_ID || '';
@@ -114,7 +115,26 @@ export class GenericEmailService {
       email_id: `contact_${Date.now()}`
     };
 
-    return this.sendEmail(emailParams);
+    // Map contact form parameters to EmailJS template variables
+    const mappedParams = {
+      ...emailParams,
+      // Map to common EmailJS template variables
+      customer_name: params.from_name,
+      customer_email: params.from_email,
+      customer_phone: params.from_phone || '',
+      subject: params.subject,
+      message: params.message,
+      // Additional mappings for compatibility
+      to_name: params.from_name,
+      to_email: params.from_email,
+      from_name: params.from_name,
+      from_email: params.from_email,
+      from_phone: params.from_phone || '',
+      // Admin email for replies
+      reply_to: import.meta.env.VITE_ADMIN_EMAIL || 'choptime237@gmail.com'
+    };
+
+    return this.sendEmail(mappedParams as any);
   }
 
   /**
@@ -195,22 +215,60 @@ export class GenericEmailService {
         ...params
       };
 
+      // Map parameters to common EmailJS template variables
+      const mappedParams = {
+        ...completeParams,
+        // Common mappings for all email types
+        to_name: completeParams.customer_name || completeParams.from_name || 'Customer',
+        to_email: completeParams.customer_email || completeParams.from_email || completeParams.admin_email,
+        reply_to: completeParams.admin_email || 'choptime237@gmail.com',
+        // Ensure all required fields are present
+        customer_name: completeParams.customer_name || completeParams.from_name || 'Customer',
+        customer_email: completeParams.customer_email || completeParams.from_email || completeParams.admin_email,
+        customer_phone: completeParams.customer_phone || completeParams.from_phone || '',
+        // Additional compatibility mappings
+        user_name: completeParams.customer_name || completeParams.from_name || 'Customer',
+        user_email: completeParams.customer_email || completeParams.from_email || completeParams.admin_email,
+        recipient_name: completeParams.customer_name || completeParams.from_name || 'Customer',
+        recipient_email: completeParams.customer_email || completeParams.from_email || completeParams.admin_email,
+        contact_name: completeParams.customer_name || completeParams.from_name || 'Customer',
+        contact_email: completeParams.customer_email || completeParams.from_email || completeParams.admin_email
+      };
+
       console.log('Sending generic email:', {
-        type: completeParams.email_type,
+        type: mappedParams.email_type,
         templateId: this.TEMPLATE_ID,
-        params: completeParams
+        serviceId: this.SERVICE_ID,
+        userId: this.USER_ID,
+        params: mappedParams
       });
 
-      const success = await sendEmailViaEmailJS(completeParams, {
+      // Validate EmailJS configuration
+      if (!this.SERVICE_ID || this.SERVICE_ID === 'default_service') {
+        console.error('EmailJS Service ID not configured');
+        return false;
+      }
+
+      if (!this.TEMPLATE_ID || this.TEMPLATE_ID === 'default_template') {
+        console.error('EmailJS Template ID not configured');
+        return false;
+      }
+
+      if (!this.USER_ID || this.USER_ID === 'default_user') {
+        console.error('EmailJS User ID not configured');
+        return false;
+      }
+
+      const success = await sendEmailViaEmailJS(mappedParams, {
         serviceId: this.SERVICE_ID,
         templateId: this.TEMPLATE_ID,
         userId: this.USER_ID
       });
 
       if (success) {
-        console.log('Generic email sent successfully:', completeParams.email_type);
+        console.log('Generic email sent successfully:', mappedParams.email_type);
       } else {
-        console.error('Failed to send generic email:', completeParams.email_type);
+        console.error('Failed to send generic email:', mappedParams.email_type);
       }
 
       return success;

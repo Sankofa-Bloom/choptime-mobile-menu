@@ -3,7 +3,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingCart, MapPin, Download, MessageCircle } from 'lucide-react';
+import { ShoppingCart, MapPin, Download } from 'lucide-react';
 
 interface HeaderProps {
   selectedTown: string;
@@ -76,15 +76,6 @@ const Header: React.FC<HeaderProps> = ({
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate('/contact')}
-                className="text-choptime-orange hover:bg-choptime-orange/10"
-              >
-                <MessageCircle className="w-4 h-4 mr-1" />
-                Contact
-              </Button>
               {selectedTown && (
                 <Button
                   variant="ghost"
