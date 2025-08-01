@@ -74,7 +74,7 @@ This release transforms ChopTime from a basic MVP to a comprehensive food delive
 - **Loading states** and progress indicators
 
 #### 📱 Mobile Optimization
-- **Fixed WhatsApp integration** for better device compatibility
+- **Enhanced email integration** for better order confirmation
 - **Improved order button** functionality across platforms
 - **Mobile-responsive admin panel**
 
@@ -99,7 +99,7 @@ This release transforms ChopTime from a basic MVP to a comprehensive food delive
 - **Reduced bundle size** with code splitting
 
 ### 🐛 Bug Fixes
-- **Fixed WhatsApp order button** not working on mobile devices
+- **Fixed order button** not working on mobile devices
 - **Improved restaurant selection** modal with delivery times
 - **Enhanced form validation** across the platform
 - **Better error messages** for user guidance
@@ -131,11 +131,11 @@ This release transforms ChopTime from a basic MVP to a comprehensive food delive
 
 ### Added
 - **Additional message field** in order form
-- **Enhanced WhatsApp message** with customer notes
-- **Mobile-compatible WhatsApp integration**
+- **Enhanced email confirmation** with customer notes
+- **Mobile-compatible order integration**
 
 ### Fixed
-- WhatsApp order button compatibility across devices
+- Order button compatibility across devices
 - Order form validation improvements
 
 ### Changed
@@ -153,7 +153,7 @@ This release transforms ChopTime from a basic MVP to a comprehensive food delive
 - **Dish-first ordering system** with restaurant selection
 - **Town-based filtering** (Buea, Limbe)
 - **Custom order requests** for special dishes
-- **WhatsApp order integration**
+- **Email order integration**
 - **Local storage** for user preferences
 
 #### UI Components
@@ -174,18 +174,16 @@ This release transforms ChopTime from a basic MVP to a comprehensive food delive
 ## [Unreleased]
 
 ### Added
-- **WhatsApp Cloud API Integration:**
-  - Orders are now sent to the backend, which uses the WhatsApp Cloud API to notify admin, delivery agents (per town), and the user.
-  - Supports multiple delivery agents per town.
-  - Users receive a WhatsApp confirmation message after placing an order.
+- **Email Integration:**
+  - Orders are now sent to the backend, which uses EmailJS to notify admin and the user.
+  - Users receive an email confirmation message after placing an order.
   - Phone numbers are normalized to international format before sending messages.
 - **Order Status Updates:**
-  - Delivery agents/admins can update order status by sending WhatsApp messages (e.g., "CONFIRM CHP-12345") to the business number.
-  - Backend webhook processes incoming WhatsApp messages, updates order status in Supabase, and notifies the user.
-  - Admins can update order status directly from the backend dashboard.
+  - Admins can update order status directly from the admin dashboard.
+  - Order status updates are reflected in real-time in the database.
 - **Frontend User Experience:**
   - Thank You page is shown instantly after order submission and auto-redirects to the homepage after 3 seconds.
-  - Order saving and WhatsApp messaging are handled in the background for a faster user experience.
+  - Order saving and email messaging are handled in the background for a faster user experience.
   - Users are notified via toast if backend processing fails, but the Thank You flow is not interrupted.
 - **Admin Backend Improvements:**
   - Restaurant and dish image/logo fields now use file uploads to Supabase Storage (no manual URLs).
@@ -202,7 +200,7 @@ This release transforms ChopTime from a basic MVP to a comprehensive food delive
 ### Changed
 - **Codebase/Deployment:**
   - All changes committed and pushed to the git repository.
-  - Backend and frontend are decoupled: the frontend never exposes secrets or handles WhatsApp logic directly.
+  - Backend and frontend are decoupled: the frontend never exposes secrets or handles email logic directly.
 
 ---
 

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -42,6 +42,9 @@ const RestaurantSelectionModal: React.FC<RestaurantSelectionModalProps> = ({
           <DialogTitle className="text-choptime-brown">
             Choose Restaurant for {dish.name}
           </DialogTitle>
+          <DialogDescription>
+            Select a restaurant to order {dish.name} from. Each restaurant may have different pricing and delivery times.
+          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-4">

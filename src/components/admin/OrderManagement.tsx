@@ -106,24 +106,6 @@ const OrderManagement = () => {
         title: 'Status Updated',
         description: `Order status updated to ${newStatus}.`,
       });
-      // Send WhatsApp notification to user
-      try {
-        await fetch('https://choptime-whatsapp-bot.up.railway.app/api/notify-status-update', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            user_phone: order.user_phone,
-            status: newStatus,
-            order_reference: order.order_reference
-          })
-        });
-      } catch (err) {
-        toast({
-          title: 'WhatsApp Notification Failed',
-          description: 'Could not send WhatsApp notification to user.',
-          variant: 'destructive',
-        });
-      }
       fetchOrders();
     } catch (error) {
       toast({

@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{email_title || 'ChopTime Notification'}}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #FF6B35;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #FF6B35;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+        }
+        .content-section {
+            margin: 20px 0;
+        }
+        .content-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #FF6B35;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .info-box {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .field {
+            margin-bottom: 15px;
+        }
+        .field-label {
+            font-weight: bold;
+            color: #FF6B35;
+            margin-bottom: 5px;
+        }
+        .field-value {
+            color: #333;
+            padding: 8px 12px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            border: 1px solid #e9ecef;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            color: #666;
+            font-size: 14px;
+        }
+        .urgent {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        .order-details {
+            background-color: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .order-item:last-child {
+            border-bottom: none;
+        }
+        .total {
+            font-weight: bold;
+            font-size: 18px;
+            color: #FF6B35;
+            text-align: right;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 2px solid #FF6B35;
+        }
+        .button {
+            display: inline-block;
+            background-color: #FF6B35;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 5px;
+            font-weight: bold;
+        }
+        .button:hover {
+            background-color: #e55a2b;
+        }
+        .contact-info {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .contact-item {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+        }
+        .contact-icon {
+            margin-right: 10px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🍽️ ChopTime</div>
+            <div class="subtitle">{{email_subtitle || 'Authentic Cameroonian Cuisine'}}</div>
+        </div>
+
+        <!-- Dynamic Content Section -->
+        <div class="content-section">
+            {{#if email_type}}
+                <!-- Contact Form Email -->
+                {{#if_eq email_type "contact"}}
+                    <div class="content-box">
+                        <h2 style="color: #FF6B35; margin-top: 0;">📧 New Contact Message</h2>
+                        <p>A new message has been submitted through the ChopTime contact form.</p>
+                    </div>
+
+                    <div class="info-box">
+                        <h3 style="color: #FF6B35; margin-top: 0;">👤 Contact Information</h3>
+                        
+                        <div class="field">
+                            <div class="field-label">Name:</div>
+                            <div class="field-value">{{from_name}}</div>
+                        </div>
+
+                        <div class="field">
+                            <div class="field-label">Email Address:</div>
+                            <div class="field-value">{{from_email}}</div>
+                        </div>
+
+                        {{#if from_phone}}
+                        <div class="field">
+                            <div class="field-label">Phone Number:</div>
+                            <div class="field-value">{{from_phone}}</div>
+                        </div>
+                        {{/if}}
+
+                        <div class="field">
+                            <div class="field-label">Subject:</div>
+                            <div class="field-value">{{subject}}</div>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <div class="field-label">Message:</div>
+                        <div class="field-value" style="white-space: pre-wrap; min-height: 100px;">{{message}}</div>
+                    </div>
+
+                    <div class="urgent">
+                        ⚡ Please respond to this customer within 24 hours to maintain excellent customer service.
+                    </div>
+                {{/if_eq}}
+
+                <!-- Order Confirmation Email -->
+                {{#if_eq email_type "order_confirmation"}}
+                    <div class="success">
+                        ✅ Your order has been confirmed and is being prepared!
+                    </div>
+
+                    <div class="order-details">
+                        <h3 style="color: #FF6B35; margin-top: 0;">📋 Order Details</h3>
+                        
+                        <div class="field">
+                            <div class="field-label">Order Reference:</div>
+                            <div class="field-value">{{order_reference}}</div>
+                        </div>
+
+                        <div class="field">
+                            <div class="field-label">Restaurant:</div>
+                            <div class="field-value">{{restaurant_name}}</div>
+                        </div>
+
+                        <div class="field">
+                            <div class="field-label">Order Date:</div>
+                            <div class="field-value">{{order_date}}</div>
+                        </div>
+
+                        <div class="field">
+                            <div class="field-label">Estimated Delivery:</div>
+                            <div class="field-value">{{estimated_delivery}}</div>
+                        </div>
+                    </div>
+
+                    {{#if order_items}}
+                    <div class="order-details">
+                        <h4 style="color: #FF6B35;">🍽️ Your Order</h4>
+                        {{#each order_items}}
+                        <div class="order-item">
+                            <span>{{name}} x{{quantity}}</span>
+                            <span>{{price}}</span>
+                        </div>
+                        {{/each}}
+                        <div class="total">
+                            Total: {{order_total}}
+                        </div>
+                    </div>
+                    {{/if}}
+
+                    <div class="info-box">
+                        <h4 style="color: #FF6B35;">🚚 Delivery Information</h4>
+                        <p><strong>Address:</strong> {{delivery_address}}</p>
+                        <p><strong>Phone:</strong> {{customer_phone}}</p>
+                        <p><strong>Payment Method:</strong> {{payment_method}}</p>
+                    </div>
+                {{/if_eq}}
+
+                <!-- Admin Notification Email -->
+                {{#if_eq email_type "admin_notification"}}
+                    <div class="content-box">
+                        <h2 style="color: #FF6B35; margin-top: 0;">📢 New Order Notification</h2>
+                        <p>A new order has been placed and requires your attention.</p>
+                    </div>
+
+                    <div class="order-details">
+                        <h3 style="color: #FF6B35; margin-top: 0;">📋 Order Information</h3>
+                        
+                        <div class="field">
+                            <div class="field-label">Order Reference:</div>
+                            <div class="field-value">{{order_reference}}</div>
+                        </div>
+
+                        <div class="field">
+                            <div class="field-label">Customer Name:</div>
+                            <div class="field-value">{{customer_name}}</div>
+                        </div>
+
+                        <div class="field">
+                            <div class="field-label">Customer Email:</div>
+                            <div class="field-value">{{customer_email}}</div>
+                        </div>
+
+                        <div class="field">
+                            <div class="field-label">Customer Phone:</div>
+                            <div class="field-value">{{customer_phone}}</div>
+                        </div>
+
+                        <div class="field">
+                            <div class="field-label">Order Total:</div>
+                            <div class="field-value">{{order_total}}</div>
+                        </div>
+                    </div>
+
+                    <div class="urgent">
+                        ⚡ Please process this order as soon as possible to ensure timely delivery.
+                    </div>
+                {{/if_eq}}
+
+                <!-- Payment Confirmation Email -->
+                {{#if_eq email_type "payment_confirmation"}}
+                    <div class="success">
+                        💳 Payment Successful! Your order is now confirmed.
+                    </div>
+
+                    <div class="order-details">
+                        <h3 style="color: #FF6B35; margin-top: 0;">💰 Payment Details</h3>
+                        
+                        <div class="field">
+                            <div class="field-label">Payment Reference:</div>
+                            <div class="field-value">{{payment_reference}}</div>
+                        </div>
+
+                        <div class="field">
+                            <div class="field-label">Amount Paid:</div>
+                            <div class="field-value">{{payment_amount}}</div>
+                        </div>
+
+                        <div class="field">
+                            <div class="field-label">Payment Method:</div>
+                            <div class="field-value">{{payment_method}}</div>
+                        </div>
+
+                        <div class="field">
+                            <div class="field-label">Payment Date:</div>
+                            <div class="field-value">{{payment_date}}</div>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <h4 style="color: #FF6B35;">📋 Order Summary</h4>
+                        <p><strong>Order Reference:</strong> {{order_reference}}</p>
+                        <p><strong>Restaurant:</strong> {{restaurant_name}}</p>
+                        <p><strong>Estimated Delivery:</strong> {{estimated_delivery}}</p>
+                    </div>
+                {{/if_eq}}
+
+                <!-- Custom Email -->
+                {{#if_eq email_type "custom"}}
+                    <div class="content-box">
+                        <h2 style="color: #FF6B35; margin-top: 0;">{{custom_title || 'ChopTime Notification'}}</h2>
+                        <div style="white-space: pre-wrap;">{{custom_message}}</div>
+                    </div>
+
+                    {{#if custom_urgent}}
+                    <div class="urgent">
+                        {{custom_urgent}}
+                    </div>
+                    {{/if}}
+
+                    {{#if custom_success}}
+                    <div class="success">
+                        {{custom_success}}
+                    </div>
+                    {{/if}}
+
+                    {{#if custom_warning}}
+                    <div class="warning">
+                        {{custom_warning}}
+                    </div>
+                    {{/if}}
+                {{/if_eq}}
+            {{else}}
+                <!-- Default content if no email_type specified -->
+                <div class="content-box">
+                    <h2 style="color: #FF6B35; margin-top: 0;">{{default_title || 'ChopTime Notification'}}</h2>
+                    <div style="white-space: pre-wrap;">{{default_message || 'This is a notification from ChopTime.'}}</div>
+                </div>
+            {{/if}}
+        </div>
+
+        <!-- Contact Information -->
+        <div class="contact-info">
+            <h4 style="color: #FF6B35; margin-top: 0;">📞 Contact Information</h4>
+            <div class="contact-item">
+                <span class="contact-icon">📍</span>
+                <span>{{company_address || 'Busumbu Junction, Limbe - Cameroon'}}</span>
+            </div>
+            <div class="contact-item">
+                <span class="contact-icon">📞</span>
+                <span>{{admin_phone || '+237 670 416 449'}}</span>
+            </div>
+            <div class="contact-item">
+                <span class="contact-icon">📧</span>
+                <span>{{admin_email || 'choptime237@gmail.com'}}</span>
+            </div>
+        </div>
+
+        <!-- Action Buttons (if provided) -->
+        {{#if action_buttons}}
+        <div style="text-align: center; margin: 20px 0;">
+            {{#each action_buttons}}
+            <a href="{{url}}" class="button">{{text}}</a>
+            {{/each}}
+        </div>
+        {{/if}}
+
+        <div class="footer">
+            <p><strong>ChopTime</strong> - Authentic Cameroonian Cuisine</p>
+            <p style="margin-top: 15px; font-size: 12px; color: #999;">
+                This email was sent from {{company_name || 'ChopTime'}}.
+                <br>
+                Sent on: {{sent_date}}
+                {{#if email_id}}
+                <br>
+                Email ID: {{email_id}}
+                {{/if}}
+            </p>
+        </div>
+    </div>
+</body>
+</html> 

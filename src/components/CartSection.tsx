@@ -24,7 +24,7 @@ interface CartSectionProps {
   selectedTown: string;
   onOrderDetailsChange: (details: OrderDetails) => void;
   onQuantityUpdate: (index: number, newQuantity: number) => void;
-  onWhatsAppOrder: () => void;
+  onPlaceOrder: () => void;
   calculateSubtotal: () => number;
   calculateTotal: () => number;
 }
@@ -35,7 +35,7 @@ const CartSection: React.FC<CartSectionProps> = ({
   selectedTown,
   onOrderDetailsChange,
   onQuantityUpdate,
-  onWhatsAppOrder,
+  onPlaceOrder,
   calculateSubtotal,
   calculateTotal
 }) => {
@@ -172,20 +172,17 @@ const CartSection: React.FC<CartSectionProps> = ({
                   </div>
 
                   <div>
-                    <Label htmlFor="paymentMethod">Payment Method *</Label>
-                    <Select
-                      value={orderDetails.paymentMethod}
-                      onValueChange={(value) => handleInputChange('paymentMethod', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select payment method" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="cash">Cash on Delivery</SelectItem>
-                        <SelectItem value="mtn">MTN Mobile Money</SelectItem>
-                        <SelectItem value="orange">Orange Money</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label htmlFor="paymentMethod">Payment Method</Label>
+                    <div className="flex items-center space-x-3 p-3 border rounded-lg bg-gray-50">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+                        <span className="font-medium text-gray-900">Online Payment</span>
+                      </div>
+                      <span className="text-sm text-gray-600">(MTN MoMo & Orange Money)</span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Secure online payment through our payment gateway
+                    </p>
                   </div>
 
                   <div>
@@ -200,16 +197,16 @@ const CartSection: React.FC<CartSectionProps> = ({
                   </div>
 
                   <Button
-                    onClick={onWhatsAppOrder}
+                    onClick={onPlaceOrder}
                     className="w-full choptime-gradient hover:opacity-90 text-white"
                     size="lg"
                   >
-                    <MessageCircle className="mr-2 h-5 w-5" />
-                    Place Order (WhatsApp) &rarr;
+                    <ShoppingCart className="mr-2 h-5 w-5" />
+                    Proceed to Payment &rarr;
                   </Button>
 
                   <p className="text-xs text-gray-500 text-center">
-                    Your order will be sent via WhatsApp for confirmation and delivery coordination.
+                    You'll be redirected to our secure payment gateway to complete your order.
                   </p>
                 </CardContent>
               </Card>

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 import { Restaurant, CustomOrderItem } from '@/types/restaurant';
 import { Plus, Minus } from 'lucide-react';
 
@@ -24,21 +24,28 @@ const CustomOrderModal: React.FC<CustomOrderModalProps> = ({
   const [customDishName, setCustomDishName] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [specialInstructions, setSpecialInstructions] = useState('');
-  const [selectedRestaurantId, setSelectedRestaurantId] = useState('');
+  const [restaurantName, setRestaurantName] = useState('');
   const [estimatedPrice, setEstimatedPrice] = useState(3000);
+  const [restaurantAddress, setRestaurantAddress] = useState('');
+  const [restaurantPhone, setRestaurantPhone] = useState('');
 
   const handleSubmit = () => {
-    if (!customDishName.trim() || !selectedRestaurantId) return;
-
-    const selectedRestaurant = restaurants.find(r => r.id === selectedRestaurantId);
-    if (!selectedRestaurant) return;
+    if (!customDishName.trim() || !restaurantName.trim()) return;
 
     const customOrderItem: CustomOrderItem = {
       customDishName: customDishName.trim(),
-      restaurant: selectedRestaurant,
+      restaurant: {
+        id: 'custom',
+        name: restaurantName.trim(),
+        town: 'Custom',
+        contact_number: restaurantPhone.trim(),
+        active: true
+      },
       quantity,
       estimatedPrice,
-      specialInstructions: specialInstructions.trim() || undefined
+      specialInstructions: specialInstructions.trim() || undefined,
+      restaurantAddress: restaurantAddress.trim(),
+      restaurantPhone: restaurantPhone.trim()
     };
 
     onAddToCart(customOrderItem);
@@ -47,8 +54,10 @@ const CustomOrderModal: React.FC<CustomOrderModalProps> = ({
     setCustomDishName('');
     setQuantity(1);
     setSpecialInstructions('');
-    setSelectedRestaurantId('');
+    setRestaurantName('');
     setEstimatedPrice(3000);
+    setRestaurantAddress('');
+    setRestaurantPhone('');
     onClose();
   };
 
@@ -74,19 +83,14 @@ const CustomOrderModal: React.FC<CustomOrderModalProps> = ({
           </div>
 
           <div>
-            <Label htmlFor="restaurant">Select Restaurant *</Label>
-            <Select onValueChange={setSelectedRestaurantId}>
-              <SelectTrigger className="border-choptime-orange/30">
-                <SelectValue placeholder="Choose a restaurant" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                {restaurants.map((restaurant) => (
-                  <SelectItem key={restaurant.id} value={restaurant.id}>
-                    {restaurant.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="restaurantName">Restaurant Name *</Label>
+            <Input
+              id="restaurantName"
+              placeholder="e.g., Mama's Kitchen, Food Palace"
+              value={restaurantName}
+              onChange={(e) => setRestaurantName(e.target.value)}
+              className="border-choptime-orange/30"
+            />
           </div>
 
           <div>
@@ -128,6 +132,30 @@ const CustomOrderModal: React.FC<CustomOrderModalProps> = ({
           </div>
 
           <div>
+            <Label htmlFor="restaurantAddress">Restaurant Address *</Label>
+            <Input
+              id="restaurantAddress"
+              placeholder="e.g., 123 Main Street, Douala"
+              value={restaurantAddress}
+              onChange={(e) => setRestaurantAddress(e.target.value)}
+              className="border-choptime-orange/30"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="restaurantPhone">Restaurant Phone Number *</Label>
+            <Input
+              id="restaurantPhone"
+              placeholder="e.g., +237 670 416 449"
+              value={restaurantPhone}
+              onChange={(e) => setRestaurantPhone(e.target.value)}
+              className="border-choptime-orange/30"
+            />
+          </div>
+
+
+
+          <div>
             <Label htmlFor="instructions">Special Instructions (Optional)</Label>
             <Textarea
               id="instructions"
@@ -149,7 +177,7 @@ const CustomOrderModal: React.FC<CustomOrderModalProps> = ({
             </Button>
             <Button
               onClick={handleSubmit}
-              disabled={!customDishName.trim() || !selectedRestaurantId}
+              disabled={!customDishName.trim() || !restaurantName.trim() || !restaurantAddress.trim() || !restaurantPhone.trim()}
               className="flex-1 choptime-gradient hover:opacity-90 text-white"
             >
               Add to Cart

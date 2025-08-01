@@ -19,7 +19,7 @@ ChopTime aims to revolutionize food delivery in Cameroon by providing a seamless
 - Browse dishes by category and restaurant
 - Smart delivery fee calculation based on location
 - Custom dish ordering
-- WhatsApp-based order confirmation
+- Email-based order confirmation
 - Real-time order tracking (future)
 
 ### Admin
@@ -32,7 +32,7 @@ ChopTime aims to revolutionize food delivery in Cameroon by providing a seamless
 - As a customer, I want to browse dishes by category so I can quickly find what I want.
 - As a customer, I want to select my town and see only relevant restaurants.
 - As a customer, I want to place a custom order for dishes not on the menu.
-- As a customer, I want to confirm my order via WhatsApp for convenience.
+- As a customer, I want to confirm my order via email for convenience.
 - As an admin, I want to add/edit restaurants and dishes to keep the menu up to date.
 - As an admin, I want to manage delivery zones and pricing for accurate fees.
 - As an admin, I want to view and filter orders to monitor business performance.
@@ -41,7 +41,7 @@ ChopTime aims to revolutionize food delivery in Cameroon by providing a seamless
 - **Frontend:** React 18, TypeScript, Vite, Tailwind CSS, Shadcn/UI, React Query
 - **Backend:** Supabase (PostgreSQL, Auth, Realtime, Row Level Security)
 - **Deployment:** Vercel/Netlify (frontend), Supabase (backend)
-- **Integrations:** WhatsApp for order confirmation
+- **Integrations:** Email for order confirmation
 
 ### Database Schema (Core Tables)
 - `restaurants`, `dishes`, `restaurant_menus`, `orders`, `custom_orders`, `delivery_zones`, `admin_users`, `user_towns`
@@ -53,7 +53,7 @@ ChopTime aims to revolutionize food delivery in Cameroon by providing a seamless
 
 ## 7. Milestones & Roadmap
 - **MVP Launch:**
-  - Customer ordering flow (browse, cart, WhatsApp confirmation)
+  - Customer ordering flow (browse, cart, email confirmation)
   - Admin dashboard (restaurant, dish, order, and delivery zone management)
   - Smart delivery fee calculation
 - **Post-MVP:**

@@ -2,11 +2,9 @@
 const CACHE_NAME = 'choptime-v1';
 const urlsToCache = [
   '/',
-  '/static/js/bundle.js',
-  '/static/css/main.css',
   '/manifest.json',
-  '/pwa-icon-192x192.png',
-  '/pwa-icon-512x512.png'
+  '/favicon.ico',
+  '/logo.svg'
 ];
 
 // Install event
@@ -25,6 +23,14 @@ self.addEventListener('install', (event) => {
 
 // Fetch event
 self.addEventListener('fetch', (event) => {
+  // Skip caching for API requests and external resources
+  if (event.request.url.includes('/api/') || 
+      event.request.url.includes('fapshi.com') ||
+      event.request.url.includes('supabase.co') ||
+      event.request.url.includes('emailjs.com')) {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
@@ -32,7 +38,12 @@ self.addEventListener('fetch', (event) => {
         if (response) {
           return response;
         }
-        return fetch(event.request);
+        return fetch(event.request).catch(() => {
+          // Return offline page for navigation requests
+          if (event.request.mode === 'navigate') {
+            return caches.match('/offline.html');
+          }
+        });
       }
     )
   );
@@ -58,8 +69,8 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('push', (event) => {
   const options = {
     body: event.data ? event.data.text() : 'Your ChopTime order is ready!',
-    icon: '/pwa-icon-192x192.png',
-    badge: '/pwa-icon-72x72.png',
+    icon: '/logo.svg',
+    badge: '/logo.svg',
     tag: 'choptime-notification'
   };
 

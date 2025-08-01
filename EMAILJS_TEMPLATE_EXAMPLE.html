@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChopTime Order Confirmation</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            margin: 0; 
+            padding: 20px; 
+        }
+        .container { 
+            max-width: 600px; 
+            margin: 0 auto; 
+            background: #f9f9f9; 
+            border-radius: 8px; 
+            overflow: hidden; 
+        }
+        .header { 
+            background: linear-gradient(135deg, #FF6B35, #F7931E); 
+            color: white; 
+            padding: 20px; 
+            text-align: center; 
+        }
+        .content { 
+            background: white; 
+            padding: 20px; 
+        }
+        .order-details { 
+            background: #f8f9fa; 
+            padding: 15px; 
+            margin: 15px 0; 
+            border-radius: 5px; 
+            border-left: 4px solid #FF6B35; 
+        }
+        .total { 
+            background: #FF6B35; 
+            color: white; 
+            padding: 15px; 
+            margin: 15px 0; 
+            border-radius: 5px; 
+            text-align: center; 
+            font-weight: bold; 
+        }
+        .footer { 
+            text-align: center; 
+            margin-top: 20px; 
+            color: #666; 
+            font-size: 12px; 
+            padding: 20px; 
+            background: #f9f9f9; 
+        }
+        .highlight { 
+            color: #FF6B35; 
+            font-weight: bold; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍽️ ChopTime Order Confirmation</h1>
+            <p>Your order has been received and is being processed</p>
+        </div>
+        
+        <div class="content">
+            <p>Dear {{to_name}},</p>
+            
+            <p>Thank you for your order! We've received your request and are preparing it for delivery.</p>
+            
+            <div class="order-details">
+                <h2>📋 Order Details</h2>
+                <p><strong>Order Reference:</strong> <span class="highlight">{{order_reference}}</span></p>
+                <p><strong>Dish:</strong> {{dish_name}}</p>
+                <p><strong>Restaurant:</strong> {{restaurant_name}}</p>
+                <p><strong>Quantity:</strong> {{quantity}}</p>
+                <p><strong>Price per item:</strong> {{price}} FCFA</p>
+            </div>
+            
+            <div class="order-details">
+                <h2>👤 Customer Information</h2>
+                <p><strong>Name:</strong> {{to_name}}</p>
+                <p><strong>Email:</strong> {{to_email}}</p>
+                <p><strong>Phone:</strong> {{customer_phone}}</p>
+                <p><strong>Delivery Location:</strong> {{customer_location}}</p>
+                <p><strong>Payment Method:</strong> {{payment_method}}</p>
+            </div>
+            
+            <div class="total">
+                <h2>💰 Order Summary</h2>
+                <p>Subtotal: {{price}} × {{quantity}} = {{total_amount}} FCFA</p>
+                <p>Delivery Fee: {{delivery_fee}} FCFA</p>
+                <p><strong>Total Amount: {{total_amount}} FCFA</strong></p>
+            </div>
+            
+            <div style="background: #e8f5e8; padding: 15px; border-radius: 5px; margin: 15px 0;">
+                <h3>⏰ What's Next?</h3>
+                <p>• We'll confirm your order within 10-15 minutes</p>
+                <p>• Estimated delivery time: 15-45 minutes</p>
+                <p>• You'll receive updates via email and SMS</p>
+                <p>• For urgent inquiries, call us at +237 670 416 449</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Thank you for choosing ChopTime! 🇨🇲</p>
+            <p>This is an automated email. Please do not reply to this message.</p>
+        </div>
+    </div>
+</body>
+</html> 

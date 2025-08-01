@@ -1,9 +1,12 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Separator } from '@/components/ui/separator';
 import { Phone, MessageCircle, MapPin } from 'lucide-react';
 
 const Footer: React.FC = () => {
+  const navigate = useNavigate();
+  
   return (
     <footer className="bg-choptime-brown text-white py-8">
       <div className="container mx-auto px-4">
@@ -31,6 +34,12 @@ const Footer: React.FC = () => {
                 <MapPin className="w-4 h-4" />
                 <span>Buea & Limbe, Cameroon</span>
               </div>
+              <button
+                onClick={() => navigate('/contact')}
+                className="text-choptime-orange hover:text-white transition-colors duration-200 text-sm font-medium"
+              >
+                Send us a message →
+              </button>
             </div>
           </div>
           
@@ -40,7 +49,7 @@ const Footer: React.FC = () => {
               <p>🕐 Delivery: 30-60 minutes</p>
               <p>💳 Payment: MTN/Orange Money, Cash</p>
               <p>🚚 Delivery fees vary by town</p>
-              <p>📱 Order tracking via WhatsApp</p>
+              <p>📧 Order tracking via email</p>
             </div>
           </div>
         </div>

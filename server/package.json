@@ -1,0 +1,28 @@
+{
+  "name": "choptime-webhook-server",
+  "version": "1.0.0",
+  "description": "Webhook server for ChopTime payment processing",
+  "main": "webhook-server.js",
+  "scripts": {
+    "start": "node webhook-server.js",
+    "dev": "nodemon webhook-server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.53.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": [
+    "webhook",
+    "payment",
+    "fapshi",
+    "choptime"
+  ],
+  "author": "ChopTime Team",
+  "license": "MIT"
+}

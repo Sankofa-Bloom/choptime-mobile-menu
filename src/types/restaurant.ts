@@ -72,6 +72,8 @@ export interface CustomOrder {
   special_instructions?: string;
   restaurant_id: string;
   restaurant_name: string;
+  restaurant_address: string;
+  restaurant_phone: string;
   estimated_price?: number;
   total_amount?: number;
   order_reference?: string;
@@ -101,6 +103,8 @@ export interface CustomOrderItem {
   quantity: number;
   estimatedPrice: number;
   specialInstructions?: string;
+  restaurantAddress: string;
+  restaurantPhone: string;
 }
 
 export interface UserTown {

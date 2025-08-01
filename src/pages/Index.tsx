@@ -10,7 +10,9 @@ import Footer from '@/components/Footer';
 import TownSelector from '@/components/TownSelector';
 import RestaurantSelectionModal from '@/components/RestaurantSelectionModal';
 import CustomOrderModal from '@/components/CustomOrderModal';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+
+
 
 interface OrderDetails {
   customerName: string;
@@ -30,7 +32,7 @@ const Index = () => {
     phone: '',
     deliveryAddress: '',
     additionalMessage: '',
-    paymentMethod: '',
+    paymentMethod: 'fapshi',
     total: 0,
     deliveryFee: 0
   });
@@ -58,6 +60,7 @@ const Index = () => {
 
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Load user's town preference on mount
   useEffect(() => {
@@ -71,6 +74,35 @@ const Index = () => {
     };
     loadUserPreferences();
   }, []);
+
+  // Handle payment success state
+  useEffect(() => {
+    if (location.state?.paymentSuccess) {
+      const { orderReference, paymentReference } = location.state;
+      
+      // Show success toast
+      toast({
+        title: "Payment Successful! 🎉",
+        description: `Your order (${orderReference}) has been confirmed. We'll notify you when it's ready for delivery.`,
+        variant: "default",
+      });
+      
+      // Clear cart
+      setCart([]);
+      setOrderDetails({
+        customerName: '',
+        phone: '',
+        deliveryAddress: '',
+        additionalMessage: '',
+        paymentMethod: 'fapshi',
+        total: 0,
+        deliveryFee: 0
+      });
+      
+      // Clear location state to prevent showing again on refresh
+      navigate('/', { replace: true });
+    }
+  }, [location.state, toast, navigate]);
 
   // Update delivery fee when town or address changes
   useEffect(() => {
@@ -212,49 +244,9 @@ const Index = () => {
     return menu?.price || 0;
   };
 
-  const generateWhatsAppMessage = async () => {
-    const orderRef = await generateOrderReference(selectedTown);
-    
-    let message = `🍽️ *ChopTime Order*\n\n`;
-    message += `📋 *Order Reference:* ${orderRef}\n`;
-    message += `👤 *Customer:* ${orderDetails.customerName}\n`;
-    message += `📱 *Phone:* ${orderDetails.phone}\n`;
-    message += `📍 *Address:* ${orderDetails.deliveryAddress}\n`;
-    message += `🏙️ *Town:* ${selectedTown}\n`;
-    message += `💳 *Payment:* ${orderDetails.paymentMethod}\n`;
-    
-    if (orderDetails.additionalMessage) {
-      message += `💬 *Message:* ${orderDetails.additionalMessage}\n`;
-    }
-    
-    message += `\n🛒 *Order Details:*\n`;
-    cart.forEach(item => {
-      if ('dish' in item) {
-        message += `• ${item.dish.name} x${item.quantity} - ${formatPrice(item.price * item.quantity)}\n`;
-        message += `  📍 From: ${item.restaurant.name}\n`;
-      } else {
-        message += `• ${item.customDishName} (Custom) x${item.quantity} - ${formatPrice(item.estimatedPrice * item.quantity)}\n`;
-        message += `  📍 From: ${item.restaurant.name}\n`;
-        if (item.specialInstructions) {
-          message += `  📝 Special: ${item.specialInstructions}\n`;
-        }
-      }
-    });
-    
-    message += `\n💰 *Order Summary:*\n`;
-    message += `Subtotal: ${formatPrice(calculateSubtotal())}\n`;
-    message += `Delivery (${selectedTown}): ${formatPrice(orderDetails.deliveryFee)}\n`;
-    message += `*Total: ${formatPrice(calculateTotal())}*\n\n`;
-    
-    message += `⏰ Estimated delivery: 15-45 minutes\n`;
-    message += `🚚 We'll contact you to confirm delivery details.\n\n`;
-    
-    message += `Thank you for choosing ChopTime! 🇨🇲`;
-    
-    return { message, orderRef };
-  };
 
-  const handleWhatsAppOrder = async () => {
+
+  const handlePlaceOrder = async () => {
     // Validation
     if (cart.length === 0) {
       toast({
@@ -265,7 +257,7 @@ const Index = () => {
       return;
     }
 
-    if (!orderDetails.customerName || !orderDetails.phone || !orderDetails.deliveryAddress || !orderDetails.paymentMethod) {
+    if (!orderDetails.customerName || !orderDetails.phone || !orderDetails.deliveryAddress) {
       toast({
         title: "Missing information",
         description: "Please fill in all required fields.",
@@ -274,80 +266,23 @@ const Index = () => {
       return;
     }
 
-    try {
-      const { message, orderRef } = await generateWhatsAppMessage();
-
-      // Save user's town preference
-      const fullPhone = `+237${orderDetails.phone.replace(/\D/g, '')}`;
-      if (orderDetails.phone) {
-        await saveUserTown(fullPhone, selectedTown);
-      }
-
-      // Show Thank You page immediately
-      navigate('/thank-you');
-
-      // Send order to backend for WhatsApp automation in the background
-      (async () => {
-        try {
-          // Save orders to database
-          for (const item of cart) {
-            if ('dish' in item) {
-              const orderData = {
-                user_name: orderDetails.customerName,
-                user_phone: fullPhone,
-                user_location: `${selectedTown}, ${orderDetails.deliveryAddress}`,
-                dish_name: item.dish.name,
-                restaurant_name: item.restaurant.name,
-                restaurant_id: item.restaurant.id,
-                dish_id: item.dish.id,
-                quantity: item.quantity,
-                price: item.price,
-                total_amount: calculateTotal(),
-                order_reference: orderRef,
-                status: 'pending' as import('../types/restaurant').Order['status']
-              };
-              await saveOrder(orderData);
-            } else {
-              const customOrderData = {
-                user_name: orderDetails.customerName,
-                user_phone: fullPhone,
-                user_location: `${selectedTown}, ${orderDetails.deliveryAddress}`,
-                custom_dish_name: item.customDishName,
-                restaurant_name: item.restaurant.name,
-                restaurant_id: item.restaurant.id,
-                quantity: item.quantity,
-                special_instructions: item.specialInstructions,
-                estimated_price: item.estimatedPrice,
-                total_amount: calculateTotal(),
-                order_reference: orderRef,
-                status: 'pending' as import('../types/restaurant').CustomOrder['status']
-              };
-              await saveCustomOrder(customOrderData);
-            }
-          }
-
-          await fetch('https://choptime-whatsapp-bot.up.railway.app/api/place-order', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...orderDetails, cart, orderRef, message, user_phone: fullPhone, phone: fullPhone }),
-          });
-        } catch (error) {
-          console.error('Error processing order:', error);
-          toast({
-            title: "Order Issue",
-            description: "Your order was submitted, but there was a problem processing it. Please contact support if you do not receive confirmation.",
-            variant: "destructive"
-          });
-        }
-      })();
-    } catch (error) {
-      console.error('Error preparing order:', error);
-      toast({
-        title: "Error",
-        description: "Failed to process your order. Please try again.",
-        variant: "destructive"
-      });
-    }
+    // Navigate to payment page with order details (online payment only)
+    const orderData = {
+      customerName: orderDetails.customerName,
+      customerPhone: orderDetails.phone,
+      customerLocation: `${selectedTown}, ${orderDetails.deliveryAddress}`,
+      cart: cart,
+      total: calculateTotal(),
+      deliveryFee: orderDetails.deliveryFee,
+      additionalMessage: orderDetails.additionalMessage,
+      town: selectedTown
+    };
+    
+    // Store order data in localStorage for payment page
+    localStorage.setItem('pendingOrder', JSON.stringify(orderData));
+    
+    // Navigate to payment page
+    navigate('/payment');
   };
 
   const formatPrice = (price: number) => {
@@ -406,7 +341,7 @@ const Index = () => {
           selectedTown={selectedTown}
           onOrderDetailsChange={setOrderDetails}
           onQuantityUpdate={handleQuantityUpdate}
-          onWhatsAppOrder={handleWhatsAppOrder}
+          onPlaceOrder={handlePlaceOrder}
           calculateSubtotal={calculateSubtotal}
           calculateTotal={calculateTotal}
         />
@@ -414,10 +349,15 @@ const Index = () => {
       
       <Footer />
 
+      {/* Email Test Component - Remove this after testing */}
+      
+
       {/* Modals */}
       <TownSelector 
         selectedTown={selectedTown}
         onTownSelect={handleTownChange}
+        show={showTownSelector}
+        onClose={() => setShowTownSelector(false)}
       />
 
       <RestaurantSelectionModal

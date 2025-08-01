@@ -10,7 +10,7 @@ ChopTime is a comprehensive food delivery platform specifically designed for Cam
 - Select restaurants by town (Buea, Limbe)
 - Smart delivery pricing based on location zones
 - Custom dish ordering for special requests
-- WhatsApp-based order confirmation
+- Email-based order confirmation
 - Real-time order tracking
 
 ### 🏪 Admin Features
@@ -161,14 +161,14 @@ The system uses intelligent zone-based pricing:
    - Choose restaurant for each dish
    - Add to cart with quantities
    - Fill delivery details
-   - Generate WhatsApp order
+   - Generate order confirmation
    - Order saved to database
 
 2. **Order Processing**
    - Automatic order reference generation
    - Delivery fee calculation
    - Order saved with pending status
-   - WhatsApp message formatted and sent
+   - Order confirmation sent via email
    - Admin can view and manage in dashboard
 
 ## API Functions

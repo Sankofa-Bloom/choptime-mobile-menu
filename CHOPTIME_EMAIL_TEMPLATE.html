@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChopTime Order Confirmation</title>
+    <style>
+        body { 
+            font-family: system-ui, sans-serif, Arial; 
+            font-size: 14px; 
+            color: #333; 
+            margin: 0; 
+            padding: 20px; 
+            background-color: #f5f5f5; 
+        }
+        .container { 
+            max-width: 600px; 
+            margin: auto; 
+            background-color: #fff; 
+            border-radius: 8px; 
+            overflow: hidden; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+        }
+        .header { 
+            background: linear-gradient(135deg, #FF6B35, #F7931E); 
+            color: white; 
+            padding: 20px; 
+            text-align: center; 
+        }
+        .content { 
+            padding: 20px; 
+        }
+        .order-details { 
+            background: #f8f9fa; 
+            padding: 15px; 
+            margin: 15px 0; 
+            border-radius: 5px; 
+            border-left: 4px solid #FF6B35; 
+        }
+        .customer-info { 
+            background: #f8f9fa; 
+            padding: 15px; 
+            margin: 15px 0; 
+            border-radius: 5px; 
+            border-left: 4px solid #F7931E; 
+        }
+        .restaurant-info { 
+            background: #f0f8ff; 
+            padding: 15px; 
+            margin: 15px 0; 
+            border-radius: 5px; 
+            border-left: 4px solid #4169E1; 
+        }
+        .total { 
+            background: #FF6B35; 
+            color: white; 
+            padding: 15px; 
+            margin: 15px 0; 
+            border-radius: 5px; 
+            text-align: center; 
+            font-weight: bold; 
+        }
+        .footer { 
+            text-align: center; 
+            margin-top: 20px; 
+            color: #666; 
+            font-size: 12px; 
+            padding: 20px; 
+            background: #f9f9f9; 
+        }
+        .highlight { 
+            color: #FF6B35; 
+            font-weight: bold; 
+        }
+        .dish-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .dish-image {
+            width: 64px;
+            height: 64px;
+            border-radius: 8px;
+            margin-right: 15px;
+            object-fit: cover;
+        }
+        .dish-info {
+            flex: 1;
+        }
+        .dish-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .dish-details {
+            color: #666;
+            font-size: 12px;
+        }
+        .dish-price {
+            font-weight: bold;
+            color: #FF6B35;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 10px;">
+                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAACXBIWXMAAAsTAAALEwEAmpwYAAAF8WlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNy4yLWMwMDAgNzkuMWI2NWE3OWI0LCAyMDIyLzA2LzEzLTIyOjAxOjAxICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOnhtcE1NPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvbW0vIiB4bWxuczpzdEV2dD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL1Jlc291cmNlRXZlbnQjIiB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8iIHhtbG5zOnBob3Rvc2hvcD0iaHR0cDovL25zLmFkb2JlLmNvbS9waG90b3Nob3AvMS4wLyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgMjQuMCAoTWFjaW50b3NoKSIgeG1wOkNyZWF0ZURhdGU9IjIwMjQtMDEtMjBUMTU6NDc6NDErMDE6MDAiIHhtcDpNZXRhZGF0YURhdGU9IjIwMjQtMDEtMjBUMTU6NDc6NDErMDE6MDAiIHhtcDpNb2RpZnlEYXRlPSIyMDI0LTAxLTIwVDE1OjQ3OjQxKzAxOjAwIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjY5ZDM4YmM1LTM4ZTAtNDZiZC1hMzBkLTNmOWNhM2M1YzFhYyIgeG1wTU06RG9jdW1lbnRJRD0iYWRvYmU6ZG9jaWQ6cGhvdG9zaG9wOjIyYzFkOTZiLTRjMGItYzQ0Ny1iMzE1LTJmN2M5ZjM5ZjM5ZiIgeG1wTU06T3JpZ2luYWxEb2N1bWVudElEPSJ4bXAuZGlkOjY5ZDM4YmM1LTM4ZTAtNDZiZC1hMzBkLTNmOWNhM2M1YzFhYyIgZGM6Zm9ybWF0PSJpbWFnZS9wbmciIHBob3Rvc2hvcDpDb2xvck1vZGU9IjMiPiA8eG1wTU06SGlzdG9yeT4gPHJkZjpTZXE+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJjcmVhdGVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOjY5ZDM4YmM1LTM4ZTAtNDZiZC1hMzBkLTNmOWNhM2M1YzFhYyIgc3RFdnQ6d2hlbj0iMjAyNC0wMS0yMFQxNTo0Nzo0MSswMTowMCIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIDI0LjAgKE1hY2ludG9zaCkiLz4gPC9yZGY6U2VxPiA8L3htcE1NOkhpc3Rvcnk+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+9p0AnIiIi0nP/BfyjnTgiUW4UAAAAAElFTkSuQmCC" alt="ChopTime Logo" style="width: 48px; height: 48px;" />
+                <h1 style="margin: 0; font-size: 28px;">ChopTime</h1>
+            </div>
+            <p>Your order has been received and is being processed</p>
+        </div>
+        
+        <div class="content">
+            <div class="order-details">
+                <h2>📋 Order Details</h2>
+                <p><strong>Order Reference:</strong> <span class="highlight">{{order_id}}</span></p>
+                <p><strong>Order Date:</strong> {{order_date}}</p>
+            </div>
+            
+            <div class="customer-info">
+                <h2>👤 Customer Information</h2>
+                <p><strong>Name:</strong> {{customer_name}}</p>
+                <p><strong>Phone:</strong> {{customer_phone}}</p>
+                <p><strong>Delivery Location:</strong> {{customer_location}}</p>
+                <p><strong>Payment Method:</strong> {{payment_method}}</p>
+            </div>
+            
+            {{#restaurant_address}}
+            <div class="restaurant-info">
+                <h2>🏪 Restaurant Details</h2>
+                <p><strong>Restaurant Address:</strong> {{restaurant_address}}</p>
+                <p><strong>Restaurant Phone:</strong> {{restaurant_phone}}</p>
+            </div>
+            {{/restaurant_address}}
+            
+            <h2>🛒 Order Items</h2>
+            {{#orders}}
+            <div class="dish-item">
+                <img class="dish-image" src="{{image_url}}" alt="{{name}}" />
+                <div class="dish-info">
+                    <div class="dish-name">{{name}}</div>
+                    <div class="dish-details">
+                        Restaurant: {{restaurant_name}}<br>
+                        Quantity: {{units}}
+                    </div>
+                </div>
+                <div class="dish-price">{{price}} FCFA</div>
+            </div>
+            {{/orders}}
+            
+            <div class="total">
+                <h2>💰 Order Summary</h2>
+                <p>Subtotal: {{cost.subtotal}} FCFA</p>
+                <p>Delivery Fee: {{cost.shipping}} FCFA</p>
+                <p>Tax: {{cost.tax}} FCFA</p>
+                <p><strong>Total Amount: {{cost.total}} FCFA</strong></p>
+            </div>
+            
+            <div style="background: #e8f5e8; padding: 15px; border-radius: 5px; margin: 15px 0;">
+                <h3>⏰ What's Next?</h3>
+                <p>• We'll confirm your order within 10-15 minutes</p>
+                <p>• Estimated delivery time: 15-45 minutes</p>
+                <p>• You'll receive updates via email and SMS</p>
+                <p>• For urgent inquiries, call us at +237 670 416 449</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Thank you for choosing ChopTime! 🇨🇲</p>
+            <p>For questions or support, please contact us at {{reply_to}}</p>
+            <p>This is an automated email from ChopTime Order System.</p>
+        </div>
+    </div>
+</body>
+</html> 

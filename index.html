@@ -19,35 +19,38 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     
+    <!-- Content Security Policy to prevent unwanted script injection -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.emailjs.com https://api.emailjs.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://www.emailjs.com https://api.emailjs.com https://api.fapshi.com https://sandbox.fapshi.com https://*.fapshi.com; frame-src 'self' https://sandbox.fapshi.com https://api.fapshi.com; object-src 'none';" />
+    
     <!-- Favicon -->
-    <link rel="icon" href="/lovable-uploads/b3613052-5581-4dd4-a6f5-ed47b8d7a201.png" type="image/png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/lovable-uploads/b3613052-5581-4dd4-a6f5-ed47b8d7a201.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/lovable-uploads/b3613052-5581-4dd4-a6f5-ed47b8d7a201.png" />
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico" />
     
     <!-- Apple Touch Icons -->
-    <link rel="apple-touch-icon" href="/lovable-uploads/b3613052-5581-4dd4-a6f5-ed47b8d7a201.png" />
-    <link rel="apple-touch-icon" sizes="72x72" href="/lovable-uploads/b3613052-5581-4dd4-a6f5-ed47b8d7a201.png" />
-    <link rel="apple-touch-icon" sizes="96x96" href="/lovable-uploads/b3613052-5581-4dd4-a6f5-ed47b8d7a201.png" />
-    <link rel="apple-touch-icon" sizes="128x128" href="/lovable-uploads/b3613052-5581-4dd4-a6f5-ed47b8d7a201.png" />
-    <link rel="apple-touch-icon" sizes="144x144" href="/lovable-uploads/b3613052-5581-4dd4-a6f5-ed47b8d7a201.png" />
-    <link rel="apple-touch-icon" sizes="152x152" href="/lovable-uploads/b3613052-5581-4dd4-a6f5-ed47b8d7a201.png" />
-    <link rel="apple-touch-icon" sizes="192x192" href="/lovable-uploads/b3613052-5581-4dd4-a6f5-ed47b8d7a201.png" />
-    <link rel="apple-touch-icon" sizes="384x384" href="/lovable-uploads/b3613052-5581-4dd4-a6f5-ed47b8d7a201.png" />
-    <link rel="apple-touch-icon" sizes="512x512" href="/lovable-uploads/b3613052-5581-4dd4-a6f5-ed47b8d7a201.png" />
+    <link rel="apple-touch-icon" href="/logo.svg" />
+    <link rel="apple-touch-icon" sizes="72x72" href="/logo.svg" />
+    <link rel="apple-touch-icon" sizes="96x96" href="/logo.svg" />
+    <link rel="apple-touch-icon" sizes="128x128" href="/logo.svg" />
+    <link rel="apple-touch-icon" sizes="144x144" href="/logo.svg" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/logo.svg" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/logo.svg" />
+    <link rel="apple-touch-icon" sizes="384x384" href="/logo.svg" />
+    <link rel="apple-touch-icon" sizes="512x512" href="/logo.svg" />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://choptime.app/" />
     <meta property="og:title" content="ChopTime - Cameroonian Food Delivery" />
     <meta property="og:description" content="Authentic Cameroonian cuisine delivered fresh to your doorstep" />
-    <meta property="og:image" content="https://choptime.app/lovable-uploads/b3613052-5581-4dd4-a6f5-ed47b8d7a201.png" />
+    <meta property="og:image" content="https://choptime.app/logo.svg" />
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:url" content="https://choptime.app/" />
     <meta property="twitter:title" content="ChopTime - Cameroonian Food Delivery" />
     <meta property="twitter:description" content="Authentic Cameroonian cuisine delivered fresh to your doorstep" />
-    <meta property="twitter:image" content="https://choptime.app/lovable-uploads/b3613052-5581-4dd4-a6f5-ed47b8d7a201.png" />
+    <meta property="twitter:image" content="https://choptime.app/logo.svg" />
 
     <!-- Preconnect for performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -70,6 +73,36 @@
             .catch((registrationError) => {
               console.log('ChopTime SW registration failed: ', registrationError);
             });
+        });
+      }
+    </script>
+    
+    <!-- Prevent MetaMask injection errors -->
+    <script>
+      // Prevent MetaMask extension from causing errors
+      if (typeof window !== 'undefined') {
+        // Override any potential MetaMask injection attempts
+        window.addEventListener('error', function(event) {
+          if (event.error && event.error.message && 
+              (event.error.message.includes('MetaMask') || 
+               event.error.message.includes('ethereum') ||
+               event.error.message.includes('Failed to connect to MetaMask'))) {
+            event.preventDefault();
+            console.log('MetaMask extension error prevented:', event.error.message);
+            return false;
+          }
+        });
+        
+        // Prevent unhandled promise rejections from MetaMask
+        window.addEventListener('unhandledrejection', function(event) {
+          if (event.reason && typeof event.reason === 'string' && 
+              (event.reason.includes('MetaMask') || 
+               event.reason.includes('ethereum') ||
+               event.reason.includes('Failed to connect to MetaMask'))) {
+            event.preventDefault();
+            console.log('MetaMask promise rejection prevented:', event.reason);
+            return false;
+          }
         });
       }
     </script>
