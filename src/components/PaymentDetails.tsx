@@ -9,7 +9,7 @@ import { isValidEmail } from '@/utils/emailService';
 import RestaurantInfo from './payment/RestaurantInfo';
 import OrderSummary from './payment/OrderSummary';
 import PaymentMethodSelector from './payment/PaymentMethodSelector';
-import FapshiPayment from './payment/FapshiPayment';
+import CampayPayment from './payment/CampayPayment';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
@@ -66,9 +66,9 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
   const [deliveryZone, setDeliveryZone] = useState<DeliveryZone | null>(null);
   const [loading, setLoading] = useState(false);
   const [momoNumber, setMomoNumber] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'email' | 'cash' | 'momo' | 'fapshi'>('fapshi');
+  const [paymentMethod, setPaymentMethod] = useState<'email' | 'cash' | 'momo' | 'campay'>('campay');
   const [customerEmail, setCustomerEmail] = useState('');
-  const [showFapshiPayment, setShowFapshiPayment] = useState(false);
+  const [showCampayPayment, setShowCampayPayment] = useState(false);
   
 
   const { toast } = useToast();
@@ -283,9 +283,9 @@ This is a custom order request. Please review and contact the customer with pric
       return;
     }
 
-    // Handle Fapshi payment
-    if (paymentMethod === 'fapshi') {
-      setShowFapshiPayment(true);
+          // Handle Campay payment
+      if (paymentMethod === 'campay') {
+              setShowCampayPayment(true);
       return;
     }
 
@@ -332,7 +332,7 @@ This is a custom order request. Please review and contact the customer with pric
     }
   };
 
-  const handleFapshiPaymentSuccess = async (paymentData: any) => {
+  const handleCampayPaymentSuccess = async (paymentData: any) => {
     try {
       const savedOrder = await saveOrder();
       
@@ -371,9 +371,9 @@ This is a custom order request. Please review and contact the customer with pric
     }
   };
 
-  const handleFapshiPaymentFailure = (error: string) => {
-    console.error('Fapshi payment failed:', error);
-    setShowFapshiPayment(false);
+  const handleCampayPaymentFailure = (error: string) => {
+    console.error('Campay payment failed:', error);
+    setShowCampayPayment(false);
     
     toast({
       title: "Payment Failed",
@@ -382,9 +382,9 @@ This is a custom order request. Please review and contact the customer with pric
     });
   };
 
-  const handleFapshiPaymentCancel = () => {
-    setShowFapshiPayment(false);
-    // Keep the default payment method as 'fapshi' when canceling
+  const handleCampayPaymentCancel = () => {
+    setShowCampayPayment(false);
+    // Keep the default payment method as 'campay' when canceling
     // User can manually change it if they want
   };
 
@@ -436,21 +436,21 @@ This is a custom order request. Please review and contact the customer with pric
     const subtotal = isCustomOrder ? 0 : (orderDetails?.total || 0);
   const total = subtotal + deliveryFee;
 
-  // Show Fapshi payment component if selected
-  if (showFapshiPayment) {
+  // Show Campay payment component if selected
+  if (showCampayPayment) {
     const currentOrderData = currentOrder as OrderDetails;
     return (
-      <FapshiPayment
+      <CampayPayment
         amount={total}
         currency="XAF"
         orderReference={currentOrderData?.orderReference || `CHT-${Date.now()}`}
         customerName={currentOrderData?.customerName || ''}
         customerPhone={currentOrderData?.customerPhone || ''}
         customerEmail={customerEmail}
-        description={`ChopTime Order - ${selectedRestaurant?.name} - ${currentOrderData?.dishName}`}
-        onPaymentSuccess={handleFapshiPaymentSuccess}
-        onPaymentFailure={handleFapshiPaymentFailure}
-        onCancel={handleFapshiPaymentCancel}
+        description={`KwataLink Order - ${selectedRestaurant?.name} - ${currentOrderData?.dishName}`}
+        onPaymentSuccess={handleCampayPaymentSuccess}
+        onPaymentFailure={handleCampayPaymentFailure}
+        onCancel={handleCampayPaymentCancel}
       />
     );
   }

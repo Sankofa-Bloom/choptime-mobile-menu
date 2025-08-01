@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ArrowLeft, CreditCard, Smartphone, Mail } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import FapshiPayment from '@/components/payment/FapshiPayment';
+import CampayPayment from '@/components/payment/CampayPayment';
 import { supabase } from '@/integrations/supabase/client';
 import { sendOrderConfirmation, sendAdminNotification, sendCustomEmail } from '@/utils/genericEmailService';
 
@@ -25,7 +25,7 @@ interface OrderData {
 const Payment: React.FC = () => {
   const [orderData, setOrderData] = useState<OrderData | null>(null);
   const [customerEmail, setCustomerEmail] = useState('');
-  const [showFapshiPayment, setShowFapshiPayment] = useState(false);
+  const [showCampayPayment, setShowCampayPayment] = useState(false);
   const [loading, setLoading] = useState(false);
   const [paymentProcessed, setPaymentProcessed] = useState(false);
   const navigate = useNavigate();
@@ -146,7 +146,7 @@ const Payment: React.FC = () => {
     }
   };
 
-  const handleFapshiPaymentSuccess = async (paymentData: any) => {
+  const handleCampayPaymentSuccess = async (paymentData: any) => {
     try {
       // Prevent multiple executions with component state and localStorage
       if (paymentProcessed) {
@@ -304,9 +304,9 @@ const Payment: React.FC = () => {
     }
   };
 
-  const handleFapshiPaymentFailure = (error: string) => {
-    console.error('Fapshi payment failed:', error);
-    setShowFapshiPayment(false);
+  const handleCampayPaymentFailure = (error: string) => {
+          console.error('Campay payment failed:', error);
+      setShowCampayPayment(false);
     
     toast({
       title: "Payment Failed",
@@ -315,8 +315,8 @@ const Payment: React.FC = () => {
     });
   };
 
-  const handleFapshiPaymentCancel = () => {
-    setShowFapshiPayment(false);
+  const handleCampayPaymentCancel = () => {
+    setShowCampayPayment(false);
   };
 
   const handleSubmitOrder = async () => {
@@ -344,7 +344,7 @@ const Payment: React.FC = () => {
     }
 
     // Initialize Fapshi payment
-    setShowFapshiPayment(true);
+            setShowCampayPayment(true);
   };
 
   if (!orderData) {
@@ -360,14 +360,14 @@ const Payment: React.FC = () => {
     );
   }
 
-  // Show Fapshi payment component if selected
-  if (showFapshiPayment) {
+  // Show Campay payment component if selected
+  if (showCampayPayment) {
     const firstItem = orderData.cart[0];
     const dishName = 'dish' in firstItem ? firstItem.dish.name : firstItem.customDishName;
     const restaurantName = firstItem.restaurant.name;
     
     return (
-      <FapshiPayment
+      <CampayPayment
         amount={orderData.total}
         currency="XAF"
         orderReference={`CHT-${Date.now()}`}
@@ -375,9 +375,9 @@ const Payment: React.FC = () => {
         customerPhone={orderData.customerPhone}
         customerEmail={customerEmail}
         description={`KwataLink Order - ${restaurantName} - ${dishName}`}
-        onPaymentSuccess={handleFapshiPaymentSuccess}
-        onPaymentFailure={handleFapshiPaymentFailure}
-        onCancel={handleFapshiPaymentCancel}
+        onPaymentSuccess={handleCampayPaymentSuccess}
+        onPaymentFailure={handleCampayPaymentFailure}
+        onCancel={handleCampayPaymentCancel}
       />
     );
   }

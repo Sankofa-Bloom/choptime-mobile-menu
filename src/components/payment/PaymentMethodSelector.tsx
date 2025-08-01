@@ -5,8 +5,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle, Mail, CreditCard, Smartphone, DollarSign } from 'lucide-react';
 
 interface PaymentMethodSelectorProps {
-  paymentMethod: 'email' | 'cash' | 'momo' | 'fapshi';
-  setPaymentMethod: (method: 'email' | 'cash' | 'momo' | 'fapshi') => void;
+  paymentMethod: 'email' | 'cash' | 'momo' | 'campay';
+  setPaymentMethod: (method: 'email' | 'cash' | 'momo' | 'campay') => void;
   isCustomOrder: boolean;
   momoNumber: string;
   setMomoNumber: (number: string) => void;
@@ -31,16 +31,16 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
           <input
             type="radio"
             name="paymentMethod"
-            value="fapshi"
-            checked={paymentMethod === 'fapshi'}
-            onChange={(e) => setPaymentMethod(e.target.value as 'email' | 'cash' | 'momo' | 'fapshi')}
+            value="campay"
+            checked={paymentMethod === 'campay'}
+            onChange={(e) => setPaymentMethod(e.target.value as 'email' | 'cash' | 'momo' | 'campay')}
             className="text-choptime-orange"
           />
           <Smartphone className="w-5 h-5 text-green-600" />
           <div className="flex-1">
-            <div className="font-medium">Online Payment</div>
+            <div className="font-medium">Online Payment (Campay)</div>
             <div className="text-sm text-gray-600">
-              Secure online payment with MTN MoMo & Orange Money
+              Secure online payment with MTN MoMo, Orange Money & more
             </div>
           </div>
         </label>
