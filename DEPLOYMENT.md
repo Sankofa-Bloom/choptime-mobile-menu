@@ -1,4 +1,4 @@
-# ChopTime Deployment Guide
+# KwataLink Deployment Guide
 
 ## Vercel Deployment Setup
 
@@ -34,8 +34,8 @@ VITE_ADMIN_PHONE=+237670416449
 VITE_ADMIN_WHATSAPP=+237670416449
 
 # Company Configuration
-VITE_COMPANY_NAME=ChopTime
-VITE_COMPANY_WEBSITE=https://choptime.com
+VITE_COMPANY_NAME=KwataLink
+VITE_COMPANY_WEBSITE=https://kwatalink.com
 VITE_COMPANY_ADDRESS=Busumbu Junction, Limbe - Cameroon
 
 # Delivery Configuration
@@ -96,8 +96,8 @@ VITE_SUPPORTED_LANGUAGES=en,fr
 # Deployment
 VITE_BUILD_MODE=production
 VITE_APP_VERSION=2.0.0
-VITE_CDN_URL=https://cdn.choptime.com
-VITE_ASSET_URL=https://assets.choptime.com
+VITE_CDN_URL=https://cdn.kwatalink.com
+VITE_ASSET_URL=https://assets.kwatalink.com
 ```
 
 ### 2. Setting Environment Variables in Vercel

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Restaurant, Dish, OrderItem, CustomOrderItem, Order, CustomOrder } from '@/types/restaurant';
-import { useChopTimeData } from '@/hooks/useChopTimeData';
+import { useKwataLinkData } from '@/hooks/useChopTimeData';
 import Header from '@/components/Header';
 import HeroSection from '@/components/HeroSection';
 import MenuSection from '@/components/MenuSection';
@@ -56,7 +56,7 @@ const Index = () => {
     saveCustomOrder,
     saveUserTown,
     getUserTown
-  } = useChopTimeData(selectedTown);
+  } = useKwataLinkData(selectedTown);
 
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -65,7 +65,7 @@ const Index = () => {
   // Load user's town preference on mount
   useEffect(() => {
     const loadUserPreferences = async () => {
-      const savedTown = localStorage.getItem('choptime-town');
+      const savedTown = localStorage.getItem('kwatalink-town');
       if (savedTown && (savedTown === 'Buea' || savedTown === 'Limbe')) {
         setSelectedTown(savedTown);
       } else {
@@ -127,7 +127,7 @@ const Index = () => {
 
   const handleTownChange = (town: string) => {
     setSelectedTown(town);
-    localStorage.setItem('choptime-town', town);
+            localStorage.setItem('kwatalink-town', town);
     setCart([]); // Clear cart when changing towns
     setShowTownSelector(false);
   };

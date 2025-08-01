@@ -1,5 +1,5 @@
 
-const CACHE_NAME = 'choptime-v1';
+const CACHE_NAME = 'kwatalink-v1';
 const urlsToCache = [
   '/',
   '/manifest.json',
@@ -12,7 +12,7 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('ChopTime cache opened');
+        console.log('KwataLink cache opened');
         return cache.addAll(urlsToCache);
       })
       .catch((error) => {
@@ -68,13 +68,13 @@ self.addEventListener('activate', (event) => {
 // Push notification support (future feature)
 self.addEventListener('push', (event) => {
   const options = {
-    body: event.data ? event.data.text() : 'Your ChopTime order is ready!',
+            body: event.data ? event.data.text() : 'Your KwataLink order is ready!',
     icon: '/logo.svg',
     badge: '/logo.svg',
-    tag: 'choptime-notification'
+          tag: 'kwatalink-notification'
   };
 
   event.waitUntil(
-    self.registration.showNotification('ChopTime', options)
+    self.registration.showNotification('KwataLink', options)
   );
 });

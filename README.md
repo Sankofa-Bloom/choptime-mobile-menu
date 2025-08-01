@@ -1,7 +1,7 @@
 
-# ChopTime - Cameroon Food Delivery Platform
+# KwataLink - Cameroon Food Delivery Platform
 
-ChopTime is a comprehensive food delivery platform specifically designed for Cameroon, focusing on traditional dishes and local restaurants in Buea and Limbe.
+KwataLink is a comprehensive food delivery platform specifically designed for Cameroon, focusing on traditional dishes and local restaurants in Buea and Limbe.
 
 ## Features
 
@@ -57,7 +57,7 @@ ChopTime is a comprehensive food delivery platform specifically designed for Cam
 ### 1. Clone Repository
 ```bash
 git clone <repository-url>
-cd choptime
+cd kwatalink
 npm install
 ```
 
@@ -81,7 +81,7 @@ Insert an admin user manually in Supabase:
 -- First create auth user in Supabase Auth dashboard
 -- Then insert admin record:
 INSERT INTO public.admin_users (email, password_hash, role, active)
-VALUES ('admin@choptime.com', 'your_hashed_password', 'admin', true);
+VALUES ('admin@kwatalink.com', 'your_hashed_password', 'admin', true);
 ```
 
 ### 5. Run Development Server
@@ -193,7 +193,7 @@ The system uses intelligent zone-based pricing:
 ### Custom Styling
 - Modify Tailwind configuration in `tailwind.config.ts`
 - Update CSS custom properties in `index.css`
-- ChopTime brand colors are defined as custom Tailwind classes
+- KwataLink brand colors are defined as custom Tailwind classes
 
 ## Security Considerations
 
@@ -243,4 +243,4 @@ The system uses intelligent zone-based pricing:
 
 ## License
 
-Proprietary - All rights reserved by ChopTime
+Proprietary - All rights reserved by KwataLink

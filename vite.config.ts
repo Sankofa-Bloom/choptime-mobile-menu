@@ -19,8 +19,8 @@ export default defineConfig(({ mode }) => ({
       },
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
-        name: 'ChopTime',
-        short_name: 'ChopTime',
+        name: 'KwataLink',
+        short_name: 'KwataLink',
         description: 'Food delivery app',
         theme_color: '#ffffff',
         icons: [

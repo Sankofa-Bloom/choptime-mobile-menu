@@ -66,7 +66,7 @@ const AdminLogin = () => {
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold text-choptime-brown flex items-center justify-center gap-2">
             <KeyRound className="w-5 h-5 text-choptime-orange" />
-            ChopTime Admin
+            KwataLink Admin
           </CardTitle>
           <p className="text-sm text-choptime-brown/70 mt-2">
             Enter admin PIN to access the dashboard

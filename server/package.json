@@ -1,7 +1,7 @@
 {
-  "name": "choptime-webhook-server",
+  "name": "kwatalink-webhook-server",
   "version": "1.0.0",
-  "description": "Webhook server for ChopTime payment processing",
+  "description": "Webhook server for KwataLink payment processing",
   "main": "webhook-server.js",
   "scripts": {
     "start": "node webhook-server.js",
@@ -21,8 +21,8 @@
     "webhook",
     "payment",
     "fapshi",
-    "choptime"
+    "kwatalink"
   ],
-  "author": "ChopTime Team",
+  "author": "KwataLink Team",
   "license": "MIT"
 }

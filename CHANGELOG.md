@@ -1,12 +1,12 @@
-# ChopTime Changelog
+# KwataLink Changelog
 
-All notable changes to the ChopTime food delivery platform will be documented in this file.
+All notable changes to the KwataLink food delivery platform will be documented in this file.
 
 ## [2.0.0] - 2024-12-28
 
 ### 🎉 Major Backend Enhancement Release
 
-This release transforms ChopTime from a basic MVP to a comprehensive food delivery platform with full backend management capabilities.
+This release transforms KwataLink from a basic MVP to a comprehensive food delivery platform with full backend management capabilities.
 
 ### ✨ New Features
 
@@ -157,7 +157,7 @@ This release transforms ChopTime from a basic MVP to a comprehensive food delive
 - **Local storage** for user preferences
 
 #### UI Components
-- Modern design with ChopTime branding
+- Modern design with KwataLink branding
 - Responsive layout for all devices
 - Interactive dish cards with properties
 - Shopping cart functionality

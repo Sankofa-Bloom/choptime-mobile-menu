@@ -32,9 +32,9 @@ const Header: React.FC<HeaderProps> = ({
         <div className="bg-choptime-orange text-white p-4 text-center relative animate-slide-up">
           <div className="flex items-center justify-center gap-2 mb-2">
             <Download className="w-5 h-5" />
-            <span className="font-semibold">Install ChopTime App</span>
+            <span className="font-semibold">Install KwataLink App</span>
           </div>
-          <p className="text-sm mb-3">Add ChopTime to your home screen for quick access!</p>
+          <p className="text-sm mb-3">Add KwataLink to your home screen for quick access!</p>
           <div className="flex gap-2 justify-center">
             <Button 
               size="sm" 
@@ -69,7 +69,7 @@ const Header: React.FC<HeaderProps> = ({
                 />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-choptime-brown">ChopTime</h1>
+                <h1 className="text-2xl font-bold text-choptime-brown">KwataLink</h1>
                 <p className="text-sm text-choptime-brown/70">
                   {selectedTown ? `Delivering in ${selectedTown}` : 'Authentic Cameroonian Cuisine'}
                 </p>

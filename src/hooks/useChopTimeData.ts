@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Restaurant, Dish, RestaurantMenu, Order, CustomOrder, DeliveryFee, UserTown } from '@/types/restaurant';
 
-export const useChopTimeData = (selectedTown?: string) => {
+export const useKwataLinkData = (selectedTown?: string) => {
   const [dishes, setDishes] = useState<Dish[]>([]);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [restaurantMenus, setRestaurantMenus] = useState<RestaurantMenu[]>([]);

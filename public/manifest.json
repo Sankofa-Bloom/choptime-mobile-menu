@@ -1,7 +1,7 @@
 
 {
-  "name": "ChopTime - Cameroonian Food Delivery",
-  "short_name": "ChopTime",
+  "name": "KwataLink - Cameroonian Food Delivery",
+  "short_name": "KwataLink",
   "description": "Authentic Cameroonian cuisine delivered fresh to your doorstep",
   "start_url": "/",
   "display": "standalone",

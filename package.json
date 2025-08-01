@@ -1,5 +1,5 @@
 {
-  "name": "vite_react_shadcn_ts",
+  "name": "kwatalink-mobile-menu",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -92,6 +92,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Sankofa-Bloom/choptime-mobile-menu.git"
+    "url": "https://github.com/Sankofa-Bloom/kwatalink-mobile-menu.git"
   }
 }

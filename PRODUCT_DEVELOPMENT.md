@@ -1,7 +1,7 @@
-# ChopTime Product Development Document
+# KwataLink Product Development Document
 
 ## 1. Vision
-ChopTime aims to revolutionize food delivery in Cameroon by providing a seamless, reliable, and culturally relevant platform that connects customers with local restaurants, focusing on traditional dishes and efficient delivery logistics in Buea and Limbe as principal towns but plans on expanding into various other towns in cameroon.
+KwataLink aims to revolutionize food delivery in Cameroon by providing a seamless, reliable, and culturally relevant platform that connects customers with local restaurants, focusing on traditional dishes and efficient delivery logistics in Buea and Limbe as principal towns but plans on expanding into various other towns in cameroon.
 
 ## 2. Goals
 - Enable users to easily discover and order traditional Cameroonian dishes from local restaurants.

@@ -64,7 +64,7 @@ const Payment: React.FC = () => {
   const generateOrderReference = async (): Promise<string> => {
     try {
       // Get town from orderData or localStorage
-      const town = orderData?.town || localStorage.getItem('choptime-town') || 'BUE';
+      const town = orderData?.town || localStorage.getItem('kwatalink-town') || 'BUE';
       
       // Create town-specific prefix
       const townPrefix = town.toUpperCase().substring(0, 3);
@@ -374,7 +374,7 @@ const Payment: React.FC = () => {
         customerName={orderData.customerName}
         customerPhone={orderData.customerPhone}
         customerEmail={customerEmail}
-        description={`ChopTime Order - ${restaurantName} - ${dishName}`}
+        description={`KwataLink Order - ${restaurantName} - ${dishName}`}
         onPaymentSuccess={handleFapshiPaymentSuccess}
         onPaymentFailure={handleFapshiPaymentFailure}
         onCancel={handleFapshiPaymentCancel}
