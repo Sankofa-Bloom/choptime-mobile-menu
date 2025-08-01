@@ -77,7 +77,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
   const isCustomOrder = !orderDetails && !!customOrder;
 
   // Get admin email from environment variables
-  const adminEmail: string = String(import.meta.env.VITE_ADMIN_EMAIL || 'choptime237@gmail.com');
+  const adminEmail: string = String(import.meta.env.VITE_ADMIN_EMAIL || 'admin@example.com');
 
   useEffect(() => {
     if (currentOrder?.location && selectedRestaurant?.town) {

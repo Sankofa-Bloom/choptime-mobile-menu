@@ -199,10 +199,18 @@ class FapshiService {
     try {
       // Check if API credentials are configured
       if (!this.apiUser || this.apiUser === '') {
-        throw new Error('Fapshi API user not configured. Please set VITE_FAPSHI_API_USER');
+        console.warn('Fapshi API user not configured. Please set VITE_FAPSHI_API_USER');
+        return {
+          success: false,
+          error: 'Payment service not configured. Please contact support.'
+        };
       }
       if (!this.apiKey || this.apiKey === '') {
-        throw new Error('Fapshi API key not configured. Please set VITE_FAPSHI_API_KEY');
+        console.warn('Fapshi API key not configured. Please set VITE_FAPSHI_API_KEY');
+        return {
+          success: false,
+          error: 'Payment service not configured. Please contact support.'
+        };
       }
       
       // Test credentials first

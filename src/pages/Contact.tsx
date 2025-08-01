@@ -159,7 +159,7 @@ const Contact: React.FC = () => {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">Email</h3>
                   <p className="text-gray-600">
-                    {import.meta.env.VITE_ADMIN_EMAIL || 'choptime237@gmail.com'}
+                    {import.meta.env.VITE_ADMIN_EMAIL || 'admin@example.com'}
                   </p>
                 </div>
               </div>
@@ -171,7 +171,7 @@ const Contact: React.FC = () => {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">Phone</h3>
                   <p className="text-gray-600">
-                    {import.meta.env.VITE_ADMIN_PHONE || '+237 670 416 449'}
+                    {import.meta.env.VITE_ADMIN_PHONE || '+1234567890'}
                   </p>
                 </div>
               </div>
@@ -183,7 +183,7 @@ const Contact: React.FC = () => {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">Address</h3>
                   <p className="text-gray-600">
-                    {import.meta.env.VITE_COMPANY_ADDRESS || 'Busumbu Junction, Limbe - Cameroon'}
+                    {import.meta.env.VITE_COMPANY_ADDRESS || 'Your Company Address'}
                   </p>
                 </div>
               </div>

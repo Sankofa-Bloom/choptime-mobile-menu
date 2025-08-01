@@ -131,7 +131,7 @@ export class GenericEmailService {
       from_email: params.from_email,
       from_phone: params.from_phone || '',
       // Admin email for replies
-      reply_to: import.meta.env.VITE_ADMIN_EMAIL || 'choptime237@gmail.com'
+              reply_to: import.meta.env.VITE_ADMIN_EMAIL || 'admin@example.com'
     };
 
     return this.sendEmail(mappedParams as any);
@@ -209,9 +209,9 @@ export class GenericEmailService {
       // Add default values for missing fields
       const completeParams = {
         company_name: import.meta.env.VITE_COMPANY_NAME || 'ChopTime',
-        company_address: import.meta.env.VITE_COMPANY_ADDRESS || 'Busumbu Junction, Limbe - Cameroon',
-        admin_email: import.meta.env.VITE_ADMIN_EMAIL || 'choptime237@gmail.com',
-        admin_phone: import.meta.env.VITE_ADMIN_PHONE || '+237 670 416 449',
+        company_address: import.meta.env.VITE_COMPANY_ADDRESS || 'Your Company Address',
+        admin_email: import.meta.env.VITE_ADMIN_EMAIL || 'admin@example.com',
+        admin_phone: import.meta.env.VITE_ADMIN_PHONE || '+1234567890',
         ...params
       };
 
@@ -221,7 +221,7 @@ export class GenericEmailService {
         // Common mappings for all email types
         to_name: completeParams.customer_name || completeParams.from_name || 'Customer',
         to_email: completeParams.customer_email || completeParams.from_email || completeParams.admin_email,
-        reply_to: completeParams.admin_email || 'choptime237@gmail.com',
+        reply_to: completeParams.admin_email || 'admin@example.com',
         // Ensure all required fields are present
         customer_name: completeParams.customer_name || completeParams.from_name || 'Customer',
         customer_email: completeParams.customer_email || completeParams.from_email || completeParams.admin_email,
@@ -245,17 +245,17 @@ export class GenericEmailService {
 
       // Validate EmailJS configuration
       if (!this.SERVICE_ID || this.SERVICE_ID === 'default_service') {
-        console.error('EmailJS Service ID not configured');
+        console.warn('EmailJS Service ID not configured - emails will not be sent');
         return false;
       }
 
       if (!this.TEMPLATE_ID || this.TEMPLATE_ID === 'default_template') {
-        console.error('EmailJS Template ID not configured');
+        console.warn('EmailJS Template ID not configured - emails will not be sent');
         return false;
       }
 
       if (!this.USER_ID || this.USER_ID === 'default_user') {
-        console.error('EmailJS User ID not configured');
+        console.warn('EmailJS User ID not configured - emails will not be sent');
         return false;
       }
 

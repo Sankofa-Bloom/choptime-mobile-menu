@@ -10,10 +10,10 @@ try {
     emailjs.init(userId);
     console.log('EmailJS initialized successfully with user ID:', userId);
   } else {
-    console.warn('EmailJS not initialized: User ID not configured');
+    console.warn('EmailJS not initialized: User ID not configured - emails will not be sent');
   }
 } catch (error) {
-  console.error('Error initializing EmailJS:', error);
+  console.warn('EmailJS initialization failed:', error);
 }
 
 createRoot(document.getElementById("root")!).render(<App />);

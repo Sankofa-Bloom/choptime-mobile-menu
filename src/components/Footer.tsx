@@ -28,7 +28,7 @@ const Footer: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <MessageCircle className="w-4 h-4" />
-                <span>choptime237@gmail.com</span>
+                <span>{import.meta.env.VITE_ADMIN_EMAIL || 'admin@example.com'}</span>
               </div>
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4" />
@@ -58,7 +58,7 @@ const Footer: React.FC = () => {
         
         <div className="text-center text-sm text-white/60">
           <p>&copy; 2024 ChopTime. Made with ❤️ for Cameroon.</p>
-          <p className="mt-1">Support: choptime237@gmail.com</p>
+                          <p className="mt-1">Support: {import.meta.env.VITE_ADMIN_EMAIL || 'admin@example.com'}</p>
         </div>
       </div>
     </footer>

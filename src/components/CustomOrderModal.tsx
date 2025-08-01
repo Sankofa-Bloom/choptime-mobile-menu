@@ -146,7 +146,7 @@ const CustomOrderModal: React.FC<CustomOrderModalProps> = ({
             <Label htmlFor="restaurantPhone">Restaurant Phone Number *</Label>
             <Input
               id="restaurantPhone"
-              placeholder="e.g., +237 670 416 449"
+                                  placeholder="e.g., +1234567890"
               value={restaurantPhone}
               onChange={(e) => setRestaurantPhone(e.target.value)}
               className="border-choptime-orange/30"

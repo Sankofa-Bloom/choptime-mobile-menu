@@ -1,0 +1,58 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.emailjs.com https://api.emailjs.com https://vercel.live; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://www.emailjs.com https://api.emailjs.com https://qrpukxmzdwkepfpuapzh.supabase.co https://sandbox.fapshi.com https://api.fapshi.com; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
+  ],
+  "env": {
+    "VITE_SUPABASE_URL": "@vite_supabase_url",
+    "VITE_SUPABASE_ANON_KEY": "@vite_supabase_anon_key",
+    "VITE_EMAILJS_SERVICE_ID": "@vite_emailjs_service_id",
+    "VITE_EMAILJS_USER_ID": "@vite_emailjs_user_id",
+    "VITE_EMAILJS_GENERIC_TEMPLATE_ID": "@vite_emailjs_generic_template_id",
+    "VITE_FAPSHI_API_USER": "@vite_fapshi_api_user",
+    "VITE_FAPSHI_API_KEY": "@vite_fapshi_api_key",
+    "VITE_FAPSHI_TEST_MODE": "@vite_fapshi_test_mode",
+    "VITE_ADMIN_EMAIL": "@vite_admin_email",
+    "VITE_ADMIN_PHONE": "@vite_admin_phone",
+    "VITE_ADMIN_WHATSAPP": "@vite_admin_whatsapp"
+  }
+} 
