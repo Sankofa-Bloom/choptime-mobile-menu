@@ -30,9 +30,43 @@ dist-ssr
 .env.production
 .env.test
 *.env
+server/.env
 
 # Production builds
 dist/
 build/
 *.tgz
 *.tar.gz
+
+# Server logs
+server/server.log
+server/*.log
+
+# Cache and temporary files
+.cache/
+.temp/
+.tmp/
+*.tmp
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+coverage/
+.nyc_output/
+
+# PWA files
+sw.js
+workbox-*.js
+
+# Supabase
+.supabase/

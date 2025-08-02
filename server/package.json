@@ -1,28 +1,28 @@
 {
-  "name": "kwatalink-webhook-server",
+  "name": "campay-api-server",
   "version": "1.0.0",
-  "description": "Webhook server for KwataLink payment processing",
-  "main": "webhook-server.js",
+  "description": "Server-side API for Campay payment integration",
+  "main": "campay-api.js",
   "scripts": {
-    "start": "node webhook-server.js",
-    "dev": "nodemon webhook-server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node campay-api.js",
+    "dev": "nodemon campay-api.js"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.53.0",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "node-fetch": "^2.7.0",
+    "nodemailer": "^6.10.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
   },
   "keywords": [
-    "webhook",
+    "campay",
     "payment",
-    "fapshi",
-    "kwatalink"
+    "api",
+    "server"
   ],
-  "author": "KwataLink Team",
+  "author": "KwataLink",
   "license": "MIT"
 }

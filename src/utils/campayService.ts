@@ -56,35 +56,19 @@ interface CampayPaymentStatus {
 }
 
 class CampayService {
-  private apiKey: string;
-  private baseUrl: string;
-  private isTestMode: boolean;
+  private serverUrl: string;
 
   constructor() {
-    this.apiKey = import.meta.env.VITE_CAMPAY_API_KEY || '';
-    this.isTestMode = import.meta.env.VITE_CAMPAY_TEST_MODE === 'true';
-    
-    // Use correct base URLs based on test mode
-    if (this.isTestMode) {
-      this.baseUrl = 'https://sandbox.campay.net';
-    } else {
-      this.baseUrl = 'https://api.campay.net';
-    }
+    // Use Vite proxy for server-side API calls
+    this.serverUrl = '';
   }
 
-  private async makeRequest(endpoint: string, method: 'GET' | 'POST' = 'GET', body?: any): Promise<any> {
-    const url = `${this.baseUrl}${endpoint}`;
+  private async makeServerRequest(endpoint: string, method: 'GET' | 'POST' = 'GET', body?: any): Promise<any> {
+    const url = endpoint;
     
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
-
-    // Add API key if available (Campay uses Token authentication)
-    if (this.apiKey) {
-      headers['Authorization'] = `Token ${this.apiKey}`;
-    } else {
-      console.warn('Campay API key not configured. Please set VITE_CAMPAY_API_KEY with your Permanent Access Token');
-    }
 
     const config: RequestInit = {
       method,
@@ -105,41 +89,29 @@ class CampayService {
 
       return await response.json();
     } catch (error) {
-      console.error('Campay API request failed:', error);
+      console.error('Server API request failed:', error);
       throw error;
     }
   }
 
   async initializePayment(paymentData: CampayPaymentRequest): Promise<CampayPaymentResponse> {
     try {
-      const campayRequest: CampayAPIRequest = {
-        amount: paymentData.amount,
-        currency: paymentData.currency,
-        external_reference: paymentData.reference,
-        description: paymentData.description,
-        callback_url: paymentData.callback_url,
-        return_url: paymentData.return_url,
-        customer_name: paymentData.customer.name,
-        customer_phone: paymentData.customer.phone,
-        customer_email: paymentData.customer.email,
-      };
+      const response = await this.makeServerRequest('/api/campay/initialize', 'POST', paymentData);
 
-      const response = await this.makeRequest('/api/collect/', 'POST', campayRequest);
-
-      if (response.status === 'success') {
+      if (response.success && response.data) {
         return {
           success: true,
           data: {
-            payment_url: response.payment_url,
-            reference: paymentData.reference,
+            payment_url: response.data.payment_url,
+            reference: response.data.reference,
             status: 'pending',
-            transaction_id: response.transaction_id
+            transaction_id: response.data.transaction_id
           }
         };
       } else {
         return {
           success: false,
-          error: response.message || 'Failed to initialize payment'
+          error: response.error || 'Failed to initialize payment'
         };
       }
     } catch (error) {
@@ -152,30 +124,30 @@ class CampayService {
 
   async checkPaymentStatus(reference: string): Promise<CampayPaymentStatus> {
     try {
-      const response = await this.makeRequest(`/api/transaction/${reference}/`);
+      const response = await this.makeServerRequest(`/api/campay/status/${reference}`);
 
-      if (response.status === 'success') {
+      if (response.success && response.data) {
         return {
           success: true,
           data: {
-            reference: response.external_reference,
-            status: this.mapCampayStatus(response.status),
-            amount: response.amount,
-            currency: response.currency,
+            reference: response.data.reference,
+            status: this.mapCampayStatus(response.data.status),
+            amount: response.data.amount,
+            currency: response.data.currency,
             customer: {
-              name: response.customer_name || '',
-              phone: response.customer_phone || '',
-              email: response.customer_email || ''
+              name: response.data.customer.name || '',
+              phone: response.data.customer.phone || '',
+              email: response.data.customer.email || ''
             },
-            created_at: response.created_at,
-            updated_at: response.updated_at,
-            transaction_id: response.transaction_id
+            created_at: response.data.created_at,
+            updated_at: response.data.updated_at,
+            transaction_id: response.data.transaction_id
           }
         };
       } else {
         return {
           success: false,
-          error: response.message || 'Failed to check payment status'
+          error: response.error || 'Failed to check payment status'
         };
       }
     } catch (error) {
@@ -188,34 +160,28 @@ class CampayService {
 
   async createPaymentLink(paymentData: Omit<CampayPaymentRequest, 'callback_url' | 'return_url'>): Promise<CampayPaymentResponse> {
     try {
-      const campayRequest: CampayAPIRequest = {
-        amount: paymentData.amount,
-        currency: paymentData.currency,
-        external_reference: paymentData.reference,
-        description: paymentData.description,
+      const fullPaymentData = {
+        ...paymentData,
         callback_url: import.meta.env.VITE_CAMPAY_CALLBACK_URL || `https://kwatalink.com/api/payment-webhook`,
         return_url: import.meta.env.VITE_CAMPAY_RETURN_URL || `https://kwatalink.com/payment-success?reference=${paymentData.reference}`,
-        customer_name: paymentData.customer.name,
-        customer_phone: paymentData.customer.phone,
-        customer_email: paymentData.customer.email,
       };
 
-      const response = await this.makeRequest('/api/collect/', 'POST', campayRequest);
+      const response = await this.makeServerRequest('/api/campay/initialize', 'POST', fullPaymentData);
 
-      if (response.status === 'success') {
+      if (response.success && response.data) {
         return {
           success: true,
           data: {
-            payment_url: response.payment_url,
-            reference: paymentData.reference,
+            payment_url: response.data.payment_url,
+            reference: response.data.reference,
             status: 'pending',
-            transaction_id: response.transaction_id
+            transaction_id: response.data.transaction_id
           }
         };
       } else {
         return {
           success: false,
-          error: response.message || 'Failed to create payment link'
+          error: response.error || 'Failed to create payment link'
         };
       }
     } catch (error) {

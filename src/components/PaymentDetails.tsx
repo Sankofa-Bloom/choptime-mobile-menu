@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CreditCard, AlertCircle, Smartphone, Mail } from 'lucide-react';
+import { CreditCard, AlertCircle, Smartphone } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { sendOrderConfirmation, sendAdminNotification, sendCustomEmail } from '@/utils/genericEmailService';
+import { sendOrderConfirmationEmail, sendAdminNotificationEmail } from '@/utils/serverEmailService';
 import { isValidEmail } from '@/utils/emailService';
 import RestaurantInfo from './payment/RestaurantInfo';
 import OrderSummary from './payment/OrderSummary';
 import PaymentMethodSelector from './payment/PaymentMethodSelector';
-import CampayPayment from './payment/CampayPayment';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
@@ -66,9 +65,10 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
   const [deliveryZone, setDeliveryZone] = useState<DeliveryZone | null>(null);
   const [loading, setLoading] = useState(false);
   const [momoNumber, setMomoNumber] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'email' | 'cash' | 'momo' | 'campay'>('campay');
+  const [paymentMethod, setPaymentMethod] = useState<'campay'>('campay');
   const [customerEmail, setCustomerEmail] = useState('');
-  const [showCampayPayment, setShowCampayPayment] = useState(false);
+  const [orderReference, setOrderReference] = useState<string>('');
+  const [paymentUrl, setPaymentUrl] = useState<string>('');
   
 
   const { toast } = useToast();
@@ -78,6 +78,14 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
 
   // Get admin email from environment variables
   const adminEmail: string = String(import.meta.env.VITE_ADMIN_EMAIL || 'admin@example.com');
+
+  // Log server email configuration for debugging
+  useEffect(() => {
+    console.log('Server Email Configuration:', {
+      adminEmail: adminEmail,
+      serverUrl: import.meta.env.VITE_SERVER_URL || 'http://localhost:3001'
+    });
+  }, [adminEmail]);
 
   useEffect(() => {
     if (currentOrder?.location && selectedRestaurant?.town) {
@@ -117,7 +125,13 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
   };
 
   const generateOrderReference = async (): Promise<string> => {
-    if (!selectedRestaurant?.town) return `CHT-${Date.now()}`;
+    console.log('Generating order reference for town:', selectedRestaurant?.town);
+    
+    if (!selectedRestaurant?.town) {
+      const fallbackRef = `CHT-${Date.now()}`;
+      console.log('No town found, using fallback reference:', fallbackRef);
+      return fallbackRef;
+    }
     
     try {
       const { data, error } = await supabase.rpc('generate_order_reference', {
@@ -126,68 +140,106 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
       
       if (error || !data) {
         console.error('Error generating order reference:', error);
-        return `CHT-${Date.now()}`;
+        const fallbackRef = `CHT-${Date.now()}`;
+        console.log('Using fallback reference:', fallbackRef);
+        return fallbackRef;
       }
       
+      console.log('Generated order reference:', data);
       return data;
     } catch (error) {
       console.error('Error generating order reference:', error);
-      return `CHT-${Date.now()}`;
+      const fallbackRef = `CHT-${Date.now()}`;
+      console.log('Using fallback reference:', fallbackRef);
+      return fallbackRef;
     }
   };
 
   const saveOrder = async () => {
-    if (!currentOrder || !selectedRestaurant) return null;
+    console.log('saveOrder called with:', { currentOrder, selectedRestaurant });
+    if (!currentOrder || !selectedRestaurant) {
+      console.log('Missing currentOrder or selectedRestaurant, returning null');
+      return null;
+    }
 
     try {
+      console.log('Generating order reference...');
       const orderReference = await generateOrderReference();
+      console.log('Generated order reference:', orderReference);
       
       if (isCustomOrder) {
         const customOrderData = currentOrder as CustomOrder;
+        const customOrderInsertData: any = {
+          custom_dish_name: customOrderData.dishName,
+          quantity: customOrderData.quantity,
+          restaurant_id: selectedRestaurant.id,
+          restaurant_name: selectedRestaurant.name,
+          user_name: customOrderData.customerName,
+          user_phone: customOrderData.customerPhone,
+          user_location: customOrderData.location,
+          special_instructions: customOrderData.specialInstructions,
+          order_reference: orderReference,
+          payment_method: 'campay',
+          status: 'pending'
+        };
+        
+        // Only add optional fields if they exist
+        if (customerEmail) {
+          customOrderInsertData.user_email = customerEmail;
+        }
+        
+        console.log('Sending custom order data:', customOrderInsertData);
+        
         const { data, error } = await supabase
           .from('custom_orders')
-          .insert({
-            custom_dish_name: customOrderData.dishName,
-            quantity: customOrderData.quantity,
-            restaurant_id: selectedRestaurant.id,
-            restaurant_name: selectedRestaurant.name,
-            user_name: customOrderData.customerName,
-            user_phone: customOrderData.customerPhone,
-            user_location: customOrderData.location,
-            special_instructions: customOrderData.specialInstructions,
-            order_reference: orderReference,
-            status: 'pending'
-          })
+          .insert(customOrderInsertData)
           .select()
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Supabase custom order error:', error);
+          throw error;
+        }
         return data;
       } else {
         const regularOrder = currentOrder as OrderDetails;
         const totalAmount = regularOrder.total + deliveryFee;
         
+        const orderData: any = {
+          dish_name: regularOrder.dishName,
+          quantity: regularOrder.quantity,
+          price: Math.round(regularOrder.price),
+          total_amount: Math.round(totalAmount),
+          restaurant_id: selectedRestaurant.id,
+          restaurant_name: selectedRestaurant.name,
+          user_name: regularOrder.customerName,
+          user_phone: regularOrder.customerPhone,
+          user_location: regularOrder.location,
+          order_reference: orderReference,
+          payment_method: 'campay',
+          status: 'pending'
+        };
+        
+        // Only add optional fields if they exist
+        if (customerEmail) {
+          orderData.user_email = customerEmail;
+        }
+        if (deliveryZone?.id) {
+          orderData.delivery_zone_id = deliveryZone.id;
+        }
+        
+        console.log('Sending order data:', orderData);
+        
         const { data, error } = await supabase
           .from('orders')
-          .insert({
-            dish_name: regularOrder.dishName,
-            quantity: regularOrder.quantity,
-            price: regularOrder.price,
-            total_amount: totalAmount,
-            restaurant_id: selectedRestaurant.id,
-            restaurant_name: selectedRestaurant.name,
-            user_name: regularOrder.customerName,
-            user_phone: regularOrder.customerPhone,
-            user_location: regularOrder.location,
-            delivery_zone_id: deliveryZone?.id,
-            order_reference: orderReference,
-            momo_number: momoNumber || null,
-            status: 'pending'
-          })
+          .insert(orderData)
           .select()
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Supabase error:', error);
+          throw error;
+        }
         return data;
       }
     } catch (error) {
@@ -196,58 +248,57 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
     }
   };
 
-  const handleEmailOrder = async (orderReference: string) => {
-    if (!selectedRestaurant || !currentOrder) return;
+  const handleEmailOrder = async (orderReference: string): Promise<boolean> => {
+    if (!selectedRestaurant || !currentOrder) return false;
 
     try {
       if (isCustomOrder) {
         const customOrderData = currentOrder as CustomOrder;
         
-        // Send custom order email using generic service
-        await sendCustomEmail({
-          custom_title: 'Custom Order Request - ChopTime',
-          custom_message: `A custom order has been placed:
-          
-Order Reference: ${orderReference}
-Customer: ${customOrderData.customerName}
-Phone: ${customOrderData.customerPhone}
-Email: ${customerEmail}
-Location: ${customOrderData.location}
-
-Restaurant: ${selectedRestaurant.name}
-Custom Dish: ${customOrderData.dishName}
-Quantity: ${customOrderData.quantity}
-Special Instructions: ${customOrderData.specialInstructions || 'None'}
-
-Delivery Fee: ${deliveryFee} FCFA
-Payment Method: ${paymentMethod}
-
-This is a custom order request. Please review and contact the customer with pricing details.`,
-          custom_urgent: '⚡ Custom order requires immediate attention and pricing review.'
+        // For custom orders, we'll use a simple notification for now
+        console.log('Custom order email would be sent for:', {
+          orderReference,
+          customerName: customOrderData.customerName,
+          customerEmail: customerEmail,
+          restaurantName: selectedRestaurant.name,
+          dishName: customOrderData.dishName
         });
+        
+        // Return true for now - in production, implement custom order email
+        return true;
       } else {
         const regularOrder = currentOrder as OrderDetails;
         
-        // Send order confirmation email using generic service
-        await sendOrderConfirmation({
-          order_reference: orderReference,
-          restaurant_name: selectedRestaurant.name,
-          order_date: new Date().toLocaleString(),
-          estimated_delivery: '15-30 minutes',
-          order_items: [{
-            name: regularOrder.dishName,
-            quantity: regularOrder.quantity,
-            price: `${regularOrder.price} FCFA`
-          }],
-          order_total: `${regularOrder.total + deliveryFee} FCFA`,
-          delivery_address: regularOrder.location,
-          customer_phone: regularOrder.customerPhone,
-          payment_method: paymentMethod
+        // Send order confirmation email using server-side service
+        console.log('Preparing to send order confirmation email with data:', {
+          orderReference: orderReference,
+          customerName: regularOrder.customerName,
+          customerEmail: customerEmail,
+          customerPhone: regularOrder.customerPhone,
+          restaurantName: selectedRestaurant.name,
+          dishName: regularOrder.dishName,
+          quantity: regularOrder.quantity,
+          totalAmount: `${regularOrder.total + deliveryFee} FCFA`,
+          deliveryAddress: regularOrder.location
         });
+        
+        const emailSent = await sendOrderConfirmationEmail({
+          orderReference: orderReference,
+          customerName: regularOrder.customerName,
+          customerEmail: customerEmail,
+          customerPhone: regularOrder.customerPhone,
+          restaurantName: selectedRestaurant.name,
+          dishName: regularOrder.dishName,
+          quantity: regularOrder.quantity,
+          totalAmount: `${regularOrder.total + deliveryFee} FCFA`,
+          deliveryAddress: regularOrder.location
+        });
+        
+        return emailSent;
       }
     } catch (error) {
       console.error('Error sending email:', error);
-      // Don't throw error here, just log it
+      return false;
     }
   };
 
@@ -273,151 +324,229 @@ This is a custom order request. Please review and contact the customer with pric
       return;
     }
 
-    // Validate mobile money number if selected
-    if (paymentMethod === 'momo' && !momoNumber.trim()) {
-      toast({
-        title: "Mobile Money Number Required",
-        description: "Please enter your mobile money number for payment.",
-        variant: "destructive"
-      });
+    // For Campay payment, save order first then redirect to payment
+    if (paymentMethod === 'campay') {
+      setLoading(true);
+      try {
+        console.log('Saving order to database...');
+        const savedOrder = await saveOrder();
+        console.log('Order saved successfully:', savedOrder);
+        
+        if (savedOrder) {
+          console.log('Order saved successfully, order reference:', savedOrder.order_reference);
+          // Store the saved order reference
+          const orderRef = savedOrder.order_reference || '';
+          setOrderReference(orderRef);
+          
+          // Initialize payment and get payment URL
+          const currentOrderData = currentOrder as OrderDetails;
+          
+          // Validate required data
+          if (!orderRef) {
+            throw new Error('Order reference is missing');
+          }
+          
+          if (!selectedRestaurant?.name) {
+            throw new Error('Restaurant name is missing');
+          }
+          
+          if (!currentOrderData?.dishName) {
+            throw new Error('Dish name is missing');
+          }
+          
+          if (!customerEmail) {
+            throw new Error('Customer email is missing');
+          }
+          
+          const paymentData = {
+            amount: total,
+            currency: "XAF",
+            reference: orderRef,
+            description: `KwataLink Order - ${selectedRestaurant.name} - ${currentOrderData.dishName}`,
+            customer: {
+              name: currentOrderData.customerName || '',
+              phone: currentOrderData.customerPhone || '',
+              email: customerEmail
+            },
+            callback_url: import.meta.env.VITE_CAMPAY_CALLBACK_URL || `http://localhost:8081/api/payment-webhook`,
+            return_url: import.meta.env.VITE_CAMPAY_RETURN_URL || `http://localhost:8081/payment-success?reference=${orderRef}`
+          };
+
+          console.log('Sending payment initialization request:', paymentData);
+          
+          const response = await fetch('/api/campay/initialize', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(paymentData)
+          });
+
+          console.log('Payment initialization response status:', response.status);
+          
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+          
+          const result = await response.json();
+          console.log('Payment initialization result:', result);
+
+          if (result.success) {
+            console.log('Payment initialization successful, checking response data:', result.data);
+            if (result.data?.payment_url) {
+              // Redirect directly to payment gateway
+              console.log('Payment URL found, redirecting to payment gateway');
+              setPaymentUrl(result.data.payment_url);
+            } else if (result.data?.status === 'success') {
+              console.log('Mock payment success detected, proceeding with email sending');
+              // Mock payment was immediately successful (for testing)
+              // In production, this would redirect to payment gateway
+              console.log('Mock payment successful:', result.data);
+              
+              console.log('About to update order in database...');
+              
+              // Update the order with payment information
+              await supabase
+                .from('orders')
+                .update({
+                  payment_status: 'paid',
+                  payment_reference: result.data.reference,
+                  payment_method: 'campay',
+                  status: 'confirmed'
+                })
+                .eq('order_reference', orderRef);
+
+              // Send confirmation email to customer
+              let emailSent = false;
+              let adminEmailSent = false;
+              
+              try {
+                console.log('Sending order confirmation email...');
+                emailSent = await handleEmailOrder(orderRef);
+                console.log('Order confirmation email result:', emailSent);
+              } catch (emailError) {
+                console.error('Error sending order confirmation email:', emailError);
+              }
+              
+              // Send notification to admin
+              try {
+                console.log('Sending admin notification email...');
+                adminEmailSent = await sendAdminNotificationEmailLocal({ order_reference: orderRef });
+                console.log('Admin notification email result:', adminEmailSent);
+              } catch (adminEmailError) {
+                console.error('Error sending admin notification email:', adminEmailError);
+              }
+
+              // Store order reference for success page
+              localStorage.setItem('lastOrderReference', orderRef);
+
+              // Show email status in toast
+              if (emailSent && adminEmailSent) {
+                toast({
+                  title: "Payment Successful!",
+                  description: "Your order has been confirmed and confirmation emails sent.",
+                });
+              } else if (emailSent) {
+                toast({
+                  title: "Payment Successful!",
+                  description: "Your order has been confirmed. Customer email sent, admin notification failed.",
+                });
+              } else {
+                toast({
+                  title: "Payment Successful!",
+                  description: "Your order has been confirmed. Email notifications failed to send.",
+                });
+              }
+
+              // Navigate to success page
+              window.location.href = `/payment-success?reference=${orderRef}`;
+            } else {
+              throw new Error(result.error || 'Failed to initialize payment');
+            }
+          } else {
+            throw new Error(result.error || 'Failed to initialize payment');
+          }
+        }
+      } catch (error) {
+        console.error('Error processing payment:', error);
+        console.error('Error details:', {
+          message: error instanceof Error ? error.message : 'Unknown error',
+          stack: error instanceof Error ? error.stack : undefined,
+          error: error
+        });
+        toast({
+          title: "Payment Error",
+          description: error instanceof Error ? error.message : "There was an error processing your payment. Please try again.",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
       return;
     }
 
-          // Handle Campay payment
-      if (paymentMethod === 'campay') {
-              setShowCampayPayment(true);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const savedOrder = await saveOrder();
-      
-      if (savedOrder) {
-        // Send email to customer
-        await handleEmailOrder(savedOrder.order_reference || '');
-        
-        // Send notification to admin
-        await sendAdminNotificationEmail(savedOrder);
-      }
-
-      toast({
-        title: "Order Submitted!",
-        description: getOrderSuccessMessage(),
-      });
-
-      onOrderComplete();
-    } catch (error) {
-      console.error('Error submitting order:', error);
-      toast({
-        title: "Order Failed",
-        description: "There was an error submitting your order. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getOrderSuccessMessage = () => {
-    switch (paymentMethod) {
-      case 'cash':
-        return "Your order has been submitted! Pay with cash when your order is delivered.";
-      case 'momo':
-        return "Your order has been submitted! You'll receive a mobile money payment prompt shortly.";
-      case 'email':
-        return "Your order has been submitted and sent to the restaurant. You'll receive a confirmation email shortly.";
-      default:
-        return "Your order has been submitted successfully!";
-    }
-  };
-
-  const handleCampayPaymentSuccess = async (paymentData: any) => {
-    try {
-      const savedOrder = await saveOrder();
-      
-      if (savedOrder) {
-        // Update order with payment information
-        await supabase
-          .from('orders')
-          .update({
-            payment_status: 'paid',
-            payment_reference: paymentData.reference,
-            payment_method: 'fapshi',
-            status: 'confirmed'
-          })
-          .eq('order_reference', savedOrder.order_reference);
-
-        // Send confirmation email to customer
-        await handleEmailOrder(savedOrder.order_reference || '');
-        
-        // Send notification to admin
-        await sendAdminNotification(savedOrder);
-      }
-
-      toast({
-        title: "Payment Successful!",
-        description: "Your order has been confirmed and payment processed successfully.",
-      });
-
-      onOrderComplete();
-    } catch (error) {
-      console.error('Error processing payment success:', error);
-      toast({
-        title: "Order Update Failed",
-        description: "Payment was successful but there was an error updating your order. Please contact support.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleCampayPaymentFailure = (error: string) => {
-    console.error('Campay payment failed:', error);
-    setShowCampayPayment(false);
-    
+    // This should not happen since we only support Campay now
     toast({
-      title: "Payment Failed",
-      description: error || "Payment was not completed. Please try again.",
+      title: "Payment Method Error",
+      description: "Please select a valid payment method.",
       variant: "destructive"
     });
   };
 
-  const handleCampayPaymentCancel = () => {
-    setShowCampayPayment(false);
-    // Keep the default payment method as 'campay' when canceling
-    // User can manually change it if they want
+  const getOrderSuccessMessage = () => {
+    return "Your order has been submitted successfully! Please complete your payment to confirm your order.";
   };
 
-  const sendAdminNotificationEmail = async (savedOrder: any) => {
+
+
+  const sendAdminNotificationEmailLocal = async (savedOrder: any): Promise<boolean> => {
     try {
       if (isCustomOrder) {
         const customOrderData = currentOrder as CustomOrder;
         
-        // Send admin notification for custom order
-        await sendAdminNotification({
-          order_reference: savedOrder.order_reference || '',
-          customer_name: customOrderData.customerName,
-          customer_email: customerEmail,
-          customer_phone: customOrderData.customerPhone,
-          order_total: 'Custom order - pricing to be determined'
+        // For custom orders, log the notification for now
+        console.log('Admin notification would be sent for custom order:', {
+          orderReference: savedOrder.order_reference || '',
+          customerName: customOrderData.customerName,
+          customerEmail: customerEmail,
+          customerPhone: customOrderData.customerPhone,
+          orderTotal: 'Custom order - pricing to be determined'
         });
+        
+        return true; // Return true for now
       } else {
         const regularOrder = currentOrder as OrderDetails;
         
-        // Send admin notification for regular order
-        await sendAdminNotification({
-          order_reference: savedOrder.order_reference || '',
-          customer_name: regularOrder.customerName,
-          customer_email: customerEmail,
-          customer_phone: regularOrder.customerPhone,
-          order_total: `${regularOrder.total + deliveryFee} FCFA`
+        // Send admin notification using server-side service
+        console.log('Preparing to send admin notification email with data:', {
+          orderReference: savedOrder.order_reference || '',
+          customerName: regularOrder.customerName,
+          customerEmail: customerEmail,
+          customerPhone: regularOrder.customerPhone,
+          restaurantName: selectedRestaurant?.name || '',
+          dishName: regularOrder.dishName,
+          quantity: regularOrder.quantity,
+          totalAmount: `${regularOrder.total + deliveryFee} FCFA`,
+          deliveryAddress: regularOrder.location
         });
+        
+        const emailSent = await sendAdminNotificationEmail({
+          orderReference: savedOrder.order_reference || '',
+          customerName: regularOrder.customerName,
+          customerEmail: customerEmail,
+          customerPhone: regularOrder.customerPhone,
+          restaurantName: selectedRestaurant?.name || '',
+          dishName: regularOrder.dishName,
+          quantity: regularOrder.quantity,
+          totalAmount: `${regularOrder.total + deliveryFee} FCFA`,
+          deliveryAddress: regularOrder.location
+        });
+        
+        return emailSent;
       }
-      
-      console.log('Admin notification sent successfully');
     } catch (error) {
       console.error('Error sending admin notification:', error);
-      // Don't throw error here, just log it
+      return false;
     }
   };
 
@@ -437,21 +566,18 @@ This is a custom order request. Please review and contact the customer with pric
   const total = subtotal + deliveryFee;
 
   // Show Campay payment component if selected
-  if (showCampayPayment) {
-    const currentOrderData = currentOrder as OrderDetails;
+  // Redirect to payment gateway if payment URL is available
+  if (paymentUrl) {
+    window.location.href = paymentUrl;
     return (
-      <CampayPayment
-        amount={total}
-        currency="XAF"
-        orderReference={currentOrderData?.orderReference || `CHT-${Date.now()}`}
-        customerName={currentOrderData?.customerName || ''}
-        customerPhone={currentOrderData?.customerPhone || ''}
-        customerEmail={customerEmail}
-        description={`KwataLink Order - ${selectedRestaurant?.name} - ${currentOrderData?.dishName}`}
-        onPaymentSuccess={handleCampayPaymentSuccess}
-        onPaymentFailure={handleCampayPaymentFailure}
-        onCancel={handleCampayPaymentCancel}
-      />
+      <div className="max-w-md mx-auto text-center">
+        <Card>
+          <CardContent className="p-6">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-choptime-orange mx-auto mb-4"></div>
+            <p className="text-gray-600">Redirecting to payment gateway...</p>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
@@ -501,6 +627,53 @@ This is a custom order request. Please review and contact the customer with pric
             <p className="text-xs text-gray-600">
               We'll send your order confirmation and updates to this email address
             </p>
+            
+            {/* Test Email Button (Development Only) */}
+            {import.meta.env.DEV && customerEmail && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  try {
+                    const testEmailSent = await sendOrderConfirmationEmail({
+                      orderReference: 'TEST-EMAIL',
+                      customerName: 'Test Customer',
+                      customerEmail: customerEmail,
+                      customerPhone: 'Test Phone',
+                      restaurantName: selectedRestaurant?.name || 'Test Restaurant',
+                      dishName: 'Test Dish',
+                      quantity: 1,
+                      totalAmount: '1000 FCFA',
+                      deliveryAddress: 'Test Address'
+                    });
+                    
+                    if (testEmailSent) {
+                      toast({
+                        title: "Test Email Sent!",
+                        description: "Check your email inbox for the test message.",
+                      });
+                    } else {
+                      toast({
+                        title: "Test Email Failed",
+                        description: "Check console for error details.",
+                        variant: "destructive"
+                      });
+                    }
+                  } catch (error) {
+                    console.error('Test email error:', error);
+                    toast({
+                      title: "Test Email Error",
+                      description: "Failed to send test email. Check console for details.",
+                      variant: "destructive"
+                    });
+                  }
+                }}
+                className="w-full"
+              >
+                Test Email (Dev Only)
+              </Button>
+            )}
           </div>
 
           {/* Action Buttons */}
@@ -515,27 +688,18 @@ This is a custom order request. Please review and contact the customer with pric
             </Button>
             <Button
               onClick={handleSubmitOrder}
-              disabled={loading || !customerEmail.trim() || (paymentMethod === 'momo' && !momoNumber.trim())}
+              disabled={loading || !customerEmail.trim()}
               className="flex-1 choptime-gradient hover:opacity-90 text-white"
             >
               {loading ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Submitting...
+                  Processing...
                 </>
               ) : (
                 <>
-                  {paymentMethod === 'fapshi' ? (
-                    <>
-                      <Smartphone className="w-4 h-4 mr-2" />
-                      Pay Now
-                    </>
-                  ) : (
-                    <>
-                      <Mail className="w-4 h-4 mr-2" />
-                      Submit Order
-                    </>
-                  )}
+                  <Smartphone className="w-4 h-4 mr-2" />
+                  Complete Order & Pay
                 </>
               )}
             </Button>

@@ -7,9 +7,21 @@ const EMAILJS_CONFIG = {
   userId: import.meta.env.VITE_EMAILJS_USER_ID || 'default_user'
 };
 
-// Ensure EmailJS is initialized
+// Initialize EmailJS safely
+let emailjsInitialized = false;
 if (typeof window !== 'undefined') {
-  emailjs.init(import.meta.env.VITE_EMAILJS_USER_ID || 'default_user');
+  try {
+    const userId = import.meta.env.VITE_EMAILJS_USER_ID;
+    if (userId && userId !== 'default_user') {
+      emailjs.init(userId);
+      emailjsInitialized = true;
+      console.log('EmailJS initialized successfully');
+    } else {
+      console.warn('EmailJS not initialized: User ID not configured');
+    }
+  } catch (error) {
+    console.warn('EmailJS initialization failed:', error);
+  }
 }
 
 export interface EmailConfig {
@@ -23,9 +35,14 @@ export const sendEmailViaEmailJS = async (
   config: EmailConfig = EMAILJS_CONFIG
 ): Promise<boolean> => {
   try {
-    // Check if emailjs is available
-    if (!emailjs || typeof emailjs.send !== 'function') {
+    // Check if emailjs is available and initialized
+    if (!emailjsInitialized || !emailjs || typeof emailjs.send !== 'function') {
       console.error('EmailJS is not properly initialized or available');
+      console.log('EmailJS status:', {
+        initialized: emailjsInitialized,
+        emailjs: !!emailjs,
+        sendFunction: typeof emailjs?.send
+      });
       return false;
     }
 

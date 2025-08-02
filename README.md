@@ -1,246 +1,241 @@
+# KwataLink - Authentic Cameroonian Cuisine Delivery
 
-# KwataLink - Cameroon Food Delivery Platform
+A modern, production-ready food delivery application specializing in authentic Cameroonian cuisine. Built with React, TypeScript, and Supabase.
 
-KwataLink is a comprehensive food delivery platform specifically designed for Cameroon, focusing on traditional dishes and local restaurants in Buea and Limbe.
+## 🚀 Features
 
-## Features
+- **Modern UI/UX** - Beautiful, responsive design with African-inspired patterns
+- **Real-time Ordering** - Live order tracking and status updates
+- **Secure Payments** - Integrated Campay payment gateway
+- **Email Notifications** - Automated order confirmations and admin alerts
+- **PWA Support** - Installable as a mobile app
+- **Multi-town Delivery** - Support for Buea and Limbe
+- **Admin Dashboard** - Complete order management system
+- **Performance Optimized** - Fast loading with code splitting and caching
 
-### 🍽️ Customer Features
-- Browse dishes by category (Traditional, Soup, Rice, Grilled, Snacks, Drinks)
-- Select restaurants by town (Buea, Limbe)
-- Smart delivery pricing based on location zones
-- Custom dish ordering for special requests
-- Email-based order confirmation
-- Real-time order tracking
+## 🛠️ Tech Stack
 
-### 🏪 Admin Features
-- Restaurant management (add/edit/delete restaurants)
-- Dish management with categories and properties
-- Dynamic pricing per restaurant
-- Delivery zone management with distance-based pricing
-- Order management and analytics
-- Admin authentication system
+- **Frontend**: React 18, TypeScript, Vite
+- **UI Components**: Radix UI, Tailwind CSS
+- **Backend**: Node.js, Express
+- **Database**: Supabase (PostgreSQL)
+- **Payments**: Campay API
+- **Email**: Nodemailer with Gmail SMTP
+- **Deployment**: Vercel/Netlify ready
 
-## Tech Stack
-
-- **Frontend**: React 18 + TypeScript + Vite
-- **UI Library**: Shadcn/UI + Tailwind CSS
-- **Backend**: Supabase (PostgreSQL + Row Level Security)
-- **Authentication**: Supabase Auth
-- **Real-time**: Supabase Realtime
-- **Deployment**: Ready for Vercel/Netlify
-
-## Database Schema
-
-### Core Tables
-- `restaurants` - Restaurant information and settings
-- `dishes` - Available dishes with properties
-- `restaurant_menus` - Links dishes to restaurants with pricing
-- `orders` - Regular orders from menu items
-- `custom_orders` - Custom dish requests
-- `delivery_zones` - Zone-based delivery pricing
-- `admin_users` - Admin authentication
-- `user_towns` - User town preferences
-
-### Key Features
-- Row Level Security (RLS) for data protection
-- Distance-based delivery fee calculation
-- Order reference generation per town
-- Admin-only access controls
-
-## Installation & Setup
+## 📦 Installation
 
 ### Prerequisites
-- Node.js 18+ and npm/yarn
+
+- Node.js 18+ 
+- npm or yarn
 - Supabase account
+- Campay payment account
+- Gmail account (for email notifications)
 
-### 1. Clone Repository
-```bash
-git clone <repository-url>
-cd kwatalink
-npm install
-```
+### Setup
 
-### 2. Environment Setup
-Create `.env.local`:
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/Sankofa-Bloom/kwatalink-mobile-menu.git
+   cd kwatalink-mobile-menu
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   cd server && npm install
+   cd ..
+   ```
+
+3. **Environment Configuration**
+   ```bash
+   # Copy environment files
+   cp .env.example .env
+   cp server/.env.example server/.env
+   
+   # Edit with your credentials
+   nano .env
+   nano server/.env
+   ```
+
+4. **Database Setup**
+   ```bash
+   # Push database migrations
+   npx supabase db push
+   ```
+
+5. **Start Development**
+   ```bash
+   # Start frontend and backend
+   npm run dev:full
+   
+   # Or start separately
+   npm run dev          # Frontend only
+   npm run server       # Backend only
+   ```
+
+## 🔧 Configuration
+
+### Environment Variables
+
+#### Frontend (.env)
 ```env
+# Supabase
 VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Payment
+VITE_DEFAULT_PAYMENT_METHOD=campay
+VITE_CAMPAY_CALLBACK_URL=your_webhook_url
+VITE_CAMPAY_RETURN_URL=your_success_url
+
+# Admin
+VITE_ADMIN_EMAIL=admin@yourdomain.com
+VITE_ADMIN_PHONE=+1234567890
 ```
 
-### 3. Database Setup
-The database migrations are included. Run them in your Supabase SQL editor:
+#### Backend (server/.env)
+```env
+# SMTP Configuration
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_app_password
 
-1. Navigate to your Supabase project dashboard
-2. Go to SQL Editor
-3. Run the migration files in order
+# Admin
+ADMIN_EMAIL=admin@yourdomain.com
+ADMIN_PHONE=+1234567890
 
-### 4. Create Admin User
-Insert an admin user manually in Supabase:
-```sql
--- First create auth user in Supabase Auth dashboard
--- Then insert admin record:
-INSERT INTO public.admin_users (email, password_hash, role, active)
-VALUES ('admin@kwatalink.com', 'your_hashed_password', 'admin', true);
+# Campay API
+CAMPAY_API_KEY=your_campay_api_key
+CAMPAY_BASE_URL=https://api.campay.net
 ```
 
-### 5. Run Development Server
+### Payment Setup
+
+1. **Campay Configuration**
+   - Sign up at [Campay](https://campay.net)
+   - Get your Permanent Access Token
+   - Configure webhook URL in dashboard
+   - Test in sandbox mode first
+
+2. **Gmail SMTP Setup**
+   - Enable 2-Factor Authentication
+   - Generate App Password
+   - Use App Password in SMTP configuration
+
+## 🚀 Deployment
+
+### Vercel (Recommended)
+
+1. **Connect Repository**
+   ```bash
+   # Install Vercel CLI
+   npm i -g vercel
+   
+   # Deploy
+   vercel
+   ```
+
+2. **Environment Variables**
+   - Add all environment variables in Vercel dashboard
+   - Set `NODE_ENV=production`
+
+3. **Build Settings**
+   - Build Command: `npm run build:prod`
+   - Output Directory: `dist`
+   - Install Command: `npm install`
+
+### Netlify
+
+1. **Deploy Settings**
+   - Build Command: `npm run build:prod`
+   - Publish Directory: `dist`
+   - Node Version: `18`
+
+2. **Environment Variables**
+   - Add all environment variables in Netlify dashboard
+
+### Server Deployment
+
+The backend server can be deployed to:
+- Railway
+- Heroku
+- DigitalOcean
+- AWS EC2
+
+## 📱 PWA Features
+
+- **Installable** - Add to home screen
+- **Offline Support** - Basic offline functionality
+- **Push Notifications** - Order updates
+- **App-like Experience** - Native feel
+
+## 🔒 Security
+
+- **Environment Variables** - No sensitive data in code
+- **CORS Configuration** - Proper cross-origin settings
+- **Input Validation** - Zod schema validation
+- **SQL Injection Protection** - Supabase ORM
+- **XSS Protection** - React built-in protection
+
+## 📊 Performance
+
+- **Code Splitting** - Automatic chunk optimization
+- **Lazy Loading** - Component-level lazy loading
+- **Image Optimization** - WebP format support
+- **Caching** - Service worker caching
+- **Bundle Analysis** - `npm run analyze`
+
+## 🧪 Testing
+
 ```bash
-npm run dev
+# Type checking
+npm run type-check
+
+# Linting
+npm run lint
+npm run lint:fix
+
+# Build testing
+npm run test:build
 ```
 
-## Deployment
+## 📈 Monitoring
 
-### Supabase Configuration
-1. Set up Row Level Security policies
-2. Configure authentication providers
-3. Set up realtime subscriptions if needed
+- **Error Tracking** - Sentry integration ready
+- **Analytics** - Google Analytics ready
+- **Performance** - Core Web Vitals monitoring
+- **Uptime** - Health check endpoints
 
-### Frontend Deployment
-1. Build the project: `npm run build`
-2. Deploy to Vercel/Netlify
-3. Set environment variables in deployment platform
-
-## Admin Panel Access
-
-### URL Structure
-- Public site: `/`
-- Admin login: `/dash/login`
-- Admin dashboard: `/dash/chp-ctrl`
-
-⚠️ **Security Note**: The admin panel routes are hidden and not linked from the public site.
-
-### Admin Functions
-1. **Restaurant Management**
-   - Add/edit restaurant details
-   - Set delivery times and contact info
-   - Upload logos and images
-   - Toggle active status
-
-2. **Dish Management**
-   - Create dishes with categories
-   - Set properties (popular, spicy, vegetarian)
-   - Upload dish images
-   - Manage availability
-
-3. **Delivery Zone Management**
-   - Set distance-based pricing
-   - Create delivery zones per town
-   - Automatic fee calculation
-
-4. **Order Management**
-   - View all orders (regular & custom)
-   - Filter by status and search
-   - Order analytics dashboard
-
-## Delivery Logic
-
-### Zone-Based Pricing
-The system uses intelligent zone-based pricing:
-- Each town has multiple delivery zones
-- Zones are defined by distance ranges (0-2km, 2-5km, etc.)
-- Automatic fee calculation based on address keywords
-- Fallback to minimum zone fee if no match
-
-### Default Zones
-**Buea:**
-- Town Center (0-2km): 500 FCFA
-- Suburbs (2-5km): 800 FCFA  
-- Outskirts (5km+): 1200 FCFA
-
-**Limbe:**
-- Mile 1-2 (0-3km): 600 FCFA
-- Mile 3-4 (3-6km): 900 FCFA
-- Down Beach & Beyond (6km+): 1400 FCFA
-
-## Order Flow
-
-1. **Customer Journey**
-   - Select town (Buea/Limbe)
-   - Browse dishes by category
-   - Choose restaurant for each dish
-   - Add to cart with quantities
-   - Fill delivery details
-   - Generate order confirmation
-   - Order saved to database
-
-2. **Order Processing**
-   - Automatic order reference generation
-   - Delivery fee calculation
-   - Order saved with pending status
-   - Order confirmation sent via email
-   - Admin can view and manage in dashboard
-
-## API Functions
-
-### Supabase Functions
-- `generate_order_reference(town_name)` - Creates unique order IDs
-- `calculate_delivery_fee(town_name, location_description)` - Smart fee calculation
-- `get_order_stats()` - Admin dashboard analytics
-
-## Customization
-
-### Adding New Towns
-1. Update `TownSelector.tsx` component
-2. Add delivery zones for the new town
-3. Update order reference generation function
-
-### Adding New Categories
-1. Update the dish category enum in database
-2. Update `DishManagement.tsx` categories array
-3. Update filtering logic if needed
-
-### Custom Styling
-- Modify Tailwind configuration in `tailwind.config.ts`
-- Update CSS custom properties in `index.css`
-- KwataLink brand colors are defined as custom Tailwind classes
-
-## Security Considerations
-
-- Row Level Security enabled on all tables
-- Admin routes are hidden and not guessable
-- JWT-based authentication through Supabase
-- Input validation on all forms
-- SQL injection protection through Supabase
-
-## Performance
-
-- Optimized queries with proper indexing
-- Image optimization recommendations
-- Lazy loading for large datasets
-- Efficient state management with React hooks
-
-## Support & Maintenance
-
-### Monitoring
-- Check Supabase logs for errors
-- Monitor order submission rates
-- Track delivery zone effectiveness
-
-### Backup
-- Supabase handles automatic backups
-- Export order data regularly for analytics
-- Keep admin credentials secure
-
-## Future Enhancements
-
-- Mobile app development
-- Real-time order tracking
-- Payment gateway integration
-- GPS-based delivery fee calculation
-- Restaurant dashboard for order management
-- Customer review system
-- Loyalty program
-- Push notifications
-
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create feature branch
-3. Follow TypeScript best practices
-4. Test thoroughly before submitting
-5. Update documentation for new features
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
 
-## License
+## 📄 License
 
-Proprietary - All rights reserved by KwataLink
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🆘 Support
+
+- **Email**: admin@kwatalink.com
+- **Phone**: +237670416449
+- **Documentation**: [Wiki](https://github.com/Sankofa-Bloom/kwatalink-mobile-menu/wiki)
+
+## 🎯 Roadmap
+
+- [ ] Multi-language support
+- [ ] Advanced analytics dashboard
+- [ ] Mobile app (React Native)
+- [ ] AI-powered recommendations
+- [ ] Loyalty program
+- [ ] Real-time chat support
+
+---
+
+**Built with ❤️ for authentic Cameroonian cuisine delivery**

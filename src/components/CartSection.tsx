@@ -173,15 +173,31 @@ const CartSection: React.FC<CartSectionProps> = ({
 
                   <div>
                     <Label htmlFor="paymentMethod">Payment Method</Label>
-                    <div className="flex items-center space-x-3 p-3 border rounded-lg bg-gray-50">
+                    <div className="flex items-center space-x-3 p-3 border rounded-lg bg-green-50 border-green-200">
                       <div className="flex items-center space-x-2">
                         <div className="w-4 h-4 bg-green-500 rounded-full"></div>
-                        <span className="font-medium text-gray-900">Online Payment</span>
+                        <span className="font-medium text-gray-900">Secure Online Payment (Campay)</span>
                       </div>
-                      <span className="text-sm text-gray-600">(MTN MoMo & Orange Money)</span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Secure online payment through our payment gateway
+                    <div className="mt-2 space-y-1">
+                      <p className="text-xs text-gray-600 font-medium">Available Payment Options:</p>
+                      <div className="flex flex-wrap gap-2">
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                          MTN Mobile Money
+                        </span>
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-orange-100 text-orange-800">
+                          Orange Money
+                        </span>
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                          Moov Money
+                        </span>
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-800">
+                          Card Payment
+                        </span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Secure online payment through Campay payment gateway
                     </p>
                   </div>
 
@@ -202,11 +218,11 @@ const CartSection: React.FC<CartSectionProps> = ({
                     size="lg"
                   >
                     <ShoppingCart className="mr-2 h-5 w-5" />
-                    Proceed to Payment &rarr;
+                    Complete Order & Pay &rarr;
                   </Button>
 
                   <p className="text-xs text-gray-500 text-center">
-                    You'll be redirected to our secure payment gateway to complete your order.
+                    You'll be redirected to our secure payment gateway to complete your payment.
                   </p>
                 </CardContent>
               </Card>

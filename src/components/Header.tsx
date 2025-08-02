@@ -8,6 +8,7 @@ import { ShoppingCart, MapPin, Download } from 'lucide-react';
 interface HeaderProps {
   selectedTown: string;
   cart: any[];
+  cartItemCount?: number;
   onTownChange: () => void;
   onCartClick: () => void;
   showPWAPrompt: boolean;
@@ -18,6 +19,7 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({
   selectedTown,
   cart,
+  cartItemCount = 0,
   onTownChange,
   onCartClick,
   showPWAPrompt,
@@ -95,9 +97,9 @@ const Header: React.FC<HeaderProps> = ({
                 >
                   <ShoppingCart className="w-4 h-4 mr-2" />
                   Cart
-                  {cart.length > 0 && (
+                  {cartItemCount > 0 && (
                     <Badge className="absolute -top-2 -right-2 bg-choptime-orange text-white text-xs">
-                      {cart.length}
+                      {cartItemCount}
                     </Badge>
                   )}
                 </Button>

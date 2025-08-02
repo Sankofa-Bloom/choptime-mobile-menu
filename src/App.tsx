@@ -6,7 +6,6 @@ import AdminLogin from '@/pages/AdminLogin';
 import AdminDashboard from '@/pages/AdminDashboard';
 import ThankYou from '@/pages/ThankYou';
 import PaymentSuccess from '@/pages/PaymentSuccess';
-import Payment from '@/pages/Payment';
 import WhatsAppButton from '@/components/WhatsAppButton';
 import { SplashScreen } from '@/components/SplashScreen';
 import { Toaster } from '@/components/ui/toaster';
@@ -46,7 +45,6 @@ function App() {
         <Route path="/dash/chp-ctrl" element={<AdminDashboard />} />
         <Route path="/thank-you" element={<ThankYou />} />
         <Route path="/payment-success" element={<PaymentSuccess />} />
-        <Route path="/payment" element={<Payment />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       

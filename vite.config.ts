@@ -9,6 +9,18 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    proxy: {
+      '/api/campay': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/api/email': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      }
+    }
   },
   plugins: [
     react(),
@@ -88,16 +100,23 @@ export default defineConfig(({ mode }) => ({
         manualChunks: {
           vendor: ['react', 'react-dom'],
           ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-toast'],
-          utils: ['emailjs-com', 'date-fns']
+          utils: ['emailjs-com', 'date-fns'],
+          supabase: ['@supabase/supabase-js'],
+          payment: ['react-router-dom']
         }
       }
     },
     terserOptions: mode === 'production' ? {
       compress: {
         drop_console: true,
-        drop_debugger: true
+        drop_debugger: true,
+        pure_funcs: ['console.log', 'console.info', 'console.debug']
+      },
+      mangle: {
+        safari10: true
       }
-    } : undefined
+    } : undefined,
+    chunkSizeWarningLimit: 1000
   },
   define: {
     __DEV__: mode === 'development'
