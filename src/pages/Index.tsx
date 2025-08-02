@@ -260,7 +260,7 @@ const Index = () => {
   const getDishPrice = useCallback((dishId: string, restaurantId: string): number => {
     const menu = restaurantMenus.find(m => m.dish_id === dishId && m.restaurant_id === restaurantId);
     return menu?.price || 0;
-  };
+  }, [restaurantMenus]);
 
 
 
