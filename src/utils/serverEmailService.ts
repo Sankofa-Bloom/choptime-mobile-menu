@@ -67,4 +67,37 @@ export const sendAdminNotificationEmail = async (orderData: OrderEmailData): Pro
     console.error('Error sending admin notification email:', error);
     return false;
   }
+};
+
+/**
+ * Send order status update email via server
+ */
+export const sendOrderStatusUpdateEmail = async (
+  orderData: OrderEmailData, 
+  status: 'preparing' | 'ready' | 'delivering' | 'delivered',
+  message: string
+): Promise<boolean> => {
+  try {
+    console.log('Sending order status update email via server:', { orderData, status, message });
+    
+    const response = await fetch('/api/email/send-status-update', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ orderData, status, message })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    console.log('Order status update email result:', result);
+    
+    return result.success;
+  } catch (error) {
+    console.error('Error sending order status update email:', error);
+    return false;
+  }
 }; 

@@ -1,174 +1,139 @@
-# KwataLink Deployment Guide
+# 🚀 KwataLink Deployment Guide
 
-## Vercel Deployment Setup
+## Quick Deployment Options
 
-### 1. Environment Variables Setup
+### Option 1: Vercel (Recommended)
 
-You need to configure the following environment variables in your Vercel project:
+1. **Connect to Vercel**
+   ```bash
+   npm i -g vercel
+   vercel login
+   vercel
+   ```
 
-#### Go to Vercel Dashboard:
-1. Navigate to your project in [Vercel Dashboard](https://vercel.com/dashboard)
-2. Click on your project
-3. Go to **Settings** → **Environment Variables**
+2. **Environment Variables** (Add in Vercel Dashboard)
+   ```env
+   VITE_SUPABASE_URL=https://qrpukxmzdwkepfpuapzh.supabase.co
+   VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+   VITE_DEFAULT_PAYMENT_METHOD=campay
+   VITE_CAMPAY_CALLBACK_URL=https://your-domain.vercel.app/api/payment-webhook
+   VITE_CAMPAY_RETURN_URL=https://your-domain.vercel.app/payment-success
+   VITE_ADMIN_EMAIL=choptime237@gmail.com
+   VITE_ADMIN_PHONE=+237670416449
+   ```
 
-#### Required Environment Variables:
+3. **Build Settings**
+   - Build Command: `npm run build:prod`
+   - Output Directory: `dist`
+   - Install Command: `npm install`
 
-```bash
-# Supabase Configuration
-VITE_SUPABASE_URL=https://qrpukxmzdwkepfpuapzh.supabase.co
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+### Option 2: Netlify
 
-# EmailJS Configuration
-VITE_EMAILJS_SERVICE_ID=service_4beuwe5
-VITE_EMAILJS_USER_ID=lTTBvyuuFE8XG5fZl
-VITE_EMAILJS_GENERIC_TEMPLATE_ID=generic_template
+1. **Connect Repository**
+   - Connect your GitHub repo to Netlify
+   - Set build command: `npm run build:prod`
+   - Set publish directory: `dist`
 
-# Fapshi Payment Configuration
-VITE_FAPSHI_API_USER=b0a2c523-01e3-4557-a2f2-9eccf2fee731
-VITE_FAPSHI_API_KEY=FAK_TEST_c51b4f62bac5cfbe9671
-VITE_FAPSHI_TEST_MODE=true
+2. **Environment Variables** (Add in Netlify Dashboard)
+   - Same as Vercel above
 
-# Admin Configuration
-VITE_ADMIN_EMAIL=admin@kwatalink.com
-VITE_ADMIN_PHONE=+237670416449
-VITE_ADMIN_WHATSAPP=+237670416449
+### Option 3: Railway (Full Stack)
 
-# Company Configuration
-VITE_COMPANY_NAME=KwataLink
-VITE_COMPANY_WEBSITE=https://kwatalink.com
-VITE_COMPANY_ADDRESS=Busumbu Junction, Limbe - Cameroon
+1. **Deploy Both Frontend & Backend**
+   ```bash
+   # Install Railway CLI
+   npm i -g @railway/cli
+   railway login
+   railway init
+   ```
 
-# Delivery Configuration
-VITE_DEFAULT_DELIVERY_FEE=500
-VITE_PREMIUM_DELIVERY_FEE=1000
-VITE_MIN_DELIVERY_TIME=15
-VITE_MAX_DELIVERY_TIME=45
+2. **Environment Variables** (Add in Railway Dashboard)
+   ```env
+   # Frontend
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_key
+   
+   # Backend
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_USER=your_email@gmail.com
+   SMTP_PASS=your_app_password
+   ADMIN_EMAIL=admin@yourdomain.com
+   ```
 
-# Payment Configuration
-VITE_PAYMENT_METHOD=multiple
-VITE_ENABLE_EMAIL_PAYMENT=true
-VITE_ENABLE_CASH_PAYMENT=true
-VITE_ENABLE_MTN_MOMO=true
-VITE_ENABLE_ORANGE_MONEY=true
-VITE_ENABLE_ONLINE_PAYMENT=true
+## 🔧 Production Checklist
 
-# Feature Flags
-VITE_ENABLE_PWA=true
-VITE_ENABLE_EMAIL_NOTIFICATIONS=true
-VITE_ENABLE_ADMIN_NOTIFICATIONS=true
-VITE_ENABLE_SMS_NOTIFICATIONS=false
-VITE_ENABLE_ORDER_TRACKING=true
-VITE_ENABLE_CUSTOM_ORDERS=true
-VITE_ENABLE_ORDER_HISTORY=true
-VITE_ENABLE_ONLINE_PAYMENTS=true
-VITE_ENABLE_PAYMENT_PROCESSING=true
-VITE_ENABLE_PAYMENT_GATEWAYS=true
+### ✅ Pre-Deployment
+- [ ] Environment variables configured
+- [ ] Gmail SMTP app password set
+- [ ] Campay API credentials configured
+- [ ] Supabase database migrations applied
+- [ ] Domain configured (if using custom domain)
 
-# Development Configuration
-VITE_DEV_MODE=false
-VITE_ENABLE_DEBUG_LOGS=false
+### ✅ Post-Deployment
+- [ ] Test order flow end-to-end
+- [ ] Verify email notifications work
+- [ ] Test payment integration
+- [ ] Check PWA installation
+- [ ] Monitor error logs
+- [ ] Test on mobile devices
 
-# Security
-VITE_API_RATE_LIMIT=100
-VITE_API_RATE_LIMIT_WINDOW=60000
-VITE_SESSION_TIMEOUT=30
+### ✅ Security
+- [ ] Environment variables secured
+- [ ] CORS properly configured
+- [ ] HTTPS enabled
+- [ ] API keys not exposed in client
+- [ ] Input validation working
 
-# Notifications
-VITE_TOAST_DURATION=5000
-VITE_ORDER_CONFIRMATION_TIMEOUT=30
-VITE_EMAIL_NOTIFICATION_DELAY=2000
-VITE_ADMIN_NOTIFICATION_DELAY=1000
+## 📱 PWA Configuration
 
-# Order Processing
-VITE_AUTO_CONFIRM_ORDERS=true
-VITE_RESTAURANT_CONFIRMATION_REQUIRED=false
-VITE_PAYMENT_ARRANGEMENT_MODE=automatic
+The app is PWA-ready with:
+- Service worker for offline support
+- App manifest for installation
+- Splash screen and icons
+- Push notification support
 
-# Customization
-VITE_PRIMARY_COLOR=#FF6B35
-VITE_SECONDARY_COLOR=#F7931E
-VITE_ACCENT_COLOR=#2C3E50
-VITE_CURRENCY=XAF
-VITE_CURRENCY_SYMBOL=₣
-VITE_DEFAULT_LANGUAGE=en
-VITE_SUPPORTED_LANGUAGES=en,fr
+## 🔍 Monitoring
 
-# Deployment
-VITE_BUILD_MODE=production
-VITE_APP_VERSION=2.0.0
-VITE_CDN_URL=https://cdn.kwatalink.com
-VITE_ASSET_URL=https://assets.kwatalink.com
-```
+### Health Check Endpoints
+- Frontend: `https://your-domain.com/`
+- Backend: `https://your-domain.com/api/campay/test`
 
-### 2. Setting Environment Variables in Vercel
+### Error Tracking
+- Check browser console for client errors
+- Check server logs for backend errors
+- Monitor Supabase dashboard for database issues
 
-1. **Add each variable individually:**
-   - Click **Add New**
-   - Enter the **Name** (e.g., `VITE_SUPABASE_URL`)
-   - Enter the **Value** (e.g., `https://qrpukxmzdwkepfpuapzh.supabase.co`)
-   - Select **Environment**: Production, Preview, and Development
-   - Click **Save**
+## 🚨 Troubleshooting
 
-2. **Repeat for all variables** listed above
+### Common Issues
 
-### 3. Redeploy After Environment Variables
+1. **Emails not sending**
+   - Check Gmail app password
+   - Verify SMTP configuration
+   - Check server logs
 
-After setting all environment variables:
+2. **Payments failing**
+   - Verify Campay API credentials
+   - Check webhook configuration
+   - Test in sandbox mode first
 
-1. Go to **Deployments** tab
-2. Click **Redeploy** on your latest deployment
-3. Or push a new commit to trigger automatic deployment
+3. **Build failures**
+   - Check Node.js version (18+)
+   - Clear npm cache: `npm cache clean --force`
+   - Delete node_modules and reinstall
 
-### 4. Verify Deployment
+4. **Database connection issues**
+   - Verify Supabase credentials
+   - Check RLS policies
+   - Run migrations: `npx supabase db push`
 
-After redeployment, check that:
+## 📞 Support
 
-- ✅ No more "API user not configured" errors
-- ✅ EmailJS is properly initialized
-- ✅ Fapshi payment integration works
-- ✅ WhatsApp button functions correctly
-- ✅ Contact form sends emails
+- **Email**: admin@kwatalink.com
+- **Phone**: +237670416449
+- **Documentation**: [README.md](README.md)
 
-### 5. Troubleshooting
+---
 
-#### Common Issues:
-
-1. **"Fapshi API user not configured"**
-   - Ensure `VITE_FAPSHI_API_USER` and `VITE_FAPSHI_API_KEY` are set
-
-2. **"EmailJS not initialized"**
-   - Check `VITE_EMAILJS_USER_ID` is set correctly
-
-3. **CSP Errors**
-   - The `vercel.json` file should handle this automatically
-
-4. **404 Errors**
-   - Ensure all routes are properly configured in `vercel.json`
-
-### 6. Production Checklist
-
-Before going live:
-
-- [ ] All environment variables are set
-- [ ] Test payment flow works
-- [ ] Test email notifications work
-- [ ] Test WhatsApp integration
-- [ ] Verify PWA installation
-- [ ] Check mobile responsiveness
-- [ ] Test all payment methods
-
-### 7. Security Notes
-
-- Never commit `.env` files to git
-- Use Vercel's environment variable encryption
-- Regularly rotate API keys
-- Monitor for suspicious activity
-
-## Support
-
-If you encounter issues:
-
-1. Check the browser console for specific error messages
-2. Verify all environment variables are set correctly
-3. Check Vercel deployment logs
-4. Test locally with a `.env` file first 
+**Your KwataLink app is now production-ready! 🎉** 

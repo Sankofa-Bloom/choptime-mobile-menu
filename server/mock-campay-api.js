@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { sendEmail, createOrderConfirmationEmail, createAdminNotificationEmail } = require('./email-service');
+const { sendEmail, createOrderConfirmationEmail, createAdminNotificationEmail, createOrderStatusUpdateEmail } = require('./email-service');
 
 const app = express();
 
@@ -140,6 +140,25 @@ app.post('/api/email/send-admin-notification', async (req, res) => {
     res.json({ success: result.success, messageId: result.messageId });
   } catch (error) {
     console.error('Error sending admin notification email:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post('/api/email/send-status-update', async (req, res) => {
+  try {
+    const { orderData, status, message } = req.body;
+    console.log('Sending order status update email:', { orderData, status, message });
+    
+    const html = createOrderStatusUpdateEmail(orderData, status, message);
+    const result = await sendEmail(
+      orderData.customerEmail,
+      `Order Update - ${orderData.orderReference} - KwataLink`,
+      html
+    );
+    
+    res.json({ success: result.success, messageId: result.messageId });
+  } catch (error) {
+    console.error('Error sending order status update email:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
