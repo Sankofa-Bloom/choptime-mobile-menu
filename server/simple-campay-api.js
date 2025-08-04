@@ -11,10 +11,13 @@ app.use(cors({
 
 app.use(express.json());
 
+// Load environment variables
+require('dotenv').config();
+
 // Campay API configuration
-const CAMPAY_API_KEY = process.env.CAMPAY_API_KEY || '2cb88565d515795af1dccf928126f82526bfb34a';
+const CAMPAY_API_KEY = process.env.CAMPAY_API_KEY;
 const CAMPAY_TEST_MODE = process.env.CAMPAY_TEST_MODE === 'true' || false;
-const CAMPAY_BASE_URL = CAMPAY_TEST_MODE ? 'https://sandbox-api.campay.net' : 'https://api.campay.net';
+const CAMPAY_BASE_URL = process.env.CAMPAY_BASE_URL || (CAMPAY_TEST_MODE ? 'https://sandbox-api.campay.net' : 'https://api.campay.net');
 
 console.log('Campay API Server Starting...');
 console.log('Test Mode:', CAMPAY_TEST_MODE);
