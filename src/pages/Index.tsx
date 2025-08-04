@@ -67,8 +67,15 @@ const Index = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Calculate subtotal function
+  const calculateSubtotal = useCallback(() => {
+    return cart.reduce((sum, item) => {
+      return sum + (('dish' in item ? item.price : item.estimatedPrice) * item.quantity);
+    }, 0);
+  }, [cart]);
+
   // Memoized calculations for better performance
-  const subtotal = useMemo(() => calculateSubtotal(), [cart]);
+  const subtotal = useMemo(() => calculateSubtotal(), [calculateSubtotal]);
   const total = useMemo(() => subtotal + orderDetails.deliveryFee, [subtotal, orderDetails.deliveryFee]);
   const cartItemCount = useMemo(() => cart.reduce((sum, item) => sum + item.quantity, 0), [cart]);
 
@@ -240,12 +247,6 @@ const Index = () => {
       }
     });
   }, []);
-
-  const calculateSubtotal = useCallback(() => {
-    return cart.reduce((sum, item) => {
-      return sum + (('dish' in item ? item.price : item.estimatedPrice) * item.quantity);
-    }, 0);
-  }, [cart]);
 
   const calculateTotal = useCallback(() => {
     return calculateSubtotal() + orderDetails.deliveryFee;
