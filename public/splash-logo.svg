@@ -1,44 +1,11 @@
-<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
-  <title>KwataLink Splash Logo</title>
-  <defs>
-    <linearGradient id="orangeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#FF6B35;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#E89A4D;stop-opacity:1" />
-    </linearGradient>
-  </defs>
-  
-  <!-- Location Pin -->
-  <g transform="translate(200, 120)">
-    <!-- Pin shadow -->
-    <ellipse cx="0" cy="60" rx="12" ry="4" fill="#D57A1F" opacity="0.3"/>
-    
-    <!-- Pin body -->
-    <path d="M0,-45 L-15,20 L0,35 L15,20 Z" fill="url(#orangeGradient)" stroke="#D57A1F" stroke-width="3"/>
-    
-    <!-- Pin hole -->
-    <circle cx="0" cy="0" r="6" fill="white"/>
-    <circle cx="0" cy="0" r="3" fill="#D57A1F"/>
-  </g>
-  
-  <!-- Link elements -->
-  <g transform="translate(170, 140)">
-    <!-- First link segment -->
-    <rect x="0" y="0" width="16" height="10" rx="5" fill="url(#orangeGradient)" stroke="#D57A1F" stroke-width="1.5"/>
-    
-    <!-- Second link segment -->
-    <rect x="11" y="0" width="16" height="10" rx="5" fill="url(#orangeGradient)" stroke="#D57A1F" stroke-width="1.5"/>
-    
-    <!-- Connection line -->
-    <line x1="16" y1="5" x2="11" y2="5" stroke="#D57A1F" stroke-width="3" stroke-linecap="round"/>
-  </g>
-  
-  <!-- Text: KwataLink -->
-  <text x="200" y="220" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="36" font-weight="700" fill="#FF6B35">
-    Kwata<tspan font-weight="400">Link</tspan>
-  </text>
-  
-  <!-- Subtitle -->
-  <text x="200" y="250" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="400" fill="#8B4513" opacity="0.8">
-    Cameroonian Food Delivery
-  </text>
-</svg> 
+<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 359" width="300" height="359">
+	<title>BpdAfR01(1)</title>
+	<defs>
+		<image  width="287" height="333" id="img1" href="data:image/png;base64,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"/>
+	</defs>
+	<style>
+	</style>
+	<g>
+		<use  href="#img1" x="10" y="17"/>
+	</g>
+</svg>

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ShoppingCart, MapPin, Download } from 'lucide-react';
+import AnimatedLogo from './AnimatedLogo';
 
 interface HeaderProps {
   selectedTown: string;
@@ -64,11 +65,7 @@ const Header: React.FC<HeaderProps> = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="flex items-center">
-                <img 
-                  src="/header-logo.svg" 
-                  alt="ChopTime Logo" 
-                  className="h-12 w-auto"
-                />
+                <AnimatedLogo size="lg" animated={false} />
               </div>
               <div className="hidden sm:block">
                 <p className="text-sm text-choptime-brown/70">

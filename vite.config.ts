@@ -53,7 +53,7 @@ export default defineConfig(({ mode }) => ({
           }
         ]
       },
-      includeAssets: ['favicon.png', 'logo.png', 'splash-logo.svg', 'header-logo.svg'],
+              includeAssets: ['favicon.svg', 'favicon.png', 'logo.svg', 'splash-logo.svg', 'header-logo.svg', 'transparent_logo.svg', 'choptime-logo.jpeg'],
       manifest: {
               name: 'ChopTime - Cameroonian Food Delivery',
       short_name: 'ChopTime',
