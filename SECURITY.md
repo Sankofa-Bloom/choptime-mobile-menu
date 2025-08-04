@@ -120,6 +120,7 @@ VITE_FAPSHI_RETURN_URL=http://localhost:8080/payment-success
 3. ❌ Never hardcode secrets in source code
 4. ❌ Never log sensitive payment data
 5. ❌ Never send credentials in URL parameters
+6. ❌ Never log API credentials in console messages
 
 ### What TO do:
 1. ✅ Always use environment variables for secrets
@@ -135,10 +136,13 @@ VITE_FAPSHI_RETURN_URL=http://localhost:8080/payment-success
 // ✅ Safe to log
 console.log('Payment initiated for order:', orderReference);
 console.log('Payment method:', paymentMethod);
+console.log('EmailJS configuration status: configured');
 
 // ❌ Never log
 console.log('API Key:', apiKey);
 console.log('Customer card:', cardNumber);
+console.log('EmailJS User ID:', userId);
+console.log('Service ID:', serviceId);
 ```
 
 ### Error Handling:

@@ -237,28 +237,28 @@ export class GenericEmailService {
 
       console.log('Sending generic email:', {
         type: mappedParams.email_type,
-        templateId: this.TEMPLATE_ID,
-        serviceId: this.SERVICE_ID,
-        userId: this.USER_ID,
+        templateId: this.TEMPLATE_ID ? 'configured' : 'missing',
+        serviceId: this.SERVICE_ID ? 'configured' : 'missing',
+        userId: this.USER_ID ? 'configured' : 'missing',
         params: mappedParams
       });
 
       // Validate EmailJS configuration
       if (!this.SERVICE_ID || this.SERVICE_ID === 'default_service' || this.SERVICE_ID === '') {
         console.warn('EmailJS Service ID not configured - emails will not be sent');
-        console.warn('Current Service ID:', this.SERVICE_ID);
+        console.warn('Current Service ID: [REDACTED]');
         return false;
       }
 
       if (!this.TEMPLATE_ID || this.TEMPLATE_ID === 'default_template' || this.TEMPLATE_ID === '') {
         console.warn('EmailJS Template ID not configured - emails will not be sent');
-        console.warn('Current Template ID:', this.TEMPLATE_ID);
+        console.warn('Current Template ID: [REDACTED]');
         return false;
       }
 
       if (!this.USER_ID || this.USER_ID === 'default_user' || this.USER_ID === '') {
         console.warn('EmailJS User ID not configured - emails will not be sent');
-        console.warn('Current User ID:', this.USER_ID);
+        console.warn('Current User ID: [REDACTED]');
         return false;
       }
 

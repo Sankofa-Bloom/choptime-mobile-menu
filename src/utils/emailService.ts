@@ -26,10 +26,9 @@ const initializeEmailJS = () => {
       if (userId && userId !== 'default_user' && userId !== '') {
         emailjs.init(userId);
         emailjsInitialized = true;
-        console.log('EmailJS initialized successfully with User ID:', userId);
+        console.log('EmailJS initialized successfully');
       } else {
         console.warn('EmailJS not initialized: User ID not configured or invalid');
-        console.warn('Current User ID value:', userId);
       }
     } catch (error) {
       console.warn('EmailJS initialization failed:', error);
@@ -83,9 +82,9 @@ export const sendEmailViaEmailJS = async (
     }
 
     console.log('EmailJS Configuration:', {
-      serviceId: config.serviceId,
-      templateId: config.templateId,
-      userId: config.userId
+      serviceId: config.serviceId ? 'configured' : 'missing',
+      templateId: config.templateId ? 'configured' : 'missing',
+      userId: config.userId ? 'configured' : 'missing'
     });
     console.log('Sending email via EmailJS with params:', templateParams);
     
