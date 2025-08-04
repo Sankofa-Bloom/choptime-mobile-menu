@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { sendOrderConfirmationEmail, sendAdminNotificationEmail } from '@/utils/serverEmailService';
 import { isValidEmail } from '@/utils/emailService';
+import { fapshiService } from '@/utils/fapshiService';
 import RestaurantInfo from './payment/RestaurantInfo';
 import OrderSummary from './payment/OrderSummary';
 import PaymentMethodSelector from './payment/PaymentMethodSelector';
@@ -65,7 +66,9 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
   const [deliveryZone, setDeliveryZone] = useState<DeliveryZone | null>(null);
   const [loading, setLoading] = useState(false);
   const [momoNumber, setMomoNumber] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'campay'>('campay');
+  const [paymentMethod, setPaymentMethod] = useState<'campay' | 'fapshi'>(
+    (import.meta.env.VITE_DEFAULT_PAYMENT_METHOD as 'campay' | 'fapshi') || 'fapshi'
+  );
   const [customerEmail, setCustomerEmail] = useState('');
   const [orderReference, setOrderReference] = useState<string>('');
   const [paymentUrl, setPaymentUrl] = useState<string>('');
@@ -324,8 +327,8 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
       return;
     }
 
-    // For Campay payment, save order first then redirect to payment
-    if (paymentMethod === 'campay') {
+    // For payment processing, save order first then redirect to payment
+    if (paymentMethod === 'campay' || paymentMethod === 'fapshi') {
       setLoading(true);
       try {
         console.log('Saving order to database...');
@@ -358,114 +361,97 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
             throw new Error('Customer email is missing');
           }
           
-          const paymentData = {
-            amount: total,
-            currency: "XAF",
-            reference: orderRef,
-            description: `KwataLink Order - ${selectedRestaurant.name} - ${currentOrderData.dishName}`,
-            customer: {
-              name: currentOrderData.customerName || '',
-              phone: currentOrderData.customerPhone || '',
-              email: customerEmail
-            },
-            callback_url: import.meta.env.VITE_CAMPAY_CALLBACK_URL || `http://localhost:8081/api/payment-webhook`,
-            return_url: import.meta.env.VITE_CAMPAY_RETURN_URL || `http://localhost:8081/payment-success?reference=${orderRef}`
-          };
-
-          console.log('Sending payment initialization request:', paymentData);
+          // Prepare payment data based on payment method
           
-          const response = await fetch('/api/campay/initialize', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(paymentData)
-          });
+          if (paymentMethod === 'campay') {
+            // Campay payment logic
+            const paymentData = {
+              amount: total,
+              currency: "XAF",
+              reference: orderRef,
+              description: `KwataLink Order - ${selectedRestaurant.name} - ${currentOrderData.dishName}`,
+              customer: {
+                name: currentOrderData.customerName || '',
+                phone: currentOrderData.customerPhone || '',
+                email: customerEmail
+              },
+              callback_url: import.meta.env.VITE_CAMPAY_CALLBACK_URL || `http://localhost:3001/api/payment-webhook`,
+              return_url: import.meta.env.VITE_CAMPAY_RETURN_URL || `http://localhost:3001/payment-success?reference=${orderRef}`
+            };
 
-          console.log('Payment initialization response status:', response.status);
-          
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-          }
-          
-          const result = await response.json();
-          console.log('Payment initialization result:', result);
+            console.log('Sending Campay payment initialization request:', paymentData);
+            
+            const response = await fetch('/api/campay/initialize', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(paymentData)
+            });
 
-          if (result.success) {
-            console.log('Payment initialization successful, checking response data:', result.data);
-            if (result.data?.payment_url) {
-              // Redirect directly to payment gateway
-              console.log('Payment URL found, redirecting to payment gateway');
-              setPaymentUrl(result.data.payment_url);
-            } else if (result.data?.status === 'success') {
-              console.log('Mock payment success detected, proceeding with email sending');
-              // Mock payment was immediately successful (for testing)
-              // In production, this would redirect to payment gateway
-              console.log('Mock payment successful:', result.data);
-              
-              console.log('About to update order in database...');
-              
-              // Update the order with payment information
-              await supabase
-                .from('orders')
-                .update({
-                  payment_status: 'paid',
-                  payment_reference: result.data.reference,
-                  payment_method: 'campay',
-                  status: 'confirmed'
-                })
-                .eq('order_reference', orderRef);
-
-              // Send confirmation email to customer
-              let emailSent = false;
-              let adminEmailSent = false;
-              
-              try {
-                console.log('Sending order confirmation email...');
-                emailSent = await handleEmailOrder(orderRef);
-                console.log('Order confirmation email result:', emailSent);
-              } catch (emailError) {
-                console.error('Error sending order confirmation email:', emailError);
-              }
-              
-              // Send notification to admin
-              try {
-                console.log('Sending admin notification email...');
-                adminEmailSent = await sendAdminNotificationEmailLocal({ order_reference: orderRef });
-                console.log('Admin notification email result:', adminEmailSent);
-              } catch (adminEmailError) {
-                console.error('Error sending admin notification email:', adminEmailError);
-              }
-
-              // Store order reference for success page
-              localStorage.setItem('lastOrderReference', orderRef);
-
-              // Show email status in toast
-              if (emailSent && adminEmailSent) {
-                toast({
-                  title: "Payment Successful!",
-                  description: "Your order has been confirmed and confirmation emails sent.",
-                });
-              } else if (emailSent) {
-                toast({
-                  title: "Payment Successful!",
-                  description: "Your order has been confirmed. Customer email sent, admin notification failed.",
-                });
-              } else {
-                toast({
-                  title: "Payment Successful!",
-                  description: "Your order has been confirmed. Email notifications failed to send.",
-                });
-              }
-
-              // Navigate to success page
-              window.location.href = `/payment-success?reference=${orderRef}`;
-            } else {
-              throw new Error(result.error || 'Failed to initialize payment');
+            console.log('Campay payment initialization response status:', response.status);
+            
+            if (!response.ok) {
+              throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
-          } else {
-            throw new Error(result.error || 'Failed to initialize payment');
+            
+            const result = await response.json();
+            console.log('Campay payment initialization result:', result);
+            
+            // Handle Campay response
+            if (result.success) {
+              console.log('Campay payment initialization successful, checking response data:', result.data);
+              if (result.data?.payment_url) {
+                // Redirect directly to payment gateway
+                console.log('Payment URL found, redirecting to payment gateway');
+                setPaymentUrl(result.data.payment_url);
+              } else if (result.data?.status === 'success') {
+                // Handle immediate success (mock payment)
+                await handlePaymentSuccess(result.data, 'campay');
+              } else {
+                throw new Error(result.error || 'Failed to initialize Campay payment');
+              }
+            } else {
+              throw new Error(result.error || 'Failed to initialize Campay payment');
+            }
+          } else if (paymentMethod === 'fapshi') {
+            // Fapshi payment logic
+            const formattedPhone = fapshiService.formatPhoneNumber(currentOrderData.customerPhone || '');
+            
+            const paymentData = {
+              amount: Math.round(total * 100), // Convert to cents for Fapshi
+              currency: "XAF",
+              reference: orderRef,
+              description: `KwataLink Order - ${selectedRestaurant.name} - ${currentOrderData.dishName}`,
+              customer: {
+                name: currentOrderData.customerName || '',
+                phone: formattedPhone,
+                email: customerEmail
+              },
+              callback_url: import.meta.env.VITE_FAPSHI_CALLBACK_URL || `http://localhost:8080/api/payment-webhook`,
+              return_url: import.meta.env.VITE_FAPSHI_RETURN_URL || `http://localhost:8080/payment-success?reference=${orderRef}`
+            };
+
+            console.log('Sending Fapshi payment initialization request:', paymentData);
+            
+            const result = await fapshiService.initializePayment(paymentData);
+            console.log('Fapshi payment initialization result:', result);
+            
+            if (result.success && result.data) {
+              console.log('Fapshi payment initialization successful:', result.data);
+              if (result.data.payment_url) {
+                // Redirect to Fapshi payment gateway
+                console.log('Fapshi payment URL found, redirecting to payment gateway');
+                setPaymentUrl(result.data.payment_url);
+              } else {
+                throw new Error('No payment URL received from Fapshi');
+              }
+            } else {
+              throw new Error(result.error || 'Failed to initialize Fapshi payment');
+            }
           }
+
+
         }
       } catch (error) {
         console.error('Error processing payment:', error);
@@ -485,10 +471,10 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
       return;
     }
 
-    // This should not happen since we only support Campay now
+    // This should not happen since we support Campay and Fapshi
     toast({
       title: "Payment Method Error",
-      description: "Please select a valid payment method.",
+      description: "Please select a valid payment method (Campay or Fapshi).",
       variant: "destructive"
     });
   };
@@ -498,6 +484,69 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
   };
 
 
+
+  const handlePaymentSuccess = async (paymentData: any, paymentMethod: string) => {
+    console.log('Mock payment success detected, proceeding with email sending');
+    console.log('Payment successful:', paymentData);
+    
+    console.log('About to update order in database...');
+    
+    // Update the order with payment information
+    await supabase
+      .from('orders')
+      .update({
+        payment_status: 'paid',
+        payment_reference: paymentData.reference,
+        payment_method: paymentMethod,
+        status: 'confirmed'
+      })
+      .eq('order_reference', orderReference);
+
+    // Send confirmation email to customer
+    let emailSent = false;
+    let adminEmailSent = false;
+    
+    try {
+      console.log('Sending order confirmation email...');
+      emailSent = await handleEmailOrder(orderReference);
+      console.log('Order confirmation email result:', emailSent);
+    } catch (emailError) {
+      console.error('Error sending order confirmation email:', emailError);
+    }
+    
+    // Send notification to admin
+    try {
+      console.log('Sending admin notification email...');
+      adminEmailSent = await sendAdminNotificationEmailLocal({ order_reference: orderReference });
+      console.log('Admin notification email result:', adminEmailSent);
+    } catch (adminEmailError) {
+      console.error('Error sending admin notification email:', adminEmailError);
+    }
+
+    // Store order reference for success page
+    localStorage.setItem('lastOrderReference', orderReference);
+
+    // Show email status in toast
+    if (emailSent && adminEmailSent) {
+      toast({
+        title: "Payment Successful!",
+        description: "Your order has been confirmed and confirmation emails sent.",
+      });
+    } else if (emailSent) {
+      toast({
+        title: "Payment Successful!",
+        description: "Your order has been confirmed. Customer email sent, admin notification failed.",
+      });
+    } else {
+      toast({
+        title: "Payment Successful!",
+        description: "Your order has been confirmed. Email notifications failed to send.",
+      });
+    }
+
+    // Navigate to success page
+    window.location.href = `/payment-success?reference=${orderReference}`;
+  };
 
   const sendAdminNotificationEmailLocal = async (savedOrder: any): Promise<boolean> => {
     try {

@@ -5,15 +5,15 @@ const fetch = require('node-fetch');
 const app = express();
 
 app.use(cors({
-  origin: 'http://localhost:8081',
+  origin: ['http://localhost:8081', 'http://localhost:5173', 'http://localhost:3000'],
   credentials: true
 }));
 
 app.use(express.json());
 
-// Campay API configuration (hardcoded for testing)
-const CAMPAY_API_KEY = '2cb88565d515795af1dccf928126f82526bfb34a';
-const CAMPAY_TEST_MODE = false; // Use production for now
+// Campay API configuration
+const CAMPAY_API_KEY = process.env.CAMPAY_API_KEY || '2cb88565d515795af1dccf928126f82526bfb34a';
+const CAMPAY_TEST_MODE = process.env.CAMPAY_TEST_MODE === 'true' || false;
 const CAMPAY_BASE_URL = CAMPAY_TEST_MODE ? 'https://sandbox-api.campay.net' : 'https://api.campay.net';
 
 console.log('Campay API Server Starting...');
