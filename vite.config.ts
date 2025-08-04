@@ -55,8 +55,8 @@ export default defineConfig(({ mode }) => ({
       },
       includeAssets: ['favicon.png', 'logo.png', 'splash-logo.svg', 'header-logo.svg'],
       manifest: {
-        name: 'KwataLink - Cameroonian Food Delivery',
-        short_name: 'KwataLink',
+              name: 'ChopTime - Cameroonian Food Delivery',
+      short_name: 'ChopTime',
         description: 'Authentic Cameroonian cuisine delivered fresh to your doorstep',
         theme_color: '#D57A1F',
         background_color: '#FDF1E0',
@@ -78,7 +78,7 @@ export default defineConfig(({ mode }) => ({
             sizes: '400x300',
             type: 'image/svg+xml',
             form_factor: 'wide',
-            label: 'KwataLink - Cameroonian Food Delivery'
+            label: 'ChopTime - Cameroonian Food Delivery'
           }
         ]
       }

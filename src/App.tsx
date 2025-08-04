@@ -15,12 +15,12 @@ function App() {
 
   useEffect(() => {
     // Check if this is the first time visiting the app
-    const hasVisited = localStorage.getItem('kwatalink_visited');
+    const hasVisited = localStorage.getItem('choptime_visited');
     
     if (!hasVisited) {
       setShowSplash(true);
       // Mark as visited after showing splash
-      localStorage.setItem('kwatalink_visited', 'true');
+              localStorage.setItem('choptime_visited', 'true');
     }
   }, []);
 

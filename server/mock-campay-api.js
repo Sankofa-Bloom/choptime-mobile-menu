@@ -126,7 +126,7 @@ app.post('/api/email/send-order-confirmation', async (req, res) => {
     const html = createOrderConfirmationEmail(orderData);
     const result = await sendEmail(
       orderData.customerEmail,
-      'Order Confirmed - KwataLink',
+              'Order Confirmed - ChopTime',
       html
     );
     
@@ -143,8 +143,8 @@ app.post('/api/email/send-admin-notification', async (req, res) => {
     
     const html = createAdminNotificationEmail(orderData);
     const result = await sendEmail(
-      process.env.ADMIN_EMAIL || 'admin@kwatalink.com',
-      'New Order Notification - KwataLink',
+              process.env.ADMIN_EMAIL || 'admin@choptime.com',
+        'New Order Notification - ChopTime',
       html
     );
     
@@ -163,7 +163,7 @@ app.post('/api/email/send-status-update', async (req, res) => {
     const html = createOrderStatusUpdateEmail(orderData, status, message);
     const result = await sendEmail(
       orderData.customerEmail,
-      `Order Update - ${orderData.orderReference} - KwataLink`,
+              `Order Update - ${orderData.orderReference} - ChopTime`,
       html
     );
     

@@ -1,4 +1,4 @@
-# KwataLink - Authentic Cameroonian Cuisine Delivery
+# ChopTime - Authentic Cameroonian Cuisine Delivery
 
 A modern, production-ready food delivery application specializing in authentic Cameroonian cuisine. Built with React, TypeScript, and Supabase.
 
@@ -37,8 +37,8 @@ A modern, production-ready food delivery application specializing in authentic C
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/Sankofa-Bloom/kwatalink-mobile-menu.git
-   cd kwatalink-mobile-menu
+   git clone https://github.com/Sankofa-Bloom/choptime-mobile-menu.git
+cd choptime-mobile-menu
    ```
 
 2. **Install dependencies**
@@ -223,9 +223,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🆘 Support
 
-- **Email**: admin@kwatalink.com
+- **Email**: admin@choptime.com
 - **Phone**: +237670416449
-- **Documentation**: [Wiki](https://github.com/Sankofa-Bloom/kwatalink-mobile-menu/wiki)
+- **Documentation**: [Wiki](https://github.com/Sankofa-Bloom/choptime-mobile-menu/wiki)
 
 ## 🎯 Roadmap
 

@@ -84,8 +84,8 @@ const PaymentSuccess: React.FC = () => {
           <div className="text-center">
             <p className="text-xs text-gray-500">
               Need help? Contact us at{' '}
-              <a href="mailto:support@kwatalink.com" className="text-choptime-orange hover:underline">
-                support@kwatalink.com
+                      <a href="mailto:support@choptime.com" className="text-choptime-orange hover:underline">
+          support@choptime.com
               </a>
             </p>
           </div>

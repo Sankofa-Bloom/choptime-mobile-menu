@@ -2,7 +2,7 @@
 
 ## 🎯 **Campay API Integration Complete**
 
-Your KwataLink app is now configured to use Campay as the default payment gateway. Here's how to set up your API keys:
+Your ChopTime app is now configured to use Campay as the default payment gateway. Here's how to set up your API keys:
 
 ## 📋 **Required API Keys**
 
@@ -42,8 +42,8 @@ VITE_CAMPAY_WEBHOOK_KEY=your_webhook_key_here
 ```bash
 VITE_CAMPAY_API_KEY=your_permanent_access_token_here
 VITE_CAMPAY_TEST_MODE=false
-VITE_CAMPAY_CALLBACK_URL=https://kwatalink.com/api/payment-webhook
-VITE_CAMPAY_RETURN_URL=https://kwatalink.com/payment-success
+VITE_CAMPAY_CALLBACK_URL=https://choptime.com/api/payment-webhook
+VITE_CAMPAY_RETURN_URL=https://choptime.com/payment-success
 VITE_CAMPAY_WEBHOOK_KEY=your_webhook_key_here
 ```
 
@@ -120,7 +120,7 @@ Campay supports these payment methods:
 
 ## 🎉 **Ready to Go!**
 
-Your KwataLink app is now fully integrated with Campay payment gateway. The integration includes:
+Your ChopTime app is now fully integrated with Campay payment gateway. The integration includes:
 
 - ✅ **Real-time payment processing**
 - ✅ **Multiple payment methods**

@@ -109,7 +109,7 @@ export class GenericEmailService {
     const emailParams: ContactEmailParams = {
       ...params,
       email_type: 'contact',
-      email_title: 'New Contact Message - KwataLink',
+              email_title: 'New Contact Message - ChopTime',
       email_subtitle: 'Contact Form Submission',
       sent_date: new Date().toLocaleString(),
       email_id: `contact_${Date.now()}`
@@ -144,7 +144,7 @@ export class GenericEmailService {
     const emailParams: OrderConfirmationParams = {
       ...params,
       email_type: 'order_confirmation',
-      email_title: 'Order Confirmed - KwataLink',
+              email_title: 'Order Confirmed - ChopTime',
       email_subtitle: 'Your order is being prepared',
       sent_date: new Date().toLocaleString(),
       email_id: `order_${params.order_reference}`
@@ -160,7 +160,7 @@ export class GenericEmailService {
     const emailParams: AdminNotificationParams = {
       ...params,
       email_type: 'admin_notification',
-      email_title: 'New Order Notification - KwataLink',
+              email_title: 'New Order Notification - ChopTime',
       email_subtitle: 'Action Required',
       sent_date: new Date().toLocaleString(),
       email_id: `admin_${params.order_reference}`
@@ -176,7 +176,7 @@ export class GenericEmailService {
     const emailParams: PaymentConfirmationParams = {
       ...params,
       email_type: 'payment_confirmation',
-      email_title: 'Payment Confirmed - KwataLink',
+              email_title: 'Payment Confirmed - ChopTime',
       email_subtitle: 'Your payment was successful',
       sent_date: new Date().toLocaleString(),
       email_id: `payment_${params.payment_reference}`
@@ -192,7 +192,7 @@ export class GenericEmailService {
     const emailParams: CustomEmailParams = {
       ...params,
       email_type: 'custom',
-      email_title: params.custom_title || 'KwataLink Notification',
+              email_title: params.custom_title || 'ChopTime Notification',
       email_subtitle: 'Custom Message',
       sent_date: new Date().toLocaleString(),
       email_id: `custom_${Date.now()}`
@@ -208,7 +208,7 @@ export class GenericEmailService {
     try {
       // Add default values for missing fields
       const completeParams = {
-        company_name: import.meta.env.VITE_COMPANY_NAME || 'KwataLink',
+        company_name: import.meta.env.VITE_COMPANY_NAME || 'ChopTime',
         company_address: import.meta.env.VITE_COMPANY_ADDRESS || 'Your Company Address',
         admin_email: import.meta.env.VITE_ADMIN_EMAIL || 'admin@example.com',
         admin_phone: import.meta.env.VITE_ADMIN_PHONE || '+1234567890',

@@ -16,7 +16,7 @@ const emailConfig = {
 const transporter = nodemailer.createTransport(emailConfig);
 
 // Send email function (with real email capability)
-const sendEmail = async (to, subject, html, from = process.env.SMTP_USER || 'noreply@kwatalink.com') => {
+const sendEmail = async (to, subject, html, from = process.env.SMTP_USER || 'noreply@choptime.com') => {
   try {
     // Check if we have SMTP credentials configured
     const hasSmtpConfig = process.env.SMTP_USER && process.env.SMTP_PASS;
@@ -64,7 +64,7 @@ const createOrderConfirmationEmail = (orderData) => {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Order Confirmed - KwataLink</title>
+      <title>Order Confirmed - ChopTime</title>
     </head>
     <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa;">
       <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
@@ -181,15 +181,15 @@ const createOrderConfirmationEmail = (orderData) => {
         <!-- Footer -->
         <div style="background: #2c3e50; color: white; padding: 30px; text-align: center;">
           <div style="margin-bottom: 20px;">
-            <h3 style="margin: 0; font-size: 20px; color: #D57A1F;">KwataLink</h3>
+            <h3 style="margin: 0; font-size: 20px; color: #D57A1F;">ChopTime</h3>
             <p style="margin: 10px 0 0 0; color: #bdc3c7; font-size: 14px;">Authentic Cameroonian Cuisine Delivered</p>
           </div>
           <div style="display: flex; justify-content: center; gap: 20px; margin-bottom: 20px;">
             <a href="tel:${process.env.ADMIN_PHONE || '+237670416449'}" style="color: #D57A1F; text-decoration: none; font-size: 14px;">📞 ${process.env.ADMIN_PHONE || '+237670416449'}</a>
-            <a href="mailto:${process.env.ADMIN_EMAIL || 'admin@kwatalink.com'}" style="color: #D57A1F; text-decoration: none; font-size: 14px;">✉️ ${process.env.ADMIN_EMAIL || 'admin@kwatalink.com'}</a>
+            <a href="mailto:${process.env.ADMIN_EMAIL || 'admin@choptime.com'}" style="color: #D57A1F; text-decoration: none; font-size: 14px;">✉️ ${process.env.ADMIN_EMAIL || 'admin@choptime.com'}</a>
           </div>
           <p style="margin: 0; color: #95a5a6; font-size: 12px;">
-            Thank you for choosing KwataLink! We appreciate your business.
+            Thank you for choosing ChopTime! We appreciate your business.
           </p>
         </div>
       </div>
@@ -205,7 +205,7 @@ const createAdminNotificationEmail = (orderData) => {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>New Order - KwataLink Admin</title>
+      <title>New Order - ChopTime Admin</title>
     </head>
     <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa;">
       <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
@@ -331,12 +331,12 @@ const createAdminNotificationEmail = (orderData) => {
         <!-- Footer -->
         <div style="background: #2c3e50; color: white; padding: 30px; text-align: center;">
           <div style="margin-bottom: 20px;">
-            <h3 style="margin: 0; font-size: 20px; color: #D57A1F;">KwataLink Admin</h3>
+            <h3 style="margin: 0; font-size: 20px; color: #D57A1F;">ChopTime Admin</h3>
             <p style="margin: 10px 0 0 0; color: #bdc3c7; font-size: 14px;">Order Management System</p>
           </div>
           <div style="display: flex; justify-content: center; gap: 20px; margin-bottom: 20px;">
             <a href="tel:${process.env.ADMIN_PHONE || '+237670416449'}" style="color: #D57A1F; text-decoration: none; font-size: 14px;">📞 ${process.env.ADMIN_PHONE || '+237670416449'}</a>
-            <a href="mailto:${process.env.ADMIN_EMAIL || 'admin@kwatalink.com'}" style="color: #D57A1F; text-decoration: none; font-size: 14px;">✉️ ${process.env.ADMIN_EMAIL || 'admin@kwatalink.com'}</a>
+            <a href="mailto:${process.env.ADMIN_EMAIL || 'admin@choptime.com'}" style="color: #D57A1F; text-decoration: none; font-size: 14px;">✉️ ${process.env.ADMIN_EMAIL || 'admin@choptime.com'}</a>
           </div>
           <p style="margin: 0; color: #95a5a6; font-size: 12px;">
             This is an automated notification. Please respond promptly to ensure customer satisfaction.
@@ -381,7 +381,7 @@ const createOrderStatusUpdateEmail = (orderData, status, message) => {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Order Update - KwataLink</title>
+      <title>Order Update - ChopTime</title>
     </head>
     <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa;">
       <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
@@ -454,15 +454,15 @@ const createOrderStatusUpdateEmail = (orderData, status, message) => {
         <!-- Footer -->
         <div style="background: #2c3e50; color: white; padding: 30px; text-align: center;">
           <div style="margin-bottom: 20px;">
-            <h3 style="margin: 0; font-size: 20px; color: #D57A1F;">KwataLink</h3>
+            <h3 style="margin: 0; font-size: 20px; color: #D57A1F;">ChopTime</h3>
             <p style="margin: 10px 0 0 0; color: #bdc3c7; font-size: 14px;">Authentic Cameroonian Cuisine Delivered</p>
           </div>
           <div style="display: flex; justify-content: center; gap: 20px; margin-bottom: 20px;">
             <a href="tel:${process.env.ADMIN_PHONE || '+237670416449'}" style="color: #D57A1F; text-decoration: none; font-size: 14px;">📞 ${process.env.ADMIN_PHONE || '+237670416449'}</a>
-            <a href="mailto:${process.env.ADMIN_EMAIL || 'admin@kwatalink.com'}" style="color: #D57A1F; text-decoration: none; font-size: 14px;">✉️ ${process.env.ADMIN_EMAIL || 'admin@kwatalink.com'}</a>
+            <a href="mailto:${process.env.ADMIN_EMAIL || 'admin@choptime.com'}" style="color: #D57A1F; text-decoration: none; font-size: 14px;">✉️ ${process.env.ADMIN_EMAIL || 'admin@choptime.com'}</a>
           </div>
           <p style="margin: 0; color: #95a5a6; font-size: 12px;">
-            Thank you for choosing KwataLink! We appreciate your business.
+            Thank you for choosing ChopTime! We appreciate your business.
           </p>
         </div>
       </div>

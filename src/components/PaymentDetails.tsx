@@ -369,7 +369,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
               amount: total,
               currency: "XAF",
               reference: orderRef,
-              description: `KwataLink Order - ${selectedRestaurant.name} - ${currentOrderData.dishName}`,
+              description: `ChopTime Order - ${selectedRestaurant.name} - ${currentOrderData.dishName}`,
               customer: {
                 name: currentOrderData.customerName || '',
                 phone: currentOrderData.customerPhone || '',
@@ -422,7 +422,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
               amount: Math.round(total * 100), // Convert to cents for Fapshi
               currency: "XAF",
               reference: orderRef,
-              description: `KwataLink Order - ${selectedRestaurant.name} - ${currentOrderData.dishName}`,
+              description: `ChopTime Order - ${selectedRestaurant.name} - ${currentOrderData.dishName}`,
               customer: {
                 name: currentOrderData.customerName || '',
                 phone: formattedPhone,

@@ -1,4 +1,4 @@
-# 🚀 KwataLink Deployment Guide
+# 🚀 ChopTime Deployment Guide
 
 ## Quick Deployment Options
 
@@ -130,10 +130,10 @@ The app is PWA-ready with:
 
 ## 📞 Support
 
-- **Email**: admin@kwatalink.com
+- **Email**: admin@choptime.com
 - **Phone**: +237670416449
 - **Documentation**: [README.md](README.md)
 
 ---
 
-**Your KwataLink app is now production-ready! 🎉** 
+**Your ChopTime app is now production-ready! 🎉** 

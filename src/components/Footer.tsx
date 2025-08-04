@@ -12,7 +12,7 @@ const Footer: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="grid md:grid-cols-3 gap-8">
           <div>
-            <h5 className="font-bold text-lg mb-4">KwataLink</h5>
+            <h5 className="font-bold text-lg mb-4">ChopTime</h5>
             <p className="text-white/80 text-sm">
               Bringing authentic Cameroonian flavors to your doorstep. 
               Experience the taste of home with every bite.
@@ -57,7 +57,7 @@ const Footer: React.FC = () => {
         <Separator className="my-6 bg-white/20" />
         
                   <div className="text-center text-sm text-white/60">
-            <p>&copy; 2024 KwataLink. Made with ❤️ for Cameroon.</p>
+            <p>&copy; 2024 ChopTime. Made with ❤️ for Cameroon.</p>
                           <p className="mt-1">Support: {import.meta.env.VITE_ADMIN_EMAIL || 'admin@example.com'}</p>
         </div>
       </div>

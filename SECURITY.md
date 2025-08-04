@@ -2,7 +2,7 @@
 
 ## 🔒 Security Overview
 
-This document outlines the security protocols and best practices implemented in the KwataLink payment system.
+This document outlines the security protocols and best practices implemented in the ChopTime payment system.
 
 ## 🚨 Critical Security Measures
 

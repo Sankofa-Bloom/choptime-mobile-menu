@@ -86,7 +86,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
               />
             </g>
             
-            {/* Text: KwataLink */}
+            {/* Text: ChopTime */}
             <text 
               x="200" y="220" 
               textAnchor="middle" 
@@ -120,7 +120,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
         
         {/* Welcome text */}
         <p className="mt-6 text-lg text-gray-600 font-medium">
-          Welcome to KwataLink
+          Welcome to ChopTime
         </p>
         <p className="mt-2 text-sm text-gray-500">
           Connecting you to authentic Cameroonian cuisine

@@ -162,8 +162,8 @@ class CampayService {
     try {
       const fullPaymentData = {
         ...paymentData,
-        callback_url: import.meta.env.VITE_CAMPAY_CALLBACK_URL || `https://kwatalink.com/api/payment-webhook`,
-        return_url: import.meta.env.VITE_CAMPAY_RETURN_URL || `https://kwatalink.com/payment-success?reference=${paymentData.reference}`,
+        callback_url: import.meta.env.VITE_CAMPAY_CALLBACK_URL || `https://choptime.com/api/payment-webhook`,
+        return_url: import.meta.env.VITE_CAMPAY_RETURN_URL || `https://choptime.com/payment-success?reference=${paymentData.reference}`,
       };
 
       const response = await this.makeServerRequest('/api/campay/initialize', 'POST', fullPaymentData);

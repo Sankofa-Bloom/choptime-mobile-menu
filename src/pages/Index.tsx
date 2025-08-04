@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Restaurant, Dish, OrderItem, CustomOrderItem, Order, CustomOrder } from '@/types/restaurant';
-import { useKwataLinkData } from '@/hooks/useChopTimeData';
+import { useChopTimeData } from '@/hooks/useChopTimeData';
 import PaymentDetails from '@/components/PaymentDetails';
 import Header from '@/components/Header';
 import HeroSection from '@/components/HeroSection';
@@ -61,7 +61,7 @@ const Index = () => {
     saveCustomOrder,
     saveUserTown,
     getUserTown
-  } = useKwataLinkData(selectedTown);
+  } = useChopTimeData(selectedTown);
 
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -82,7 +82,7 @@ const Index = () => {
   // Load user's town preference on mount
   useEffect(() => {
     const loadUserPreferences = async () => {
-      const savedTown = localStorage.getItem('kwatalink-town');
+      const savedTown = localStorage.getItem('choptime-town');
       if (savedTown && (savedTown === 'Buea' || savedTown === 'Limbe')) {
         setSelectedTown(savedTown);
       } else {
@@ -144,7 +144,7 @@ const Index = () => {
 
   const handleTownChange = useCallback((town: string) => {
     setSelectedTown(town);
-    localStorage.setItem('kwatalink-town', town);
+    localStorage.setItem('choptime-town', town);
     setCart([]); // Clear cart when changing towns
     setShowTownSelector(false);
   }, []);

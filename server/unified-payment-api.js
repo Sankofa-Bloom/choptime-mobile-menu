@@ -598,7 +598,7 @@ app.post('/api/email/send-status-update', async (req, res) => {
       <p><strong>Order Reference:</strong> ${orderData.orderReference}</p>
       <p><strong>Status:</strong> ${status}</p>
       <p><strong>Message:</strong> ${message}</p>
-      <p>Thank you for choosing KwataLink!</p>
+      <p>Thank you for choosing ChopTime!</p>
     `;
     
     // Mock email sending

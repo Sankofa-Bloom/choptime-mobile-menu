@@ -205,7 +205,7 @@ const Contact: React.FC = () => {
             {/* Additional Info */}
             <div className="bg-orange-50 p-6 rounded-lg">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Why Choose KwataLink?
+                Why Choose ChopTime?
               </h3>
               <ul className="text-gray-600 space-y-2">
                 <li>• Authentic Cameroonian cuisine</li>
