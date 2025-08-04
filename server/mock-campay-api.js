@@ -3,6 +3,11 @@ const express = require('express');
 const cors = require('cors');
 const { sendEmail, createOrderConfirmationEmail, createAdminNotificationEmail, createOrderStatusUpdateEmail } = require('./email-service');
 
+// Load environment variables
+const DEFAULT_PAYMENT_METHOD = process.env.DEFAULT_PAYMENT_METHOD || 'fapshi';
+const ENABLE_CAMPAY_PAYMENTS = process.env.ENABLE_CAMPAY_PAYMENTS === 'true' || false;
+const ENABLE_FAPSHI_PAYMENTS = process.env.ENABLE_FAPSHI_PAYMENTS === 'true' || true;
+
 const app = express();
 
 app.use(cors({
@@ -12,14 +17,20 @@ app.use(cors({
 
 app.use(express.json());
 
-console.log('Mock Campay API Server Starting...');
+console.log('Mock Payment API Server Starting...');
+console.log('Default Payment Method:', DEFAULT_PAYMENT_METHOD);
+console.log('Campay Payments Enabled:', ENABLE_CAMPAY_PAYMENTS);
+console.log('Fapshi Payments Enabled:', ENABLE_FAPSHI_PAYMENTS);
 
 // Test endpoint
 app.get('/api/campay/test', (req, res) => {
   res.json({ 
-    message: 'Mock Campay API server is running!',
+    message: 'Mock Payment API server is running!',
     testMode: true,
-    baseUrl: 'mock-server'
+    baseUrl: 'mock-server',
+    defaultPaymentMethod: DEFAULT_PAYMENT_METHOD,
+    campayEnabled: ENABLE_CAMPAY_PAYMENTS,
+    fapshiEnabled: ENABLE_FAPSHI_PAYMENTS
   });
 });
 
