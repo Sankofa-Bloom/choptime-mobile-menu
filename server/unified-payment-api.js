@@ -29,7 +29,7 @@ app.use((req, res, next) => {
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('X-XSS-Protection', '1; mode=block');
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.emailjs.com https://api.emailjs.com https://vercel.live; style-src 'self' 'unsafe-inline';");
+    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.emailjs.com https://api.emailjs.com https://vercel.live; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:* https://localhost:* https://*.supabase.co https://www.emailjs.com https://api.emailjs.com https://api.fapshi.com https://sandbox.fapshi.com https://*.fapshi.com https://api.campay.net https://sandbox.campay.net;");
   
   // Remove server information
   res.removeHeader('X-Powered-By');
