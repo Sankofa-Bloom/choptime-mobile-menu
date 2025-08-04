@@ -505,6 +505,118 @@ app.post('/api/email/send', async (req, res) => {
   }
 });
 
+// Order confirmation email endpoint
+app.post('/api/email/send-order-confirmation', async (req, res) => {
+  try {
+    const { orderData } = req.body;
+    
+    console.log('Sending order confirmation email:', orderData);
+    
+    // Create email content
+    const subject = `Order Confirmation - ${orderData.orderReference}`;
+    const html = `
+      <h2>Order Confirmation</h2>
+      <p>Dear ${orderData.customerName},</p>
+      <p>Your order has been confirmed and is being prepared.</p>
+      <p><strong>Order Reference:</strong> ${orderData.orderReference}</p>
+      <p><strong>Restaurant:</strong> ${orderData.restaurantName}</p>
+      <p><strong>Dish:</strong> ${orderData.dishName}</p>
+      <p><strong>Quantity:</strong> ${orderData.quantity}</p>
+      <p><strong>Total Amount:</strong> ${orderData.totalAmount}</p>
+      <p><strong>Delivery Address:</strong> ${orderData.deliveryAddress}</p>
+      <p>We'll notify you when your order is ready for delivery.</p>
+    `;
+    
+    // Mock email sending
+    const emailSent = await sendEmail(orderData.customerEmail, subject, html, html);
+    
+    res.json({
+      success: emailSent,
+      message: emailSent ? 'Order confirmation email sent successfully' : 'Failed to send order confirmation email'
+    });
+  } catch (error) {
+    console.error('Order confirmation email error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Order confirmation email failed: ' + error.message
+    });
+  }
+});
+
+// Admin notification email endpoint
+app.post('/api/email/send-admin-notification', async (req, res) => {
+  try {
+    const { orderData } = req.body;
+    
+    console.log('Sending admin notification email:', orderData);
+    
+    // Create email content
+    const subject = `New Order - ${orderData.orderReference}`;
+    const html = `
+      <h2>New Order Received</h2>
+      <p><strong>Order Reference:</strong> ${orderData.orderReference}</p>
+      <p><strong>Customer:</strong> ${orderData.customerName}</p>
+      <p><strong>Email:</strong> ${orderData.customerEmail}</p>
+      <p><strong>Phone:</strong> ${orderData.customerPhone}</p>
+      <p><strong>Restaurant:</strong> ${orderData.restaurantName}</p>
+      <p><strong>Dish:</strong> ${orderData.dishName}</p>
+      <p><strong>Quantity:</strong> ${orderData.quantity}</p>
+      <p><strong>Total Amount:</strong> ${orderData.totalAmount}</p>
+      <p><strong>Delivery Address:</strong> ${orderData.deliveryAddress}</p>
+    `;
+    
+    // Send to admin email
+    const adminEmail = process.env.VITE_ADMIN_EMAIL || 'admin@choptime.com';
+    const emailSent = await sendEmail(adminEmail, subject, html, html);
+    
+    res.json({
+      success: emailSent,
+      message: emailSent ? 'Admin notification email sent successfully' : 'Failed to send admin notification email'
+    });
+  } catch (error) {
+    console.error('Admin notification email error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Admin notification email failed: ' + error.message
+    });
+  }
+});
+
+// Order status update email endpoint
+app.post('/api/email/send-status-update', async (req, res) => {
+  try {
+    const { orderData, status, message } = req.body;
+    
+    console.log('Sending order status update email:', { orderData, status, message });
+    
+    // Create email content
+    const subject = `Order Status Update - ${orderData.orderReference}`;
+    const html = `
+      <h2>Order Status Update</h2>
+      <p>Dear ${orderData.customerName},</p>
+      <p>Your order status has been updated.</p>
+      <p><strong>Order Reference:</strong> ${orderData.orderReference}</p>
+      <p><strong>Status:</strong> ${status}</p>
+      <p><strong>Message:</strong> ${message}</p>
+      <p>Thank you for choosing KwataLink!</p>
+    `;
+    
+    // Mock email sending
+    const emailSent = await sendEmail(orderData.customerEmail, subject, html, html);
+    
+    res.json({
+      success: emailSent,
+      message: emailSent ? 'Status update email sent successfully' : 'Failed to send status update email'
+    });
+  } catch (error) {
+    console.error('Status update email error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Status update email failed: ' + error.message
+    });
+  }
+});
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Unified Payment API server running on port ${PORT}`);

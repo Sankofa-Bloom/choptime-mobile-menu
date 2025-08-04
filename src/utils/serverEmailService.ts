@@ -18,7 +18,8 @@ export const sendOrderConfirmationEmail = async (orderData: OrderEmailData): Pro
   try {
     console.log('Sending order confirmation email via server:', orderData);
     
-    const response = await fetch('/api/email/send-order-confirmation', {
+    const serverUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+    const response = await fetch(`${serverUrl}/api/email/send-order-confirmation`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -47,7 +48,8 @@ export const sendAdminNotificationEmail = async (orderData: OrderEmailData): Pro
   try {
     console.log('Sending admin notification email via server:', orderData);
     
-    const response = await fetch('/api/email/send-admin-notification', {
+    const serverUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+    const response = await fetch(`${serverUrl}/api/email/send-admin-notification`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -80,7 +82,8 @@ export const sendOrderStatusUpdateEmail = async (
   try {
     console.log('Sending order status update email via server:', { orderData, status, message });
     
-    const response = await fetch('/api/email/send-status-update', {
+    const serverUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+    const response = await fetch(`${serverUrl}/api/email/send-status-update`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
