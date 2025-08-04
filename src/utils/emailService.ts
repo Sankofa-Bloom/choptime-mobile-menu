@@ -9,20 +9,43 @@ const EMAILJS_CONFIG = {
 
 // Initialize EmailJS safely
 let emailjsInitialized = false;
-if (typeof window !== 'undefined') {
-  try {
-    const userId = import.meta.env.VITE_EMAILJS_USER_ID;
-    if (userId && userId !== 'default_user') {
-      emailjs.init(userId);
-      emailjsInitialized = true;
-      console.log('EmailJS initialized successfully');
-    } else {
-      console.warn('EmailJS not initialized: User ID not configured');
+
+const initializeEmailJS = () => {
+  if (typeof window !== 'undefined') {
+    try {
+      const userId = import.meta.env.VITE_EMAILJS_USER_ID;
+      const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+      const templateId = import.meta.env.VITE_EMAILJS_GENERIC_TEMPLATE_ID;
+      
+      console.log('EmailJS Configuration Check:', {
+        userId: userId ? 'configured' : 'missing',
+        serviceId: serviceId ? 'configured' : 'missing',
+        templateId: templateId ? 'configured' : 'missing'
+      });
+      
+      if (userId && userId !== 'default_user' && userId !== '') {
+        emailjs.init(userId);
+        emailjsInitialized = true;
+        console.log('EmailJS initialized successfully with User ID:', userId);
+      } else {
+        console.warn('EmailJS not initialized: User ID not configured or invalid');
+        console.warn('Current User ID value:', userId);
+      }
+    } catch (error) {
+      console.warn('EmailJS initialization failed:', error);
     }
-  } catch (error) {
-    console.warn('EmailJS initialization failed:', error);
   }
-}
+};
+
+// Initialize on module load
+initializeEmailJS();
+
+// Export initialization function for manual re-initialization if needed
+export const reinitializeEmailJS = () => {
+  emailjsInitialized = false;
+  initializeEmailJS();
+  return emailjsInitialized;
+};
 
 export interface EmailConfig {
   serviceId: string;
@@ -43,6 +66,19 @@ export const sendEmailViaEmailJS = async (
         emailjs: !!emailjs,
         sendFunction: typeof emailjs?.send
       });
+      
+      // Try to reinitialize if not initialized
+      if (!emailjsInitialized) {
+        console.log('Attempting to reinitialize EmailJS...');
+        reinitializeEmailJS();
+        
+        // Check again after reinitialization
+        if (!emailjsInitialized) {
+          console.error('EmailJS reinitialization failed');
+          return false;
+        }
+      }
+      
       return false;
     }
 

@@ -98,9 +98,9 @@ export interface ActionButton {
 // Generic email service class
 export class GenericEmailService {
   // All emails use the same generic template
-  private static readonly TEMPLATE_ID = import.meta.env.VITE_EMAILJS_GENERIC_TEMPLATE_ID || 'generic_template';
-  private static readonly SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || '';
-  private static readonly USER_ID = import.meta.env.VITE_EMAILJS_USER_ID || '';
+  private static readonly TEMPLATE_ID = import.meta.env.VITE_EMAILJS_GENERIC_TEMPLATE_ID || 'default_template';
+  private static readonly SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || 'default_service';
+  private static readonly USER_ID = import.meta.env.VITE_EMAILJS_USER_ID || 'default_user';
 
   /**
    * Send a contact form email to admin
@@ -244,18 +244,21 @@ export class GenericEmailService {
       });
 
       // Validate EmailJS configuration
-      if (!this.SERVICE_ID || this.SERVICE_ID === 'default_service') {
+      if (!this.SERVICE_ID || this.SERVICE_ID === 'default_service' || this.SERVICE_ID === '') {
         console.warn('EmailJS Service ID not configured - emails will not be sent');
+        console.warn('Current Service ID:', this.SERVICE_ID);
         return false;
       }
 
-      if (!this.TEMPLATE_ID || this.TEMPLATE_ID === 'default_template') {
+      if (!this.TEMPLATE_ID || this.TEMPLATE_ID === 'default_template' || this.TEMPLATE_ID === '') {
         console.warn('EmailJS Template ID not configured - emails will not be sent');
+        console.warn('Current Template ID:', this.TEMPLATE_ID);
         return false;
       }
 
-      if (!this.USER_ID || this.USER_ID === 'default_user') {
+      if (!this.USER_ID || this.USER_ID === 'default_user' || this.USER_ID === '') {
         console.warn('EmailJS User ID not configured - emails will not be sent');
+        console.warn('Current User ID:', this.USER_ID);
         return false;
       }
 
