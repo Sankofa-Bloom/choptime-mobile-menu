@@ -1,28 +1,57 @@
 {
-  "name": "campay-api-server",
+  "name": "choptym-backend-server",
   "version": "1.0.0",
-  "description": "Server-side API for Campay payment integration",
-  "main": "campay-api.js",
+  "description": "Secure backend server for ChopTym food delivery platform with payment integration",
+  "main": "unified-payment-api.js",
   "scripts": {
-    "start": "node campay-api.js",
-    "dev": "nodemon campay-api.js"
+    "start": "node unified-payment-api.js",
+    "dev": "nodemon unified-payment-api.js",
+    "test": "echo \"No tests specified\" && exit 0",
+    "lint": "eslint . --ext .js",
+    "security-check": "npm audit",
+    "security-fix": "npm audit fix"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.50.1",
+    "compression": "^1.8.1",
     "cors": "^2.8.5",
+    "crypto": "^1.0.1",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
+    "express-rate-limit": "^7.5.1",
+    "express-validator": "^7.2.1",
+    "helmet": "^7.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.1",
     "node-fetch": "^2.7.0",
     "nodemailer": "^6.10.1"
   },
   "devDependencies": {
+    "eslint": "^8.56.0",
     "nodemon": "^3.0.1"
   },
   "keywords": [
+    "choptym",
+    "food-delivery",
+    "payment-api",
+    "supabase",
+    "fapshi",
     "campay",
-    "payment",
-    "api",
-    "server"
+    "nodejs",
+    "express"
   ],
-      "author": "ChopTym",
-  "license": "MIT"
+  "author": "ChopTym Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Sankofa-Bloom/choptym-mobile-menu.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Sankofa-Bloom/choptym-mobile-menu/issues"
+  },
+  "homepage": "https://github.com/Sankofa-Bloom/choptym-mobile-menu#readme"
 }

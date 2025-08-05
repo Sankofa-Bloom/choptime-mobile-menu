@@ -3,6 +3,14 @@ const express = require('express');
 const cors = require('cors');
 const fetch = require('node-fetch');
 const { sendEmail, createOrderConfirmationEmail, createAdminNotificationEmail, createOrderStatusUpdateEmail } = require('./email-service');
+const { 
+  setupSecurityMiddleware, 
+  corsOptions, 
+  validatePaymentWebhook,
+  sanitizeInput,
+  generateJWT,
+  verifyJWT
+} = require('./security-config');
 
 // Load environment variables
 const DEFAULT_PAYMENT_METHOD = process.env.DEFAULT_PAYMENT_METHOD || 'fapshi';
@@ -22,33 +30,32 @@ const FAPSHI_BASE_URL = process.env.FAPSHI_BASE_URL || 'https://api.fapshi.com';
 
 const app = express();
 
-// Security middleware
-app.use((req, res, next) => {
-      // Security headers
-    res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.setHeader('X-Frame-Options', 'DENY');
-    res.setHeader('X-XSS-Protection', '1; mode=block');
-    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.emailjs.com https://api.emailjs.com https://vercel.live; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:* https://localhost:* https://*.supabase.co https://www.emailjs.com https://api.emailjs.com https://api.fapshi.com https://sandbox.fapshi.com https://*.fapshi.com https://api.campay.net https://sandbox.campay.net;");
-  
-  // Remove server information
-  res.removeHeader('X-Powered-By');
-  
-  next();
+// Setup comprehensive security middleware
+setupSecurityMiddleware(app);
+
+// CORS configuration
+app.use(cors(corsOptions));
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV,
+    version: '1.0.0'
+  });
 });
-
-app.use(cors({
-  origin: ['http://localhost:8081', 'http://localhost:8080', 'http://localhost:5173'],
-  credentials: true,
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
-
-app.use(express.json({ limit: '10mb' }));
 
 // Input validation middleware
 const validatePaymentRequest = (req, res, next) => {
   const { amount, currency, reference, description, customer, callback_url, return_url } = req.body;
+  
+  // Sanitize input
+  const sanitizedBody = {};
+  Object.keys(req.body).forEach(key => {
+    sanitizedBody[key] = sanitizeInput(req.body[key]);
+  });
+  req.body = sanitizedBody;
   
   // Validate required fields
   if (!amount || !currency || !reference || !description || !customer) {

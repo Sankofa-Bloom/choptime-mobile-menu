@@ -1,9 +1,10 @@
 // JavaScript version of the payment webhook handler for Node.js server
 const { createClient } = require('@supabase/supabase-js');
+const { verifyWebhookSignature, sanitizeInput } = require('./security-config');
 
 // Initialize Supabase client
-const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || 'https://qrpukxmzdwkepfpuapzh.supabase.co';
-const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFycHVreG16ZHdrZXBmcHVhcHpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA4MTc5MTgsImV4cCI6MjA2NjM5MzkxOH0.Ix3k_w-nbJQ29FcuP3YYRT_K6ZC7RY2p80VKaDA0JEs';
+const supabaseUrl = process.env.SUPABASE_URL || 'https://qrpukxmzdwkepfpuapzh.supabase.co';
+const supabaseKey = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFycHVreG16ZHdrZXBmcHVhcHpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA4MTc5MTgsImV4cCI6MjA2NjM5MzkxOH0.Ix3k_w-nbJQ29FcuP3YYRT_K6ZC7RY2p80VKaDA0JEs';
 
 if (!supabaseUrl || !supabaseKey) {
   console.warn('Missing Supabase environment variables. Using fallback values.');
@@ -14,14 +15,41 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 // Fapshi service for webhook signature verification
 class FapshiService {
   constructor() {
-    this.apiKey = process.env.VITE_FAPSHI_API_KEY || '';
-    this.apiUser = process.env.VITE_FAPSHI_API_USER || '';
+    this.apiKey = process.env.FAPSHI_API_KEY || '';
+    this.apiUser = process.env.FAPSHI_API_USER || '';
+    this.webhookSecret = process.env.FAPSHI_WEBHOOK_SECRET || '';
   }
 
   verifyWebhookSignature(payload, signature) {
-    // For now, we'll skip signature verification in development
-    // In production, implement proper signature verification
-    console.log('Webhook signature verification skipped in development');
+    // Use the security config function for proper signature verification
+    return verifyWebhookSignature(payload, signature, this.webhookSecret);
+  }
+
+  // Additional security: validate payment data
+  validatePaymentData(paymentData) {
+    const requiredFields = ['reference', 'status', 'amount', 'currency'];
+    const missingFields = requiredFields.filter(field => !paymentData[field]);
+    
+    if (missingFields.length > 0) {
+      throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+    }
+
+    // Validate amount
+    if (typeof paymentData.amount !== 'number' || paymentData.amount <= 0) {
+      throw new Error('Invalid amount');
+    }
+
+    // Validate currency
+    if (typeof paymentData.currency !== 'string' || paymentData.currency.length !== 3) {
+      throw new Error('Invalid currency format');
+    }
+
+    // Validate status
+    const validStatuses = ['success', 'failed', 'pending'];
+    if (!validStatuses.includes(paymentData.status)) {
+      throw new Error('Invalid payment status');
+    }
+
     return true;
   }
 }
@@ -32,16 +60,25 @@ async function handlePaymentWebhook(req) {
   try {
     const { body, headers } = req;
     
+    // Security: Log webhook attempt
+    console.log(`Webhook received from IP: ${req.ip}, User-Agent: ${req.get('User-Agent')}`);
+    
     // Verify webhook signature (security check)
-    const signature = headers['x-fapshi-signature'];
+    const signature = headers['x-fapshi-signature'] || headers['x-campay-signature'];
     if (!signature) {
       console.error('Webhook signature missing');
       return { status: 400, error: 'Missing signature' };
     }
 
+    // Sanitize input data
+    const sanitizedBody = {};
+    Object.keys(body).forEach(key => {
+      sanitizedBody[key] = sanitizeInput(body[key]);
+    });
+
     // Verify the webhook signature
     const isValidSignature = fapshiService.verifyWebhookSignature(
-      JSON.stringify(body),
+      JSON.stringify(sanitizedBody),
       signature
     );
 
@@ -50,7 +87,15 @@ async function handlePaymentWebhook(req) {
       return { status: 400, error: 'Invalid signature' };
     }
 
-    const { reference, status, amount, currency, customer } = body;
+    // Validate payment data
+    try {
+      fapshiService.validatePaymentData(sanitizedBody);
+    } catch (validationError) {
+      console.error('Payment data validation failed:', validationError.message);
+      return { status: 400, error: validationError.message };
+    }
+
+    const { reference, status, amount, currency, customer } = sanitizedBody;
 
     console.log(`Processing webhook for payment: ${reference}, status: ${status}`);
 
@@ -61,6 +106,9 @@ async function handlePaymentWebhook(req) {
         .from('orders')
         .update({
           status: 'confirmed',
+          payment_status: 'paid',
+          payment_amount: amount,
+          payment_currency: currency,
           updated_at: new Date().toISOString()
         })
         .eq('order_reference', reference);
@@ -74,6 +122,9 @@ async function handlePaymentWebhook(req) {
         .from('custom_orders')
         .update({
           status: 'confirmed',
+          payment_status: 'paid',
+          payment_amount: amount,
+          payment_currency: currency,
           updated_at: new Date().toISOString()
         })
         .eq('order_reference', reference);
@@ -91,89 +142,106 @@ async function handlePaymentWebhook(req) {
           payment_status: 'paid',
           amount: amount,
           currency: currency,
-          customer_name: customer.name,
-          customer_phone: customer.phone,
-          customer_email: customer.email,
+          customer_name: customer?.name || '',
+          customer_phone: customer?.phone || '',
+          customer_email: customer?.email || '',
           created_at: new Date().toISOString()
         };
 
         const { error: paymentError } = await supabase
           .from('payments')
-          .insert(paymentRecord);
+          .insert([paymentRecord]);
 
         if (paymentError) {
-          console.warn('Payments table not available or error saving payment record:', paymentError);
+          console.warn('Error saving payment record:', paymentError);
         } else {
           console.log('Payment record saved successfully');
         }
-      } catch (paymentError) {
-        console.warn('Payments table not available:', paymentError);
+      } catch (paymentTableError) {
+        console.warn('Payments table might not exist:', paymentTableError.message);
       }
 
-      console.log(`Order ${reference} updated successfully - payment confirmed`);
-      
-      // Send confirmation email to customer
-      await sendPaymentConfirmationEmail(reference, customer.email);
-      
-      // Send notification to admin
-      await sendAdminPaymentNotification(reference, amount, currency);
+      // Send confirmation emails
+      try {
+        await sendPaymentConfirmationEmail(reference, customer?.email);
+        await sendAdminPaymentNotification(reference, amount, currency);
+      } catch (emailError) {
+        console.warn('Error sending confirmation emails:', emailError);
+      }
 
-    } else if (status === 'failed' || status === 'cancelled') {
-      // Payment failed or cancelled - update order status
-      const { error: orderError } = await supabase
+      return { 
+        status: 200, 
+        message: 'Payment processed successfully',
+        reference: reference
+      };
+
+    } else if (status === 'failed') {
+      // Update order status to failed
+      const { error: ordersError } = await supabase
         .from('orders')
         .update({
+          status: 'failed',
           payment_status: 'failed',
-          payment_reference: reference,
-          payment_method: 'fapshi',
-          status: 'cancelled',
           updated_at: new Date().toISOString()
         })
         .eq('order_reference', reference);
 
-      if (orderError) {
-        // Try updating custom_orders table
-        const { error: customOrderError } = await supabase
-          .from('custom_orders')
-          .update({
-            payment_status: 'failed',
-            payment_reference: reference,
-            payment_method: 'fapshi',
-            status: 'cancelled',
-            updated_at: new Date().toISOString()
-          })
-          .eq('order_reference', reference);
-
-        if (customOrderError) {
-          console.error('Error updating order status:', customOrderError);
-          return { status: 500, error: 'Failed to update order status' };
-        }
+      if (ordersError) {
+        console.warn('Error updating orders:', ordersError);
       }
 
-      console.log(`Order ${reference} payment ${status}`);
+      const { error: customOrdersError } = await supabase
+        .from('custom_orders')
+        .update({
+          status: 'failed',
+          payment_status: 'failed',
+          updated_at: new Date().toISOString()
+        })
+        .eq('order_reference', reference);
+
+      if (customOrdersError) {
+        console.warn('Error updating custom orders:', customOrdersError);
+      }
+
+      return { 
+        status: 200, 
+        message: 'Payment failed - order updated',
+        reference: reference
+      };
+
+    } else {
+      // Handle pending status
+      return { 
+        status: 200, 
+        message: 'Payment pending',
+        reference: reference
+      };
     }
 
-    return { status: 200, success: true, message: 'Webhook processed successfully' };
-
   } catch (error) {
-    console.error('Webhook processing error:', error);
-    return { status: 500, error: 'Internal server error' };
+    console.error('Error processing payment webhook:', error);
+    return { 
+      status: 500, 
+      error: 'Internal server error',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    };
   }
 }
 
 async function sendPaymentConfirmationEmail(orderReference, customerEmail) {
-  try {
-    // Get order details
-    const { data: order } = await supabase
-      .from('orders')
-      .select('*')
-      .eq('order_reference', orderReference)
-      .single();
+  if (!customerEmail || process.env.SKIP_EMAIL_SENDING === 'true') {
+    console.log('Skipping payment confirmation email');
+    return;
+  }
 
-    if (order) {
-      console.log(`Payment confirmation email would be sent for order ${orderReference}`);
-      // In a real implementation, you would send the email here
-      // For now, we'll just log it
+  try {
+    const emailService = require('./email-service');
+    const emailResult = await emailService.sendPaymentConfirmationEmail(orderReference, customerEmail);
+    
+    if (emailResult.success) {
+      console.log('Payment confirmation email sent successfully');
+    } else {
+      console.warn('Failed to send payment confirmation email:', emailResult.error);
     }
   } catch (error) {
     console.error('Error sending payment confirmation email:', error);
@@ -181,22 +249,28 @@ async function sendPaymentConfirmationEmail(orderReference, customerEmail) {
 }
 
 async function sendAdminPaymentNotification(orderReference, amount, currency) {
-  try {
-    // Get order details
-    const { data: order } = await supabase
-      .from('orders')
-      .select('*')
-      .eq('order_reference', orderReference)
-      .single();
+  if (process.env.SKIP_EMAIL_SENDING === 'true') {
+    console.log('Skipping admin payment notification');
+    return;
+  }
 
-    if (order) {
-      console.log(`Admin notification would be sent for order ${orderReference}`);
-      // In a real implementation, you would send the email here
-      // For now, we'll just log it
+  try {
+    const emailService = require('./email-service');
+    const emailResult = await emailService.sendAdminPaymentNotification(orderReference, amount, currency);
+    
+    if (emailResult.success) {
+      console.log('Admin payment notification sent successfully');
+    } else {
+      console.warn('Failed to send admin payment notification:', emailResult.error);
     }
   } catch (error) {
     console.error('Error sending admin payment notification:', error);
   }
 }
 
-module.exports = { handlePaymentWebhook }; 
+module.exports = {
+  handlePaymentWebhook,
+  FapshiService,
+  sendPaymentConfirmationEmail,
+  sendAdminPaymentNotification
+}; 
