@@ -11,13 +11,13 @@ INSERT INTO auth.users (
   role
 ) VALUES (
   gen_random_uuid(),
-  'choptime237@gmail.com',
-  crypt('Choptime@237Sankofa', gen_salt('bf')),
+  'choptym237@gmail.com',
+  crypt('Choptym@237Sankofa', gen_salt('bf')),
   now(),
   now(),
   now(),
   'authenticated',
   'authenticated'
 ) ON CONFLICT (email) DO UPDATE SET
-  encrypted_password = crypt('Choptime@237Sankofa', gen_salt('bf')),
+  encrypted_password = crypt('Choptym@237Sankofa', gen_salt('bf')),
   updated_at = now();

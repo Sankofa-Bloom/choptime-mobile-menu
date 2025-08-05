@@ -78,8 +78,7 @@ const FapshiPayment: React.FC<FapshiPaymentProps> = ({
           phone: formattedPhone,
           email: customerEmail
         },
-        callback_url: import.meta.env.VITE_FAPSHI_CALLBACK_URL || `http://localhost:8080/api/payment-webhook`,
-        return_url: import.meta.env.VITE_FAPSHI_RETURN_URL || `http://localhost:8080/payment-success?reference=${orderReference}`
+        // Callback URLs are handled server-side
       };
 
       const response = await fapshiService.initializePayment(paymentData);

@@ -566,7 +566,7 @@ app.post('/api/email/send-admin-notification', async (req, res) => {
     `;
     
     // Send to admin email
-    const adminEmail = process.env.VITE_ADMIN_EMAIL || 'admin@choptime.com';
+    const adminEmail = process.env.VITE_ADMIN_EMAIL || 'admin@choptym.com';
     const emailSent = await sendEmail(adminEmail, subject, html, html);
     
     res.json({
@@ -598,7 +598,7 @@ app.post('/api/email/send-status-update', async (req, res) => {
       <p><strong>Order Reference:</strong> ${orderData.orderReference}</p>
       <p><strong>Status:</strong> ${status}</p>
       <p><strong>Message:</strong> ${message}</p>
-      <p>Thank you for choosing ChopTime!</p>
+      <p>Thank you for choosing ChopTym!</p>
     `;
     
     // Mock email sending

@@ -2,9 +2,9 @@ import emailjs from '@emailjs/browser';
 
 // EmailJS configuration
 const EMAILJS_CONFIG = {
-  serviceId: import.meta.env.VITE_EMAILJS_SERVICE_ID || 'default_service',
-  templateId: import.meta.env.VITE_EMAILJS_GENERIC_TEMPLATE_ID || 'default_template',
-  userId: import.meta.env.VITE_EMAILJS_USER_ID || 'default_user'
+  serviceId: 'service_4beuwe5',
+  templateId: 'generic_template',
+  userId: 'lTTBvyuuFE8XG5fZl'
 };
 
 // Initialize EmailJS safely
@@ -13,9 +13,9 @@ let emailjsInitialized = false;
 const initializeEmailJS = () => {
   if (typeof window !== 'undefined') {
     try {
-      const userId = import.meta.env.VITE_EMAILJS_USER_ID;
-      const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
-      const templateId = import.meta.env.VITE_EMAILJS_GENERIC_TEMPLATE_ID;
+        const userId = 'lTTBvyuuFE8XG5fZl';
+  const serviceId = 'service_4beuwe5';
+  const templateId = 'generic_template';
       
       console.log('EmailJS Configuration Check:', {
         userId: userId ? 'configured' : 'missing',
@@ -138,7 +138,7 @@ export const sendEmailViaHTTP = async (
   recipientEmail: string,
   subject: string,
   htmlContent: string,
-  fromEmail: string = import.meta.env.VITE_ADMIN_EMAIL || 'admin@choptime.com',
+      fromEmail: string = 'admin@choptym.com',
   apiKey?: string
 ): Promise<boolean> => {
   try {

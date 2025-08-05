@@ -1,7 +1,7 @@
 
 {
-  "name": "ChopTime - Cameroonian Food Delivery",
-  "short_name": "ChopTime",
+  "name": "ChopTym - Cameroonian Food Delivery",
+  "short_name": "ChopTym",
   "description": "Authentic Cameroonian cuisine delivered fresh to your doorstep",
   "start_url": "/",
   "display": "standalone",
@@ -64,7 +64,7 @@
       "sizes": "400x300",
       "type": "image/svg+xml",
       "form_factor": "wide",
-      "label": "ChopTime - Cameroonian Food Delivery"
+      "label": "ChopTym - Cameroonian Food Delivery"
     }
   ],
   "categories": ["food", "delivery", "restaurant"],

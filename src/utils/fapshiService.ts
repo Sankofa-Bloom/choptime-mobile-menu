@@ -57,7 +57,7 @@ class FapshiService {
 
   constructor() {
     // Use our unified payment API server instead of direct Fapshi API
-    this.serverUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+    this.serverUrl = 'http://localhost:3001';
     console.log('FapshiService initialized:', { serverUrl: this.serverUrl });
   }
 

@@ -145,7 +145,7 @@ INSERT INTO public.dishes (name, description, category, is_popular, is_spicy, co
 INSERT INTO public.restaurants (name, town, contact_number, mtn_number, orange_number) VALUES
 ('Mama Africa Kitchen', 'Douala', '+237 6 70 41 64 49', '+237 6 70 41 64 49', '+237 6 90 12 34 56'),
 ('Authentic Bamileke Cuisine', 'Yaoundé', '+237 6 80 22 33 44', '+237 6 80 22 33 44', '+237 6 95 44 55 66'),
-('ChopTime Express', 'Douala', '+237 6 70 41 64 49', '+237 6 70 41 64 49', '+237 6 92 77 88 99'),
+('ChopTym Express', 'Douala', '+237 6 70 41 64 49', '+237 6 70 41 64 49', '+237 6 92 77 88 99'),
 ('Buea Flavors', 'Buea', '+237 6 75 55 66 77', '+237 6 75 55 66 77', '+237 6 98 77 66 55');
 
 -- Insert sample restaurant menus with town-based pricing
@@ -163,7 +163,7 @@ FROM public.restaurants r
 CROSS JOIN public.dishes d
 WHERE (r.name = 'Mama Africa Kitchen' AND d.name IN ('Eru with Fufu', 'Achu Yellow Soup', 'Ndolé', 'Pepper Soup'))
    OR (r.name = 'Authentic Bamileke Cuisine' AND d.name IN ('Eru with Fufu', 'Achu Yellow Soup', 'Ndolé', 'Banga Soup'))
-   OR (r.name = 'ChopTime Express' AND d.name IN ('Eru with Fufu', 'Ndolé', 'Pepper Soup', 'Jollof Rice', 'Banga Soup'))
+   OR (r.name = 'ChopTym Express' AND d.name IN ('Eru with Fufu', 'Ndolé', 'Pepper Soup', 'Jollof Rice', 'Banga Soup'))
    OR (r.name = 'Buea Flavors' AND d.name IN ('Eru with Fufu', 'Ndolé', 'Pepper Soup', 'Jollof Rice'));
 
 -- Create storage bucket for images

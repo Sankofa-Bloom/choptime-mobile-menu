@@ -1,5 +1,5 @@
 {
-  "name": "choptime-mobile-menu",
+  "name": "choptym-mobile-menu",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -101,6 +101,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Sankofa-Bloom/choptime-mobile-menu.git"
+    "url": "https://github.com/Sankofa-Bloom/choptym-mobile-menu.git"
   }
 }

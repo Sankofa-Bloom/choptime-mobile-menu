@@ -66,9 +66,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
   const [deliveryZone, setDeliveryZone] = useState<DeliveryZone | null>(null);
   const [loading, setLoading] = useState(false);
   const [momoNumber, setMomoNumber] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'campay' | 'fapshi'>(
-    (import.meta.env.VITE_DEFAULT_PAYMENT_METHOD as 'campay' | 'fapshi') || 'fapshi'
-  );
+  const [paymentMethod, setPaymentMethod] = useState<'campay' | 'fapshi'>('fapshi');
   const [customerEmail, setCustomerEmail] = useState('');
   const [orderReference, setOrderReference] = useState<string>('');
   const [paymentUrl, setPaymentUrl] = useState<string>('');
@@ -79,16 +77,8 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
   const currentOrder = orderDetails || customOrder;
   const isCustomOrder = !orderDetails && !!customOrder;
 
-  // Get admin email from environment variables
-  const adminEmail: string = String(import.meta.env.VITE_ADMIN_EMAIL || 'admin@example.com');
-
-  // Log server email configuration for debugging
-  useEffect(() => {
-    console.log('Server Email Configuration:', {
-      adminEmail: adminEmail,
-      serverUrl: import.meta.env.VITE_SERVER_URL || 'http://localhost:3001'
-    });
-  }, [adminEmail]);
+  // Admin email - this should come from server configuration
+  const adminEmail: string = 'admin@choptym.com';
 
   useEffect(() => {
     if (currentOrder?.location && selectedRestaurant?.town) {
@@ -369,7 +359,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
               amount: total,
               currency: "XAF",
               reference: orderRef,
-              description: `ChopTime Order - ${selectedRestaurant.name} - ${currentOrderData.dishName}`,
+              description: `ChopTym Order - ${selectedRestaurant.name} - ${currentOrderData.dishName}`,
               customer: {
                 name: currentOrderData.customerName || '',
                 phone: currentOrderData.customerPhone || '',
@@ -422,14 +412,13 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
               amount: Math.round(total * 100), // Convert to cents for Fapshi
               currency: "XAF",
               reference: orderRef,
-              description: `ChopTime Order - ${selectedRestaurant.name} - ${currentOrderData.dishName}`,
+              description: `ChopTym Order - ${selectedRestaurant.name} - ${currentOrderData.dishName}`,
               customer: {
                 name: currentOrderData.customerName || '',
                 phone: formattedPhone,
                 email: customerEmail
               },
-              callback_url: import.meta.env.VITE_FAPSHI_CALLBACK_URL || `http://localhost:8080/api/payment-webhook`,
-              return_url: import.meta.env.VITE_FAPSHI_RETURN_URL || `http://localhost:8080/payment-success?reference=${orderRef}`
+              // Callback URLs are handled server-side
             };
 
             console.log('Sending Fapshi payment initialization request:', paymentData);

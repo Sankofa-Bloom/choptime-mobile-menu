@@ -7,8 +7,8 @@ interface WhatsAppButtonProps {
 }
 
 const WhatsAppButton: React.FC<WhatsAppButtonProps> = ({
-  phoneNumber = import.meta.env.VITE_ADMIN_WHATSAPP || '+1234567890',
-      message = 'Hello ChopTime! I need help with my order or have a question.',
+  phoneNumber = '+237670416449',
+      message = 'Hello ChopTym! I need help with my order or have a question.',
   className = ''
 }) => {
   const handleWhatsAppClick = () => {

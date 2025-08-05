@@ -50,7 +50,7 @@ const AdminDashboard = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-choptime-brown">ChopTime Admin</h1>
+              <h1 className="text-2xl font-bold text-choptime-brown">ChopTym Admin</h1>
               <p className="text-gray-600">Welcome back, {admin.email}</p>
             </div>
             <Button

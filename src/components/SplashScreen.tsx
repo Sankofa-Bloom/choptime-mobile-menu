@@ -30,10 +30,10 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
         {/* Logo with Animation */}
         <div className="mb-8 animate-bounce">
           <div className="relative">
-            {/* ChopTime Logo */}
+            {/* ChopTym Logo */}
             <img 
               src="/splash-logo.svg" 
-              alt="ChopTime Logo" 
+              alt="ChopTym Logo" 
               className="w-64 h-64 mx-auto animate-pulse"
               style={{
                 filter: 'drop-shadow(0 4px 8px rgba(213, 122, 31, 0.3))'
@@ -57,7 +57,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
         
         {/* Welcome text */}
         <p className="mt-6 text-lg text-gray-600 font-medium">
-          Welcome to ChopTime
+          Welcome to ChopTym
         </p>
         <p className="mt-2 text-sm text-gray-500">
           Connecting you to authentic Cameroonian cuisine

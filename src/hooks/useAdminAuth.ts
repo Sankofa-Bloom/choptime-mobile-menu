@@ -15,14 +15,14 @@ export const useAdminAuth = () => {
     try {
       setLoading(true);
       // Check if admin is stored in localStorage (simple session management)
-      const storedAdmin = localStorage.getItem('choptime_admin');
+      const storedAdmin = localStorage.getItem('choptym_admin');
       if (storedAdmin) {
         try {
           const adminData = JSON.parse(storedAdmin);
           setAdmin(adminData);
         } catch (error) {
           console.error('Error parsing stored admin data:', error);
-          localStorage.removeItem('choptime_admin');
+          localStorage.removeItem('choptym_admin');
         }
       }
     } catch (error) {
@@ -175,7 +175,7 @@ export const useAdminAuth = () => {
       // Create admin data for session
       const adminData = {
         id: 'admin-pin-user',
-                  email: 'admin@choptime.com',
+                  email: 'admin@choptym.com',
         role: 'admin',
         active: true,
         created_at: new Date().toISOString(),
@@ -184,7 +184,7 @@ export const useAdminAuth = () => {
 
       // Set admin data and store in localStorage for session management
       setAdmin(adminData);
-              localStorage.setItem('choptime_admin', JSON.stringify(adminData));
+              localStorage.setItem('choptym_admin', JSON.stringify(adminData));
       return { success: true };
       
     } catch (error: any) {
@@ -197,7 +197,7 @@ export const useAdminAuth = () => {
 
   const logoutAdmin = async () => {
     try {
-      localStorage.removeItem('choptime_admin');
+      localStorage.removeItem('choptym_admin');
       setAdmin(null);
     } catch (error) {
       console.error('Logout error:', error);

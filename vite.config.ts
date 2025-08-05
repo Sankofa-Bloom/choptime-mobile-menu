@@ -53,10 +53,10 @@ export default defineConfig(({ mode }) => ({
           }
         ]
       },
-              includeAssets: ['favicon.svg', 'favicon.png', 'logo.svg', 'splash-logo.svg', 'header-logo.svg', 'transparent_logo.svg', 'choptime-logo.jpeg'],
+              includeAssets: ['favicon.svg', 'favicon.png', 'logo.svg', 'splash-logo.svg', 'header-logo.svg', 'transparent_logo.svg', 'choptym-logo.jpeg'],
       manifest: {
-              name: 'ChopTime - Cameroonian Food Delivery',
-      short_name: 'ChopTime',
+                  name: 'ChopTym - Cameroonian Food Delivery',
+    short_name: 'ChopTym',
         description: 'Authentic Cameroonian cuisine delivered fresh to your doorstep',
         theme_color: '#D57A1F',
         background_color: '#FDF1E0',
@@ -78,7 +78,7 @@ export default defineConfig(({ mode }) => ({
             sizes: '400x300',
             type: 'image/svg+xml',
             form_factor: 'wide',
-            label: 'ChopTime - Cameroonian Food Delivery'
+            label: 'ChopTym - Cameroonian Food Delivery'
           }
         ]
       }

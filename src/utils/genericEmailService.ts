@@ -97,10 +97,10 @@ export interface ActionButton {
 
 // Generic email service class
 export class GenericEmailService {
-  // All emails use the same generic template
-  private static readonly TEMPLATE_ID = import.meta.env.VITE_EMAILJS_GENERIC_TEMPLATE_ID || 'default_template';
-  private static readonly SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || 'default_service';
-  private static readonly USER_ID = import.meta.env.VITE_EMAILJS_USER_ID || 'default_user';
+  // Email configuration - these should come from server-side configuration
+  private static readonly TEMPLATE_ID = 'generic_template';
+  private static readonly SERVICE_ID = 'service_4beuwe5';
+  private static readonly USER_ID = 'lTTBvyuuFE8XG5fZl';
 
   /**
    * Send a contact form email to admin
@@ -109,7 +109,7 @@ export class GenericEmailService {
     const emailParams: ContactEmailParams = {
       ...params,
       email_type: 'contact',
-              email_title: 'New Contact Message - ChopTime',
+              email_title: 'New Contact Message - ChopTym',
       email_subtitle: 'Contact Form Submission',
       sent_date: new Date().toLocaleString(),
       email_id: `contact_${Date.now()}`
@@ -131,7 +131,7 @@ export class GenericEmailService {
       from_email: params.from_email,
       from_phone: params.from_phone || '',
       // Admin email for replies
-              reply_to: import.meta.env.VITE_ADMIN_EMAIL || 'admin@example.com'
+      reply_to: 'admin@choptym.com'
     };
 
     return this.sendEmail(mappedParams as any);
@@ -144,7 +144,7 @@ export class GenericEmailService {
     const emailParams: OrderConfirmationParams = {
       ...params,
       email_type: 'order_confirmation',
-              email_title: 'Order Confirmed - ChopTime',
+              email_title: 'Order Confirmed - ChopTym',
       email_subtitle: 'Your order is being prepared',
       sent_date: new Date().toLocaleString(),
       email_id: `order_${params.order_reference}`
@@ -160,7 +160,7 @@ export class GenericEmailService {
     const emailParams: AdminNotificationParams = {
       ...params,
       email_type: 'admin_notification',
-              email_title: 'New Order Notification - ChopTime',
+              email_title: 'New Order Notification - ChopTym',
       email_subtitle: 'Action Required',
       sent_date: new Date().toLocaleString(),
       email_id: `admin_${params.order_reference}`
@@ -176,7 +176,7 @@ export class GenericEmailService {
     const emailParams: PaymentConfirmationParams = {
       ...params,
       email_type: 'payment_confirmation',
-              email_title: 'Payment Confirmed - ChopTime',
+              email_title: 'Payment Confirmed - ChopTym',
       email_subtitle: 'Your payment was successful',
       sent_date: new Date().toLocaleString(),
       email_id: `payment_${params.payment_reference}`
@@ -192,7 +192,7 @@ export class GenericEmailService {
     const emailParams: CustomEmailParams = {
       ...params,
       email_type: 'custom',
-              email_title: params.custom_title || 'ChopTime Notification',
+              email_title: params.custom_title || 'ChopTym Notification',
       email_subtitle: 'Custom Message',
       sent_date: new Date().toLocaleString(),
       email_id: `custom_${Date.now()}`
@@ -208,10 +208,10 @@ export class GenericEmailService {
     try {
       // Add default values for missing fields
       const completeParams = {
-        company_name: import.meta.env.VITE_COMPANY_NAME || 'ChopTime',
-        company_address: import.meta.env.VITE_COMPANY_ADDRESS || 'Your Company Address',
-        admin_email: import.meta.env.VITE_ADMIN_EMAIL || 'admin@example.com',
-        admin_phone: import.meta.env.VITE_ADMIN_PHONE || '+1234567890',
+              company_name: 'ChopTym',
+      company_address: 'Busumbu Junction, Limbe - Cameroon',
+      admin_email: 'admin@choptym.com',
+      admin_phone: '+237670416449',
         ...params
       };
 

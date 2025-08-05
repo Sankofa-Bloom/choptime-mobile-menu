@@ -24,7 +24,7 @@ export const AnimatedLogo: React.FC<AnimatedLogoProps> = ({
     <div className={`relative ${className}`}>
       <img 
         src="/logo.svg" 
-        alt="ChopTime Logo" 
+        alt="ChopTym Logo" 
         className={`${sizeClasses[size]} ${animationClasses}`}
         style={{
           filter: 'drop-shadow(0 2px 4px rgba(213, 122, 31, 0.2))'

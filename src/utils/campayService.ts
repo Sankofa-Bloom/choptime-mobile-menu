@@ -160,13 +160,8 @@ class CampayService {
 
   async createPaymentLink(paymentData: Omit<CampayPaymentRequest, 'callback_url' | 'return_url'>): Promise<CampayPaymentResponse> {
     try {
-      const fullPaymentData = {
-        ...paymentData,
-        callback_url: import.meta.env.VITE_CAMPAY_CALLBACK_URL || `https://choptime.com/api/payment-webhook`,
-        return_url: import.meta.env.VITE_CAMPAY_RETURN_URL || `https://choptime.com/payment-success?reference=${paymentData.reference}`,
-      };
-
-      const response = await this.makeServerRequest('/api/campay/initialize', 'POST', fullPaymentData);
+      // Let the server handle callback URLs and API keys
+      const response = await this.makeServerRequest('/api/campay/initialize', 'POST', paymentData);
 
       if (response.success && response.data) {
         return {
@@ -193,17 +188,9 @@ class CampayService {
   }
 
   verifyWebhookSignature(payload: string, signature: string): boolean {
-    // Campay webhook signature verification
-    const webhookKey = import.meta.env.VITE_CAMPAY_WEBHOOK_KEY;
-    
-    if (!webhookKey) {
-      console.warn('Campay webhook key not configured. Skipping signature verification.');
-      return true; // Allow in development
-    }
-    
-    // TODO: Implement proper webhook signature verification
-    // This should verify the signature using the webhook key
-    // For now, return true (implement proper verification later)
+    // Webhook signature verification is handled server-side
+    // This method is kept for compatibility but should not be used in frontend
+    console.warn('Webhook signature verification should be handled server-side');
     return true;
   }
 

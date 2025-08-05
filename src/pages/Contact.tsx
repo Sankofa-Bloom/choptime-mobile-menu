@@ -159,7 +159,7 @@ const Contact: React.FC = () => {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">Email</h3>
                   <p className="text-gray-600">
-                    {import.meta.env.VITE_ADMIN_EMAIL || 'admin@example.com'}
+                    admin@choptym.com
                   </p>
                 </div>
               </div>
@@ -171,7 +171,7 @@ const Contact: React.FC = () => {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">Phone</h3>
                   <p className="text-gray-600">
-                    {import.meta.env.VITE_ADMIN_PHONE || '+1234567890'}
+                    +237670416449
                   </p>
                 </div>
               </div>
@@ -183,7 +183,7 @@ const Contact: React.FC = () => {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">Address</h3>
                   <p className="text-gray-600">
-                    {import.meta.env.VITE_COMPANY_ADDRESS || 'Your Company Address'}
+                    Busumbu Junction, Limbe - Cameroon
                   </p>
                 </div>
               </div>
@@ -205,7 +205,7 @@ const Contact: React.FC = () => {
             {/* Additional Info */}
             <div className="bg-orange-50 p-6 rounded-lg">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Why Choose ChopTime?
+                Why Choose ChopTym?
               </h3>
               <ul className="text-gray-600 space-y-2">
                 <li>• Authentic Cameroonian cuisine</li>

@@ -1,4 +1,4 @@
-# 🚀 ChopTime Deployment Guide
+# 🚀 ChopTym Deployment Guide
 
 ## Quick Deployment Options
 
@@ -18,7 +18,7 @@
    VITE_DEFAULT_PAYMENT_METHOD=campay
    VITE_CAMPAY_CALLBACK_URL=https://your-domain.vercel.app/api/payment-webhook
    VITE_CAMPAY_RETURN_URL=https://your-domain.vercel.app/payment-success
-   VITE_ADMIN_EMAIL=choptime237@gmail.com
+   VITE_ADMIN_EMAIL=choptym237@gmail.com
    VITE_ADMIN_PHONE=+237670416449
    ```
 
@@ -130,10 +130,10 @@ The app is PWA-ready with:
 
 ## 📞 Support
 
-- **Email**: admin@choptime.com
+- **Email**: admin@choptym.com
 - **Phone**: +237670416449
 - **Documentation**: [README.md](README.md)
 
 ---
 
-**Your ChopTime app is now production-ready! 🎉** 
+**Your ChopTym app is now production-ready! 🎉** 

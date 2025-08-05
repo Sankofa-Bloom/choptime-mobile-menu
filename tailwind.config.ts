@@ -63,7 +63,7 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// ChopTime brand colors
+				// ChopTym brand colors
 				choptime: {
 					orange: '#D57A1F',
 					brown: '#5A2D0C',
