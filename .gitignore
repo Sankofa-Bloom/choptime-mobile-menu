@@ -70,3 +70,7 @@ workbox-*.js
 
 # Supabase
 .supabase/
+
+# Documentation files (except README.md)
+*.md
+!README.md
