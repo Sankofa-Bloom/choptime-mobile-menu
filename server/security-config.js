@@ -32,7 +32,12 @@ const createRateLimiter = (windowMs, max, message = 'Too many requests from this
 // CORS configuration
 const corsOptions = {
   origin: function (origin, callback) {
-    const allowedOrigins = process.env.CORS_ORIGIN?.split(',') || ['http://localhost:3000'];
+    // Temporarily allow all origins for development
+    callback(null, true);
+    
+    // Original strict CORS configuration (commented out for development)
+    /*
+    const allowedOrigins = process.env.CORS_ORIGIN?.split(',') || ['http://localhost:3000', 'http://localhost:8080', 'http://localhost:5173'];
     
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
@@ -42,6 +47,7 @@ const corsOptions = {
     } else {
       callback(new Error('Not allowed by CORS'));
     }
+    */
   },
   credentials: process.env.CORS_CREDENTIALS === 'true',
   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
