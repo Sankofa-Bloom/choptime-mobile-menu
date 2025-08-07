@@ -216,13 +216,13 @@ const setupSecurityMiddleware = (app) => {
   }
   
   // Body parsing limits
-  app.use(express.json({ 
+  app.use(require('express').json({ 
     limit: process.env.MAX_REQUEST_SIZE || '10mb',
     verify: (req, res, buf) => {
       req.rawBody = buf; // Store raw body for signature verification
     }
   }));
-  app.use(express.urlencoded({ 
+  app.use(require('express').urlencoded({ 
     extended: true, 
     limit: process.env.MAX_REQUEST_SIZE || '10mb' 
   }));
