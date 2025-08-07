@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { Restaurant, Dish, RestaurantMenu, Order, CustomOrder, DeliveryFee, UserTown } from '@/types/restaurant';
+
+// Backend API base URL
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
 
 export const useChopTymData = (selectedTown?: string) => {
   const [dishes, setDishes] = useState<Dish[]>([]);
@@ -10,16 +12,32 @@ export const useChopTymData = (selectedTown?: string) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Helper function for API calls
+  const apiCall = async (endpoint: string, options: RequestInit = {}) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/${endpoint}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...options.headers,
+        },
+        ...options,
+      });
+
+      if (!response.ok) {
+        throw new Error(`API call failed: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error(`API call error for ${endpoint}:`, error);
+      throw error;
+    }
+  };
+
   // Fetch dishes
   const fetchDishes = async () => {
     try {
-      const { data, error } = await supabase
-        .from('dishes')
-        .select('*')
-        .eq('active', true)
-        .order('name');
-      
-      if (error) throw error;
+      const data = await apiCall('dishes');
       setDishes(data || []);
     } catch (err) {
       console.error('Error fetching dishes:', err);
@@ -30,15 +48,8 @@ export const useChopTymData = (selectedTown?: string) => {
   // Fetch restaurants by town
   const fetchRestaurants = async (town?: string) => {
     try {
-      let query = supabase.from('restaurants').select('*').eq('active', true);
-      
-      if (town) {
-        query = query.eq('town', town);
-      }
-      
-      const { data, error } = await query.order('name');
-      
-      if (error) throw error;
+      const endpoint = town ? `restaurants?town=${encodeURIComponent(town)}` : 'restaurants';
+      const data = await apiCall(endpoint);
       setRestaurants(data || []);
     } catch (err) {
       console.error('Error fetching restaurants:', err);
@@ -49,24 +60,8 @@ export const useChopTymData = (selectedTown?: string) => {
   // Fetch restaurant menus
   const fetchRestaurantMenus = async (town?: string) => {
     try {
-      let query = supabase
-        .from('restaurant_menus')
-        .select(`
-          *,
-          restaurant:restaurants!inner(*),
-          dish:dishes!inner(*)
-        `)
-        .eq('availability', true)
-        .eq('restaurant.active', true)
-        .eq('dish.active', true);
-
-      if (town) {
-        query = query.eq('restaurant.town', town);
-      }
-
-      const { data, error } = await query;
-      
-      if (error) throw error;
+      const endpoint = town ? `restaurant-menus?town=${encodeURIComponent(town)}` : 'restaurant-menus';
+      const data = await apiCall(endpoint);
       setRestaurantMenus(data || []);
     } catch (err) {
       console.error('Error fetching restaurant menus:', err);
@@ -77,16 +72,10 @@ export const useChopTymData = (selectedTown?: string) => {
   // Fetch delivery zones instead of fees
   const fetchDeliveryFees = async () => {
     try {
-      const { data, error } = await supabase
-        .from('delivery_zones')
-        .select('*')
-        .eq('active', true)
-        .order('town');
-      
-      if (error) throw error;
+      const data = await apiCall('delivery-zones');
       
       // Convert zones to delivery fees format for backward compatibility
-      const fees = data?.reduce((acc, zone) => {
+      const fees = data?.reduce((acc: DeliveryFee[], zone: any) => {
         const existingFee = acc.find(f => f.town === zone.town);
         if (!existingFee) {
           acc.push({
@@ -98,23 +87,22 @@ export const useChopTymData = (selectedTown?: string) => {
           });
         }
         return acc;
-      }, [] as DeliveryFee[]) || [];
+      }, []) || [];
       
       setDeliveryFees(fees);
     } catch (err) {
-      console.error('Error fetching delivery zones:', err);
+      console.error('Error fetching delivery fees:', err);
+      setError('Failed to load delivery information');
     }
   };
 
   // Enhanced delivery fee calculation using zones
   const getDeliveryFee = async (town: string, locationDescription?: string): Promise<number> => {
     try {
-      const { data, error } = await supabase.rpc('calculate_delivery_fee', {
-        town_name: town,
-        location_description: locationDescription || ''
+      const data = await apiCall('calculate-delivery-fee', {
+        method: 'POST',
+        body: JSON.stringify({ town_name: town, location_description: locationDescription || '' })
       });
-      
-      if (error) throw error;
       return data && data.length > 0 ? data[0].fee : 500;
     } catch (err) {
       console.error('Error calculating delivery fee:', err);
@@ -125,11 +113,10 @@ export const useChopTymData = (selectedTown?: string) => {
   // Generate order reference
   const generateOrderReference = async (town: string): Promise<string> => {
     try {
-      const { data, error } = await supabase.rpc('generate_order_reference', {
-        town_name: town
+      const data = await apiCall('generate-order-reference', {
+        method: 'POST',
+        body: JSON.stringify({ town_name: town })
       });
-      
-      if (error) throw error;
       return data || `CHP-${Date.now()}`;
     } catch (err) {
       console.error('Error generating order reference:', err);
@@ -140,17 +127,10 @@ export const useChopTymData = (selectedTown?: string) => {
   // Save user's selected town
   const saveUserTown = async (phone: string, town: string) => {
     try {
-      const { error } = await supabase
-        .from('user_towns')
-        .upsert([
-          {
-            user_phone: phone,
-            town: town,
-            updated_at: new Date().toISOString()
-          }
-        ], { onConflict: 'user_phone' });
-      
-      if (error) throw error;
+      await apiCall('save-user-town', {
+        method: 'POST',
+        body: JSON.stringify({ user_phone: phone, town: town })
+      });
     } catch (err) {
       console.error('Error saving user town:', err);
     }
@@ -159,13 +139,10 @@ export const useChopTymData = (selectedTown?: string) => {
   // Get user's town
   const getUserTown = async (phone: string): Promise<string | null> => {
     try {
-      const { data, error } = await supabase
-        .from('user_towns')
-        .select('town')
-        .eq('user_phone', phone)
-        .single();
-      
-      if (error && error.code !== 'PGRST116') throw error;
+      const data = await apiCall('get-user-town', {
+        method: 'POST',
+        body: JSON.stringify({ user_phone: phone })
+      });
       return data?.town || null;
     } catch (err) {
       console.error('Error getting user town:', err);
@@ -177,9 +154,9 @@ export const useChopTymData = (selectedTown?: string) => {
   const saveOrder = async (orderData: Omit<Order, 'id' | 'created_at' | 'updated_at'>) => {
     try {
       // Calculate delivery zone info
-      const { data: zoneData } = await supabase.rpc('calculate_delivery_fee', {
-        town_name: orderData.user_location.split(',')[0], // Assume town is first part
-        location_description: orderData.user_location
+      const { data: zoneData } = await apiCall('calculate-delivery-fee', {
+        method: 'POST',
+        body: JSON.stringify({ town_name: orderData.user_location.split(',')[0], location_description: orderData.user_location })
       });
 
       const enhancedOrderData = {
@@ -189,13 +166,10 @@ export const useChopTymData = (selectedTown?: string) => {
           `${zoneData[0].zone_name}: ${zoneData[0].fee} FCFA` : null
       };
 
-      const { data, error } = await supabase
-        .from('orders')
-        .insert([enhancedOrderData])
-        .select()
-        .single();
-      
-      if (error) throw error;
+      const data = await apiCall('save-order', {
+        method: 'POST',
+        body: JSON.stringify(enhancedOrderData)
+      });
       return data;
     } catch (err) {
       console.error('Error saving order:', err);
@@ -206,13 +180,10 @@ export const useChopTymData = (selectedTown?: string) => {
   // Save custom order
   const saveCustomOrder = async (orderData: Omit<CustomOrder, 'id' | 'created_at' | 'updated_at'>) => {
     try {
-      const { data, error } = await supabase
-        .from('custom_orders')
-        .insert([orderData])
-        .select()
-        .single();
-      
-      if (error) throw error;
+      const data = await apiCall('save-custom-order', {
+        method: 'POST',
+        body: JSON.stringify(orderData)
+      });
       return data;
     } catch (err) {
       console.error('Error saving custom order:', err);
@@ -223,13 +194,10 @@ export const useChopTymData = (selectedTown?: string) => {
   // Get user's previous orders
   const getUserOrders = async (phone: string): Promise<Order[]> => {
     try {
-      const { data, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('user_phone', phone)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
+      const data = await apiCall('get-user-orders', {
+        method: 'POST',
+        body: JSON.stringify({ user_phone: phone })
+      });
       return data || [];
     } catch (err) {
       console.error('Error fetching user orders:', err);
@@ -240,13 +208,10 @@ export const useChopTymData = (selectedTown?: string) => {
   // Get user's previous custom orders
   const getUserCustomOrders = async (phone: string): Promise<CustomOrder[]> => {
     try {
-      const { data, error } = await supabase
-        .from('custom_orders')
-        .select('*')
-        .eq('user_phone', phone)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
+      const data = await apiCall('get-user-custom-orders', {
+        method: 'POST',
+        body: JSON.stringify({ user_phone: phone })
+      });
       return data || [];
     } catch (err) {
       console.error('Error fetching user custom orders:', err);

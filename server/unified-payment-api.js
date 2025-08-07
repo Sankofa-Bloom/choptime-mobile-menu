@@ -11,6 +11,7 @@ const {
   generateJWT,
   verifyJWT
 } = require('./security-config');
+const apiRoutes = require('./api-routes');
 
 // Load environment variables
 const DEFAULT_PAYMENT_METHOD = process.env.DEFAULT_PAYMENT_METHOD || 'fapshi';
@@ -45,6 +46,9 @@ app.get('/health', (req, res) => {
     version: '1.0.0'
   });
 });
+
+// API routes for frontend data access
+app.use('/api', apiRoutes);
 
 // Input validation middleware
 const validatePaymentRequest = (req, res, next) => {
