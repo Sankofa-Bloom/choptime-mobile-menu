@@ -233,11 +233,13 @@ const setupSecurityMiddleware = (app) => {
     limit: process.env.MAX_REQUEST_SIZE || '10mb' 
   }));
   
-  // Rate limiting for all routes
-  app.use(createRateLimiter());
-  
-  // Stricter rate limiting for payment endpoints
-  app.use('/api/payment', createRateLimiter(5 * 60 * 1000, 20, 'Too many payment requests'));
+  // Rate limiting for all routes (disabled in development)
+  if (process.env.NODE_ENV !== 'development') {
+    app.use(createRateLimiter());
+    
+    // Stricter rate limiting for payment endpoints
+    app.use('/api/payment', createRateLimiter(5 * 60 * 1000, 20, 'Too many payment requests'));
+  }
   
   // Error logging
   app.use(errorLogger);

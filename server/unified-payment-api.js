@@ -2,7 +2,9 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const fetch = require('node-fetch');
-const { sendEmail, createOrderConfirmationEmail, createAdminNotificationEmail, createOrderStatusUpdateEmail } = require('./email-service');
+const { createClient } = require('@supabase/supabase-js');
+const { sendEmailWithFallback, createOrderConfirmationEmail: createDualOrderConfirmationEmail } = require('./dual-email-service');
+const FapshiAPI = require('./fapshi-api');
 const { 
   setupSecurityMiddleware, 
   corsOptions, 
@@ -12,6 +14,11 @@ const {
   verifyJWT
 } = require('./security-config');
 const apiRoutes = require('./api-routes');
+
+// Initialize Supabase client
+const supabaseUrl = process.env.SUPABASE_URL || 'https://qrpukxmzdwkepfpuapzh.supabase.co';
+const supabaseKey = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFycHVreG16ZHdrZXBmcHVhcHpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA4MTc5MTgsImV4cCI6MjA2NjM5MzkxOH0.Ix3k_w-nbJQ29FcuP3YYRT_K6ZC7RY2p80VKaDA0JEs';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Load environment variables
 const DEFAULT_PAYMENT_METHOD = process.env.DEFAULT_PAYMENT_METHOD || 'fapshi';
@@ -26,7 +33,7 @@ const CAMPAY_BASE_URL = process.env.CAMPAY_BASE_URL || (CAMPAY_TEST_MODE ? 'http
 // Fapshi API configuration
 const FAPSHI_API_USER = process.env.FAPSHI_API_USER;
 const FAPSHI_API_KEY = process.env.FAPSHI_API_KEY;
-const FAPSHI_TEST_MODE = process.env.FAPSHI_TEST_MODE === 'true' || true;
+const FAPSHI_TEST_MODE = process.env.FAPSHI_TEST_MODE === 'true' || false;
 const FAPSHI_BASE_URL = process.env.FAPSHI_BASE_URL || 'https://api.fapshi.com';
 
 const app = express();
@@ -102,14 +109,6 @@ const validatePaymentRequest = (req, res, next) => {
     });
   }
   
-  // Validate phone format (basic validation)
-  if (!customer.phone || customer.phone.length < 8) {
-    return res.status(400).json({
-      success: false,
-      error: 'Invalid phone number'
-    });
-  }
-  
   next();
 };
 
@@ -128,19 +127,102 @@ if (ENABLE_FAPSHI_PAYMENTS && (!FAPSHI_API_USER || !FAPSHI_API_KEY)) {
   console.warn('⚠️  WARNING: Fapshi payments enabled but API credentials not configured');
 }
 
-// Test endpoint
-app.get('/api/payment/test', (req, res) => {
-  res.json({ 
-    message: 'Unified Payment API server is running!',
-    testMode: true,
-    baseUrl: 'unified-server',
-    defaultPaymentMethod: DEFAULT_PAYMENT_METHOD,
-    campayEnabled: ENABLE_CAMPAY_PAYMENTS,
-    fapshiEnabled: ENABLE_FAPSHI_PAYMENTS,
-    campayTestMode: CAMPAY_TEST_MODE,
-    fapshiTestMode: FAPSHI_TEST_MODE
-  });
-});
+// Function to check for incomplete payments
+async function checkIncompletePayments() {
+  try {
+    console.log('🔍 Checking for incomplete payments...');
+    
+    // Get orders that have been pending for more than 30 minutes
+    const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+    
+    const { data: pendingOrders, error: ordersError } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('payment_status', 'pending')
+      .lt('created_at', thirtyMinutesAgo);
+
+    if (ordersError) {
+      console.error('Error fetching pending orders:', ordersError);
+      return;
+    }
+
+    if (!pendingOrders || pendingOrders.length === 0) {
+      console.log('✅ No incomplete payments found');
+      return;
+    }
+
+    console.log(`Found ${pendingOrders.length} incomplete payments`);
+
+    // Check each pending order with the payment gateway
+    for (const order of pendingOrders) {
+      try {
+        let gatewayStatus = null;
+        
+        if (order.payment_method === 'fapshi') {
+          const fapshiAPI = new FapshiAPI();
+          const statusResponse = await fapshiAPI.checkPaymentStatus(order.order_reference);
+          if (statusResponse.success) {
+            gatewayStatus = statusResponse.data.status;
+          }
+        }
+
+        // If gateway status is different, update the order
+        if (gatewayStatus && gatewayStatus !== order.payment_status) {
+          console.log(`Updating order ${order.order_reference} status from ${order.payment_status} to ${gatewayStatus}`);
+          
+          const updateData = {
+            payment_status: gatewayStatus,
+            updated_at: new Date().toISOString()
+          };
+
+          if (gatewayStatus === 'success') {
+            updateData.status = 'confirmed';
+          } else if (gatewayStatus === 'failed') {
+            updateData.status = 'failed';
+          }
+
+          const { error: updateError } = await supabase
+            .from('orders')
+            .update(updateData)
+            .eq('order_reference', order.order_reference);
+
+          if (!updateError) {
+            console.log(`✅ Updated order ${order.order_reference} status to ${gatewayStatus}`);
+          }
+        } else if (!gatewayStatus) {
+          // If we can't get gateway status, send admin notification for incomplete payment
+          console.log(`⚠️ Order ${order.order_reference} still pending, sending admin notification`);
+          
+          try {
+            const { sendAdminPaymentFailureNotification } = require('./payment-webhook');
+            await sendAdminPaymentFailureNotification(
+              order.order_reference, 
+              order.total_amount, 
+              'XAF', 
+              {
+                name: order.customer_name,
+                email: order.customer_email,
+                phone: order.customer_phone
+              }
+            );
+          } catch (emailError) {
+            console.warn('Error sending incomplete payment notification:', emailError);
+          }
+        }
+      } catch (error) {
+        console.error(`Error processing order ${order.order_reference}:`, error);
+      }
+    }
+  } catch (error) {
+    console.error('Error checking incomplete payments:', error);
+  }
+}
+
+// Schedule incomplete payment checks (every 15 minutes)
+setInterval(checkIncompletePayments, 15 * 60 * 1000);
+
+// Run initial check after 5 minutes
+setTimeout(checkIncompletePayments, 5 * 60 * 1000);
 
 // Unified payment initialization endpoint
 app.post('/api/payment/initialize', validatePaymentRequest, async (req, res) => {
@@ -211,34 +293,38 @@ app.post('/api/payment/initialize', validatePaymentRequest, async (req, res) => 
       res.json(mockResponse);
       
     } else if (method === 'fapshi') {
+      // Handle Fapshi payment using real API
+      const fapshiAPI = new FapshiAPI();
+      
       // Handle Fapshi payment
       const fapshiRequest = {
-        amount: Math.round(amount * 100), // Convert to cents
-        email: customer.email,
-        redirectUrl: return_url,
-        userId: customer.phone,
-        externalId: reference,
-        message: description,
+        amount: amount,
         currency: currency.toUpperCase(),
-        phone: customer.phone,
-        callbackUrl: callback_url
+        reference: reference,
+        description: description,
+        customer: {
+          name: customer.name,
+          phone: customer.phone,
+          email: customer.email
+        },
+        callback_url: callback_url,
+        return_url: `${process.env.FAPSHI_CALLBACK_URL?.replace('/api/payment-webhook', '') || 'http://localhost:8080'}/payment-redirect/${reference}`
       };
 
       console.log('Sending request to Fapshi:', fapshiRequest);
 
-      // For now, use mock response for Fapshi as well
-      const mockResponse = {
-        success: true,
-        data: {
-          payment_url: `https://fapshi.com/pay/${reference}`,
-          reference: reference,
-          status: 'pending',
-          transaction_id: `mock_fapshi_${Date.now()}`
-        }
-      };
-
-      console.log('Fapshi mock response:', mockResponse);
-      res.json(mockResponse);
+      const fapshiResponse = await fapshiAPI.initializePayment(fapshiRequest);
+      
+      if (fapshiResponse.success) {
+        console.log('Fapshi payment initialized successfully:', fapshiResponse);
+        res.json(fapshiResponse);
+      } else {
+        console.error('Fapshi payment initialization failed:', fapshiResponse.error);
+        res.status(500).json({
+          success: false,
+          error: 'Fapshi payment initialization failed: ' + fapshiResponse.error
+        });
+      }
       
     } else {
       res.status(400).json({
@@ -335,34 +421,37 @@ app.post('/api/fapshi/initialize', validatePaymentRequest, async (req, res) => {
       });
     }
 
-    // Handle Fapshi payment
+    // Handle Fapshi payment using real API
+    const fapshiAPI = new FapshiAPI();
+    
     const fapshiRequest = {
       amount: Math.round(amount * 100), // Convert to cents
-      email: customer.email,
-      redirectUrl: return_url,
-      userId: customer.phone,
-      externalId: reference,
-      message: description,
       currency: currency.toUpperCase(),
-      phone: customer.phone,
-      callbackUrl: callback_url
+      reference: reference,
+      description: description,
+      customer: {
+        name: customer.name,
+        phone: customer.phone,
+        email: customer.email
+      },
+      callback_url: callback_url,
+      return_url: return_url
     };
 
     console.log('Sending request to Fapshi:', fapshiRequest);
 
-    // For now, use mock response for Fapshi as well
-    const mockResponse = {
-      success: true,
-      data: {
-        payment_url: `https://fapshi.com/pay/${reference}`,
-        reference: reference,
-        status: 'pending',
-        transaction_id: `mock_fapshi_${Date.now()}`
-      }
-    };
-
-    console.log('Fapshi mock response:', mockResponse);
-    res.json(mockResponse);
+    const fapshiResponse = await fapshiAPI.initializePayment(fapshiRequest);
+    
+    if (fapshiResponse.success) {
+      console.log('Fapshi payment initialized successfully:', fapshiResponse);
+      res.json(fapshiResponse);
+    } else {
+      console.error('Fapshi payment initialization failed:', fapshiResponse.error);
+      res.status(500).json({
+        success: false,
+        error: 'Fapshi payment initialization failed: ' + fapshiResponse.error
+      });
+    }
     
   } catch (error) {
     console.error('Fapshi API error:', error);
@@ -377,39 +466,142 @@ app.post('/api/fapshi/initialize', validatePaymentRequest, async (req, res) => {
 app.get('/api/payment/status/:reference', async (req, res) => {
   try {
     const { reference } = req.params;
-    const { paymentMethod } = req.query;
     
-    const method = paymentMethod || DEFAULT_PAYMENT_METHOD;
-    
-    console.log('Checking payment status for:', reference, 'using method:', method);
+    if (!reference) {
+      return res.status(400).json({
+        success: false,
+        error: 'Payment reference is required'
+      });
+    }
 
-    // Mock status response
-    const mockStatus = {
+    console.log(`Checking payment status for reference: ${reference}`);
+
+    // Check database for order status
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('order_reference', reference)
+      .single();
+
+    if (orderError || !order) {
+      // Check custom orders table
+      const { data: customOrder, error: customOrderError } = await supabase
+        .from('custom_orders')
+        .select('*')
+        .eq('order_reference', reference)
+        .single();
+
+      if (customOrderError || !customOrder) {
+        return res.status(404).json({
+          success: false,
+          error: 'Order not found'
+        });
+      }
+
+      return res.json({
+        success: true,
+        data: {
+          reference: reference,
+          status: customOrder.status || 'pending',
+          payment_status: customOrder.payment_status || 'pending',
+          amount: customOrder.total_amount,
+          currency: 'XAF',
+          created_at: customOrder.created_at,
+          updated_at: customOrder.updated_at
+        }
+      });
+    }
+
+    // Check with payment gateway for latest status
+    let gatewayStatus = null;
+    if (order.payment_method === 'fapshi') {
+      const fapshiAPI = new FapshiAPI();
+      try {
+        const statusResponse = await fapshiAPI.checkPaymentStatus(reference);
+        if (statusResponse.success) {
+          gatewayStatus = statusResponse.data.status;
+        }
+      } catch (error) {
+        console.warn('Failed to check Fapshi status:', error.message);
+      }
+    }
+
+    // Determine final status
+    let finalStatus = order.status;
+    let paymentStatus = order.payment_status;
+
+    // If gateway status is different from database, update database
+    if (gatewayStatus && gatewayStatus !== order.payment_status) {
+      console.log(`Updating payment status from ${order.payment_status} to ${gatewayStatus}`);
+      
+      const updateData = {
+        payment_status: gatewayStatus,
+        updated_at: new Date().toISOString()
+      };
+
+      if (gatewayStatus === 'success') {
+        updateData.status = 'confirmed';
+      } else if (gatewayStatus === 'failed') {
+        updateData.status = 'failed';
+      }
+
+      const { error: updateError } = await supabase
+        .from('orders')
+        .update(updateData)
+        .eq('order_reference', reference);
+
+      if (!updateError) {
+        finalStatus = updateData.status;
+        paymentStatus = gatewayStatus;
+      }
+    }
+
+    // Check for incomplete payments (pending for more than 30 minutes)
+    const orderTime = new Date(order.created_at);
+    const currentTime = new Date();
+    const timeDiff = currentTime - orderTime;
+    const thirtyMinutes = 30 * 60 * 1000; // 30 minutes in milliseconds
+
+    if (paymentStatus === 'pending' && timeDiff > thirtyMinutes) {
+      console.log(`Payment ${reference} has been pending for more than 30 minutes`);
+      
+      // Send admin notification for incomplete payment
+      try {
+        const { sendAdminPaymentFailureNotification } = require('./payment-webhook');
+        await sendAdminPaymentFailureNotification(
+          reference, 
+          order.total_amount, 
+          'XAF', 
+          {
+            name: order.customer_name,
+            email: order.customer_email,
+            phone: order.customer_phone
+          }
+        );
+      } catch (emailError) {
+        console.warn('Error sending incomplete payment notification:', emailError);
+      }
+    }
+
+    res.json({
       success: true,
       data: {
         reference: reference,
-        status: 'success',
-        amount: 100000, // 1000 XAF in cents
+        status: finalStatus,
+        payment_status: paymentStatus,
+        amount: order.total_amount,
         currency: 'XAF',
-        customer: {
-          name: 'Test Customer',
-          phone: '237612345678',
-          email: 'test@example.com'
-        },
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        transaction_id: `mock_${method}_${Date.now()}`
+        created_at: order.created_at,
+        updated_at: order.updated_at,
+        gateway_status: gatewayStatus
       }
-    };
+    });
 
-    console.log('Status check response:', mockStatus);
-    res.json(mockStatus);
-    
   } catch (error) {
     console.error('Payment status check error:', error);
     res.status(500).json({
       success: false,
-      error: 'Status check failed: ' + error.message
+      error: 'Failed to check payment status: ' + error.message
     });
   }
 });
@@ -497,16 +689,33 @@ app.post('/api/email/send', async (req, res) => {
   try {
     const { to, subject, html, text } = req.body;
     
-    console.log('Sending email to:', to);
+    console.log('📧 Sending email via dual service to:', to);
     console.log('Subject:', subject);
     
-    // Mock email sending
-    const emailSent = await sendEmail(to, subject, html, text);
+    // Send email using dual service with fallback
+    const emailResult = await sendEmailWithFallback(
+      to, 
+      subject, 
+      html, 
+      { priority: process.env.EMAIL_PRIORITY || 'gmail' }
+    );
     
-    res.json({
-      success: emailSent,
-      message: emailSent ? 'Email sent successfully' : 'Failed to send email'
-    });
+    if (emailResult.success) {
+      console.log(`✅ Email sent successfully via ${emailResult.provider.toUpperCase()}${emailResult.fallback ? ' (fallback)' : ''}`);
+      res.json({
+        success: true,
+        message: `Email sent successfully via ${emailResult.provider.toUpperCase()}${emailResult.fallback ? ' (fallback)' : ''}`,
+        messageId: emailResult.messageId,
+        provider: emailResult.provider,
+        fallback: emailResult.fallback
+      });
+    } else {
+      console.error('❌ Email failed:', emailResult.error);
+      res.status(500).json({
+        success: false,
+        error: 'Email failed: ' + emailResult.error
+      });
+    }
   } catch (error) {
     console.error('Email sending error:', error);
     res.status(500).json({
@@ -521,30 +730,36 @@ app.post('/api/email/send-order-confirmation', async (req, res) => {
   try {
     const { orderData } = req.body;
     
-    console.log('Sending order confirmation email:', orderData);
+    console.log('📧 Sending order confirmation email via dual service:', orderData);
     
-    // Create email content
+    // Create enhanced email content using dual service template
     const subject = `Order Confirmation - ${orderData.orderReference}`;
-    const html = `
-      <h2>Order Confirmation</h2>
-      <p>Dear ${orderData.customerName},</p>
-      <p>Your order has been confirmed and is being prepared.</p>
-      <p><strong>Order Reference:</strong> ${orderData.orderReference}</p>
-      <p><strong>Restaurant:</strong> ${orderData.restaurantName}</p>
-      <p><strong>Dish:</strong> ${orderData.dishName}</p>
-      <p><strong>Quantity:</strong> ${orderData.quantity}</p>
-      <p><strong>Total Amount:</strong> ${orderData.totalAmount}</p>
-      <p><strong>Delivery Address:</strong> ${orderData.deliveryAddress}</p>
-      <p>We'll notify you when your order is ready for delivery.</p>
-    `;
+    const html = createDualOrderConfirmationEmail(orderData);
     
-    // Mock email sending
-    const emailSent = await sendEmail(orderData.customerEmail, subject, html, html);
+    // Send email using dual service with fallback
+    const emailResult = await sendEmailWithFallback(
+      orderData.customerEmail, 
+      subject, 
+      html, 
+      { priority: process.env.EMAIL_PRIORITY || 'gmail' }
+    );
     
-    res.json({
-      success: emailSent,
-      message: emailSent ? 'Order confirmation email sent successfully' : 'Failed to send order confirmation email'
-    });
+    if (emailResult.success) {
+      console.log(`✅ Order confirmation email sent successfully via ${emailResult.provider.toUpperCase()}${emailResult.fallback ? ' (fallback)' : ''}`);
+      res.json({
+        success: true,
+        message: `Order confirmation email sent successfully via ${emailResult.provider.toUpperCase()}${emailResult.fallback ? ' (fallback)' : ''}`,
+        messageId: emailResult.messageId,
+        provider: emailResult.provider,
+        fallback: emailResult.fallback
+      });
+    } else {
+      console.error('❌ Order confirmation email failed:', emailResult.error);
+      res.status(500).json({
+        success: false,
+        error: 'Order confirmation email failed: ' + emailResult.error
+      });
+    }
   } catch (error) {
     console.error('Order confirmation email error:', error);
     res.status(500).json({
@@ -559,31 +774,149 @@ app.post('/api/email/send-admin-notification', async (req, res) => {
   try {
     const { orderData } = req.body;
     
-    console.log('Sending admin notification email:', orderData);
+    console.log('📧 Sending admin notification email via dual service:', orderData);
     
-    // Create email content
+    // Create enhanced admin notification email
     const subject = `New Order - ${orderData.orderReference}`;
     const html = `
-      <h2>New Order Received</h2>
-      <p><strong>Order Reference:</strong> ${orderData.orderReference}</p>
-      <p><strong>Customer:</strong> ${orderData.customerName}</p>
-      <p><strong>Email:</strong> ${orderData.customerEmail}</p>
-      <p><strong>Phone:</strong> ${orderData.customerPhone}</p>
-      <p><strong>Restaurant:</strong> ${orderData.restaurantName}</p>
-      <p><strong>Dish:</strong> ${orderData.dishName}</p>
-      <p><strong>Quantity:</strong> ${orderData.quantity}</p>
-      <p><strong>Total Amount:</strong> ${orderData.totalAmount}</p>
-      <p><strong>Delivery Address:</strong> ${orderData.deliveryAddress}</p>
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>New Order - ChopTym</title>
+      </head>
+      <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+          
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, #D57A1F 0%, #E89A4D 100%); padding: 30px; text-align: center;">
+            <div style="background-color: rgba(255, 255, 255, 0.1); border-radius: 50%; width: 80px; height: 80px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;">
+              <span style="font-size: 40px; color: white;">🆕</span>
+            </div>
+            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 600;">New Order Received!</h1>
+            <p style="color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 16px;">Action required - Please process this order</p>
+          </div>
+
+          <!-- Content -->
+          <div style="padding: 40px 30px;">
+            <h2 style="color: #2c3e50; margin: 0 0 20px 0; font-size: 24px;">New Order Alert! 🚨</h2>
+            <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
+              A new order has been placed and payment has been confirmed. Please process this order immediately.
+            </p>
+
+            <!-- Order Details Card -->
+            <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 16px; padding: 30px; margin: 30px 0; border-left: 5px solid #D57A1F;">
+              <h3 style="color: #D57A1F; margin: 0 0 20px 0; font-size: 20px; display: flex; align-items: center;">
+                <span style="margin-right: 10px;">📋</span>
+                Order Details
+              </h3>
+              
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef;">
+                  <p style="margin: 0; color: #6c757d; font-size: 12px; text-transform: uppercase; font-weight: 600;">Order Reference</p>
+                  <p style="margin: 5px 0 0 0; color: #2c3e50; font-size: 16px; font-weight: 600;">${orderData.orderReference}</p>
+                </div>
+                <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef;">
+                  <p style="margin: 0; color: #6c757d; font-size: 12px; text-transform: uppercase; font-weight: 600;">Restaurant</p>
+                  <p style="margin: 5px 0 0 0; color: #2c3e50; font-size: 16px; font-weight: 600;">${orderData.restaurantName}</p>
+                </div>
+              </div>
+
+              <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e9ecef; margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                  <span style="font-size: 24px; margin-right: 15px;">🍽️</span>
+                  <div>
+                    <p style="margin: 0; color: #2c3e50; font-size: 18px; font-weight: 600;">${orderData.dishName}</p>
+                    <p style="margin: 5px 0 0 0; color: #6c757d; font-size: 14px;">Quantity: ${orderData.quantity}</p>
+                  </div>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 15px; border-top: 1px solid #e9ecef;">
+                  <span style="color: #6c757d; font-size: 14px;">Total Amount:</span>
+                  <span style="color: #D57A1F; font-size: 20px; font-weight: 600;">${orderData.totalAmount} FCFA</span>
+                </div>
+              </div>
+
+              <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef; margin-bottom: 20px;">
+                <p style="margin: 0; color: #6c757d; font-size: 12px; text-transform: uppercase; font-weight: 600;">Customer Information</p>
+                <p style="margin: 5px 0 0 0; color: #2c3e50; font-size: 14px;"><strong>Name:</strong> ${orderData.customerName}</p>
+                <p style="margin: 5px 0 0 0; color: #2c3e50; font-size: 14px;"><strong>Email:</strong> ${orderData.customerEmail}</p>
+                <p style="margin: 5px 0 0 0; color: #2c3e50; font-size: 14px;"><strong>Phone:</strong> ${orderData.customerPhone}</p>
+              </div>
+
+              <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef;">
+                <p style="margin: 0; color: #6c757d; font-size: 12px; text-transform: uppercase; font-weight: 600;">Delivery Address</p>
+                <p style="margin: 5px 0 0 0; color: #2c3e50; font-size: 14px;">${orderData.deliveryAddress}</p>
+              </div>
+            </div>
+
+            <!-- Action Required -->
+            <div style="background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); border-radius: 12px; padding: 25px; margin: 30px 0; border-left: 4px solid #ffc107;">
+              <h3 style="color: #856404; margin: 0 0 15px 0; font-size: 18px; display: flex; align-items: center;">
+                <span style="margin-right: 10px;">⚡</span>
+                Action Required
+              </h3>
+              <ul style="margin: 0; padding-left: 20px; color: #856404;">
+                <li style="margin-bottom: 8px;">Process this order immediately</li>
+                <li style="margin-bottom: 8px;">Contact the restaurant to confirm preparation</li>
+                <li style="margin-bottom: 8px;">Assign delivery personnel</li>
+                <li>Update order status in the system</li>
+              </ul>
+            </div>
+
+            <!-- Contact Info -->
+            <div style="text-align: center; margin: 40px 0 20px 0;">
+              <p style="color: #6c757d; font-size: 14px; margin: 0 0 10px 0;">Need help? Contact support:</p>
+              <div style="display: flex; justify-content: center; gap: 20px;">
+                <div style="text-align: center;">
+                  <span style="font-size: 20px; color: #D57A1F;">📧</span>
+                  <p style="margin: 5px 0 0 0; color: #2c3e50; font-size: 14px;">support@choptym.com</p>
+                </div>
+                <div style="text-align: center;">
+                  <span style="font-size: 20px; color: #D57A1F;">📞</span>
+                  <p style="margin: 5px 0 0 0; color: #2c3e50; font-size: 14px;">+237 670 416 449</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div style="background-color: #2c3e50; padding: 20px; text-align: center;">
+            <p style="color: rgba(255, 255, 255, 0.8); margin: 0; font-size: 12px;">
+              © 2024 ChopTym. All rights reserved. | Delicious meals delivered to your doorstep.
+            </p>
+          </div>
+        </div>
+      </body>
+      </html>
     `;
     
-    // Send to admin email
-    const adminEmail = process.env.VITE_ADMIN_EMAIL || 'admin@choptym.com';
-    const emailSent = await sendEmail(adminEmail, subject, html, html);
+    // Send to admin email using dual service
+    const adminEmail = process.env.ADMIN_EMAIL || 'choptym237@gmail.com';
+    const emailResult = await sendEmailWithFallback(
+      adminEmail, 
+      subject, 
+      html, 
+      { priority: process.env.EMAIL_PRIORITY || 'gmail' }
+    );
     
-    res.json({
-      success: emailSent,
-      message: emailSent ? 'Admin notification email sent successfully' : 'Failed to send admin notification email'
-    });
+    if (emailResult.success) {
+      console.log(`✅ Admin notification email sent successfully via ${emailResult.provider.toUpperCase()}${emailResult.fallback ? ' (fallback)' : ''}`);
+      res.json({
+        success: true,
+        message: `Admin notification email sent successfully via ${emailResult.provider.toUpperCase()}${emailResult.fallback ? ' (fallback)' : ''}`,
+        messageId: emailResult.messageId,
+        provider: emailResult.provider,
+        fallback: emailResult.fallback
+      });
+    } else {
+      console.error('❌ Admin notification email failed:', emailResult.error);
+      res.status(500).json({
+        success: false,
+        error: 'Admin notification email failed: ' + emailResult.error
+      });
+    }
   } catch (error) {
     console.error('Admin notification email error:', error);
     res.status(500).json({
@@ -598,32 +931,239 @@ app.post('/api/email/send-status-update', async (req, res) => {
   try {
     const { orderData, status, message } = req.body;
     
-    console.log('Sending order status update email:', { orderData, status, message });
+    console.log('📧 Sending order status update email via dual service:', { orderData, status, message });
     
-    // Create email content
+    // Create enhanced status update email
     const subject = `Order Status Update - ${orderData.orderReference}`;
     const html = `
-      <h2>Order Status Update</h2>
-      <p>Dear ${orderData.customerName},</p>
-      <p>Your order status has been updated.</p>
-      <p><strong>Order Reference:</strong> ${orderData.orderReference}</p>
-      <p><strong>Status:</strong> ${status}</p>
-      <p><strong>Message:</strong> ${message}</p>
-      <p>Thank you for choosing ChopTym!</p>
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Order Status Update - ChopTym</title>
+      </head>
+      <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+          
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, #D57A1F 0%, #E89A4D 100%); padding: 30px; text-align: center;">
+            <div style="background-color: rgba(255, 255, 255, 0.1); border-radius: 50%; width: 80px; height: 80px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;">
+              <span style="font-size: 40px; color: white;">📊</span>
+            </div>
+            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 600;">Order Status Update!</h1>
+            <p style="color: rgba(255, 255, 255, 0.9); margin: 10px 0 0 0; font-size: 16px;">Your order status has been updated</p>
+          </div>
+
+          <!-- Content -->
+          <div style="padding: 40px 30px;">
+            <h2 style="color: #2c3e50; margin: 0 0 20px 0; font-size: 24px;">Hello ${orderData.customerName}! 👋</h2>
+            <p style="color: #555; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
+              Your order status has been updated. Here are the latest details:
+            </p>
+
+            <!-- Status Update Card -->
+            <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 16px; padding: 30px; margin: 30px 0; border-left: 5px solid #D57A1F;">
+              <h3 style="color: #D57A1F; margin: 0 0 20px 0; font-size: 20px; display: flex; align-items: center;">
+                <span style="margin-right: 10px;">📋</span>
+                Status Update
+              </h3>
+              
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef;">
+                  <p style="margin: 0; color: #6c757d; font-size: 12px; text-transform: uppercase; font-weight: 600;">Order Reference</p>
+                  <p style="margin: 5px 0 0 0; color: #2c3e50; font-size: 16px; font-weight: 600;">${orderData.orderReference}</p>
+                </div>
+                <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef;">
+                  <p style="margin: 0; color: #6c757d; font-size: 12px; text-transform: uppercase; font-weight: 600;">Current Status</p>
+                  <p style="margin: 5px 0 0 0; color: #D57A1F; font-size: 16px; font-weight: 600;">${status}</p>
+                </div>
+              </div>
+
+              <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e9ecef;">
+                <p style="margin: 0; color: #6c757d; font-size: 12px; text-transform: uppercase; font-weight: 600;">Update Message</p>
+                <p style="margin: 5px 0 0 0; color: #2c3e50; font-size: 16px; line-height: 1.5;">${message}</p>
+              </div>
+            </div>
+
+            <!-- Order Details -->
+            <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e9ecef; margin-bottom: 20px;">
+              <h3 style="color: #2c3e50; margin: 0 0 15px 0; font-size: 18px;">Order Details</h3>
+              <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                <span style="font-size: 24px; margin-right: 15px;">🍽️</span>
+                <div>
+                  <p style="margin: 0; color: #2c3e50; font-size: 18px; font-weight: 600;">${orderData.dishName}</p>
+                  <p style="margin: 5px 0 0 0; color: #6c757d; font-size: 14px;">Quantity: ${orderData.quantity} | Restaurant: ${orderData.restaurantName}</p>
+                </div>
+              </div>
+              
+              <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 15px; border-top: 1px solid #e9ecef;">
+                <span style="color: #6c757d; font-size: 14px;">Total Amount:</span>
+                <span style="color: #D57A1F; font-size: 20px; font-weight: 600;">${orderData.totalAmount} FCFA</span>
+              </div>
+            </div>
+
+            <!-- Contact Info -->
+            <div style="text-align: center; margin: 40px 0 20px 0;">
+              <p style="color: #6c757d; font-size: 14px; margin: 0 0 10px 0;">Need help? Contact us:</p>
+              <div style="display: flex; justify-content: center; gap: 20px;">
+                <div style="text-align: center;">
+                  <span style="font-size: 20px; color: #D57A1F;">📧</span>
+                  <p style="margin: 5px 0 0 0; color: #2c3e50; font-size: 14px;">support@choptym.com</p>
+                </div>
+                <div style="text-align: center;">
+                  <span style="font-size: 20px; color: #D57A1F;">📞</span>
+                  <p style="margin: 5px 0 0 0; color: #2c3e50; font-size: 14px;">+237 670 416 449</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div style="background-color: #2c3e50; padding: 20px; text-align: center;">
+            <p style="color: rgba(255, 255, 255, 0.8); margin: 0; font-size: 12px;">
+              © 2024 ChopTym. All rights reserved. | Delicious meals delivered to your doorstep.
+            </p>
+          </div>
+        </div>
+      </body>
+      </html>
     `;
     
-    // Mock email sending
-    const emailSent = await sendEmail(orderData.customerEmail, subject, html, html);
+    // Send email using dual service with fallback
+    const emailResult = await sendEmailWithFallback(
+      orderData.customerEmail, 
+      subject, 
+      html, 
+      { priority: process.env.EMAIL_PRIORITY || 'gmail' }
+    );
     
-    res.json({
-      success: emailSent,
-      message: emailSent ? 'Status update email sent successfully' : 'Failed to send status update email'
-    });
+    if (emailResult.success) {
+      console.log(`✅ Order status update email sent successfully via ${emailResult.provider.toUpperCase()}${emailResult.fallback ? ' (fallback)' : ''}`);
+      res.json({
+        success: true,
+        message: `Order status update email sent successfully via ${emailResult.provider.toUpperCase()}${emailResult.fallback ? ' (fallback)' : ''}`,
+        messageId: emailResult.messageId,
+        provider: emailResult.provider,
+        fallback: emailResult.fallback
+      });
+    } else {
+      console.error('❌ Order status update email failed:', emailResult.error);
+      res.status(500).json({
+        success: false,
+        error: 'Order status update email failed: ' + emailResult.error
+      });
+    }
   } catch (error) {
-    console.error('Status update email error:', error);
+    console.error('Order status update email error:', error);
     res.status(500).json({
       success: false,
-      error: 'Status update email failed: ' + error.message
+      error: 'Order status update email failed: ' + error.message
+    });
+  }
+});
+
+// Dual email service test endpoint
+app.post('/api/email/test-dual', async (req, res) => {
+  try {
+    const { to } = req.body;
+    
+    if (!to) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required field: to (email address)'
+      });
+    }
+
+    console.log('🧪 Testing dual email service...');
+    console.log('Test email to:', to);
+
+    const results = await sendEmailWithFallback(to, 'Test Email', 'This is a test email from the dual email service.', { priority: 'gmail' });
+    
+    res.json({
+      success: results.success,
+      message: results.success ? 'Email service test completed' : 'Email service test failed',
+      messageId: results.messageId,
+      provider: results.provider,
+      fallback: results.fallback
+    });
+  } catch (error) {
+    console.error('Dual email test error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Dual email test failed: ' + error.message
+    });
+  }
+});
+
+// Dual email service send endpoint
+app.post('/api/email/send-dual', async (req, res) => {
+  try {
+    const { to, subject, html, priority = 'gmail' } = req.body;
+    
+    if (!to || !subject || !html) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: to, subject, html'
+      });
+    }
+
+    console.log('📧 Sending email via dual service...');
+    console.log('To:', to);
+    console.log('Subject:', subject);
+    console.log('Priority:', priority);
+
+    const result = await sendEmailWithFallback(to, subject, html, { priority });
+    
+    if (result.success) {
+      res.json({
+        success: true,
+        message: `Email sent successfully via ${result.provider.toUpperCase()}${result.fallback ? ' (fallback)' : ''}`,
+        messageId: result.messageId,
+        provider: result.provider,
+        fallback: result.fallback
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        error: 'Failed to send email: ' + result.error
+      });
+    }
+  } catch (error) {
+    console.error('Dual email send error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Dual email send failed: ' + error.message
+    });
+  }
+});
+
+// Fapshi-specific status endpoint
+app.get('/api/fapshi/status/:reference', async (req, res) => {
+  try {
+    const { reference } = req.params;
+    
+    console.log('Checking Fapshi payment status for:', reference);
+
+    const fapshiAPI = new FapshiAPI();
+    const statusResponse = await fapshiAPI.checkPaymentStatus(reference);
+    
+    if (statusResponse.success) {
+      console.log('Fapshi status check response:', statusResponse);
+      res.json(statusResponse);
+    } else {
+      console.error('Fapshi status check failed:', statusResponse.error);
+      res.status(500).json({
+        success: false,
+        error: 'Fapshi status check failed: ' + statusResponse.error
+      });
+    }
+    
+  } catch (error) {
+    console.error('Fapshi payment status check error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Status check failed: ' + error.message
     });
   }
 });
@@ -631,7 +1171,6 @@ app.post('/api/email/send-status-update', async (req, res) => {
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Unified Payment API server running on port ${PORT}`);
-  console.log(`Test endpoint: http://localhost:${PORT}/api/payment/test`);
   console.log(`Initialize endpoint: http://localhost:${PORT}/api/payment/initialize`);
   console.log(`Status endpoint: http://localhost:${PORT}/api/payment/status/:reference`);
   console.log(`Email endpoints: http://localhost:${PORT}/api/email/*`);

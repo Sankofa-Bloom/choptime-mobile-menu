@@ -176,7 +176,7 @@ const CartSection: React.FC<CartSectionProps> = ({
                     <div className="flex items-center space-x-3 p-3 border rounded-lg bg-green-50 border-green-200">
                       <div className="flex items-center space-x-2">
                         <div className="w-4 h-4 bg-green-500 rounded-full"></div>
-                        <span className="font-medium text-gray-900">Secure Online Payment (Campay)</span>
+                        <span className="font-medium text-gray-900">Secure Online Payment</span>
                       </div>
                     </div>
                     <div className="mt-2 space-y-1">
@@ -197,7 +197,7 @@ const CartSection: React.FC<CartSectionProps> = ({
                       </div>
                     </div>
                     <p className="text-xs text-gray-500 mt-2">
-                      Secure online payment through Campay payment gateway
+                      Secure online payment through our payment gateway
                     </p>
                   </div>
 

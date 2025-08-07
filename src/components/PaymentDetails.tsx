@@ -331,6 +331,24 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
           const orderRef = savedOrder.order_reference || '';
           setOrderReference(orderRef);
           
+          // Save order data to localStorage for email sending in PaymentSuccess page
+          if (orderRef) {
+            const orderDataForEmail = {
+              orderReference: orderRef,
+              customerName: isCustomOrder ? (currentOrder as CustomOrder).customerName : (currentOrder as OrderDetails).customerName,
+              customerEmail: customerEmail,
+              customerPhone: isCustomOrder ? (currentOrder as CustomOrder).customerPhone : (currentOrder as OrderDetails).customerPhone,
+              restaurantName: selectedRestaurant.name,
+              dishName: isCustomOrder ? (currentOrder as CustomOrder).dishName : (currentOrder as OrderDetails).dishName,
+              quantity: isCustomOrder ? 1 : (currentOrder as OrderDetails).quantity,
+              totalAmount: `${total} FCFA`,
+              deliveryAddress: isCustomOrder ? (currentOrder as CustomOrder).location : (currentOrder as OrderDetails).location
+            };
+            
+            localStorage.setItem(`order_${orderRef}`, JSON.stringify(orderDataForEmail));
+            console.log('Order data saved to localStorage for email sending:', orderDataForEmail);
+          }
+          
           // Initialize payment and get payment URL
           const currentOrderData = currentOrder as OrderDetails;
           
@@ -653,65 +671,19 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
 
           {/* Email Input */}
           <div className="space-y-2">
-            <Label htmlFor="customerEmail">Email Address *</Label>
+            <Label htmlFor="email">Email Address *</Label>
             <Input
-              id="customerEmail"
+              id="email"
               type="email"
               placeholder="your.email@example.com"
               value={customerEmail}
               onChange={(e) => setCustomerEmail(e.target.value)}
               required
+              className="w-full"
             />
-            <p className="text-xs text-gray-600">
-              We'll send your order confirmation and updates to this email address
+            <p className="text-sm text-gray-600">
+              We'll send your order confirmation to this email address
             </p>
-            
-            {/* Test Email Button (Development Only) */}
-            {import.meta.env.DEV && customerEmail && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={async () => {
-                  try {
-                    const testEmailSent = await sendOrderConfirmationEmail({
-                      orderReference: 'TEST-EMAIL',
-                      customerName: 'Test Customer',
-                      customerEmail: customerEmail,
-                      customerPhone: 'Test Phone',
-                      restaurantName: selectedRestaurant?.name || 'Test Restaurant',
-                      dishName: 'Test Dish',
-                      quantity: 1,
-                      totalAmount: '1000 FCFA',
-                      deliveryAddress: 'Test Address'
-                    });
-                    
-                    if (testEmailSent) {
-                      toast({
-                        title: "Test Email Sent!",
-                        description: "Check your email inbox for the test message.",
-                      });
-                    } else {
-                      toast({
-                        title: "Test Email Failed",
-                        description: "Check console for error details.",
-                        variant: "destructive"
-                      });
-                    }
-                  } catch (error) {
-                    console.error('Test email error:', error);
-                    toast({
-                      title: "Test Email Error",
-                      description: "Failed to send test email. Check console for details.",
-                      variant: "destructive"
-                    });
-                  }
-                }}
-                className="w-full"
-              >
-                Test Email (Dev Only)
-              </Button>
-            )}
           </div>
 
           {/* Action Buttons */}

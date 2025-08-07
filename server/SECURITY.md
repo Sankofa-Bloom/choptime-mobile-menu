@@ -1,1 +1,0 @@
-# ChopTym Backend Security Documentation
