@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CreditCard, AlertCircle, Smartphone } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useChopTymData } from '@/hooks/useChopTymData';
 import { supabase } from '@/integrations/supabase/client';
 import { sendOrderConfirmationEmail, sendAdminNotificationEmail } from '@/utils/serverEmailService';
 import { isValidEmail } from '@/utils/emailService';
@@ -73,6 +74,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
   
 
   const { toast } = useToast();
+  const { deliveryFees } = useChopTymData();
 
   const currentOrder = orderDetails || customOrder;
   const isCustomOrder = !orderDetails && !!customOrder;
@@ -83,39 +85,34 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
   useEffect(() => {
     // Only calculate delivery fee for custom orders
     // Regular orders already have delivery fee included in total
-    if (isCustomOrder && currentOrder?.location && selectedRestaurant?.town) {
+    if (isCustomOrder && selectedRestaurant?.town && deliveryFees.length > 0) {
       calculateDeliveryFee();
     }
-  }, [currentOrder?.location, selectedRestaurant?.town, isCustomOrder]);
+  }, [selectedRestaurant?.town, isCustomOrder, deliveryFees]);
 
-  const calculateDeliveryFee = async () => {
-    if (!currentOrder?.location || !selectedRestaurant?.town) return;
+  const calculateDeliveryFee = () => {
+    if (!selectedRestaurant?.town) return;
 
-    try {
-      const { data, error } = await supabase.rpc('calculate_delivery_fee', {
-        town_name: selectedRestaurant.town,
-        location_description: currentOrder.location
+    // Find delivery fee from the already fetched data
+    const deliveryInfo = deliveryFees.find(
+      df => df.town.toLowerCase() === selectedRestaurant.town.toLowerCase()
+    );
+
+    if (deliveryInfo) {
+      setDeliveryFee(deliveryInfo.fee);
+      setDeliveryZone({
+        id: deliveryInfo.id,
+        zone_name: `${deliveryInfo.town} Zone`,
+        fee: deliveryInfo.fee
       });
-
-      if (error) {
-        console.error('Error calculating delivery fee:', error);
-        setDeliveryFee(1000);
-        return;
-      }
-
-      if (data && data.length > 0) {
-        setDeliveryFee(data[0].fee);
-        setDeliveryZone({
-          id: data[0].zone_id,
-          zone_name: data[0].zone_name,
-          fee: data[0].fee
-        });
-      } else {
-        setDeliveryFee(1000);
-      }
-    } catch (error) {
-      console.error('Error calculating delivery fee:', error);
+    } else {
+      // Default fee if town not found in delivery fees
       setDeliveryFee(1000);
+      setDeliveryZone({
+        id: `zone-${selectedRestaurant.town}`,
+        zone_name: `${selectedRestaurant.town} Zone`,
+        fee: 1000
+      });
     }
   };
 

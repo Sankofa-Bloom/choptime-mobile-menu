@@ -55,7 +55,7 @@ const Index = () => {
     restaurantMenus, 
     loading, 
     error,
-    getDeliveryFee,
+    getDeliveryFeeForTown,
     generateOrderReference, 
     saveOrder, 
     saveCustomOrder,
@@ -123,17 +123,12 @@ const Index = () => {
 
   // Update delivery fee when town or address changes
   useEffect(() => {
-    const updateDeliveryFee = async () => {
-      if (selectedTown && orderDetails.deliveryAddress) {
-        const fee = await getDeliveryFee(selectedTown, orderDetails.deliveryAddress);
-        setOrderDetails(prev => ({ ...prev, deliveryFee: fee }));
-      } else if (selectedTown) {
-        const fee = await getDeliveryFee(selectedTown);
-        setOrderDetails(prev => ({ ...prev, deliveryFee: fee }));
-      }
-    };
-    updateDeliveryFee();
-  }, [selectedTown, orderDetails.deliveryAddress, getDeliveryFee]);
+    // Update delivery fee when town changes (simple lookup, no API calls)
+    if (selectedTown) {
+      const fee = getDeliveryFeeForTown(selectedTown);
+      setOrderDetails(prev => ({ ...prev, deliveryFee: fee }));
+    }
+  }, [selectedTown, getDeliveryFeeForTown]);
 
   const scrollToCart = () => {
     const cartSection = document.getElementById('cart-section');
