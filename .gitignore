@@ -29,6 +29,7 @@ dist-ssr
 .env.development
 .env.production
 .env.test
+.env.vercel.production
 *.env
 server/.env
 
@@ -71,6 +72,7 @@ workbox-*.js
 # Supabase
 .supabase/
 
-# Documentation files (except README.md)
+# Documentation files (except README.md and deployment guides)
 *.md
 !README.md
+!VERCEL_DEPLOYMENT.md
