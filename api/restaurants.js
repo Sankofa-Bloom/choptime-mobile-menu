@@ -5,6 +5,7 @@ const supabaseKey = process.env.SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 module.exports = async function handler(req, res) {
+  console.log('🔧 Restaurants API called - v0.0.28 - status filter removed');
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', 'https://www.choptym.com,https://choptym.com');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -21,6 +22,7 @@ module.exports = async function handler(req, res) {
     try {
       const { town } = req.query;
       
+      console.log('🔧 Building query for restaurants table...');
       let query = supabase
         .from('restaurants')
         .select('*')
@@ -28,9 +30,11 @@ module.exports = async function handler(req, res) {
 
       // Filter by town if provided
       if (town && town !== 'all') {
+        console.log('🔧 Filtering by town:', town);
         query = query.eq('town', town);
       }
 
+      console.log('🔧 Executing query...');
       const { data: restaurants, error } = await query;
 
       if (error) {
