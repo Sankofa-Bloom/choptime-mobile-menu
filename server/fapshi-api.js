@@ -93,12 +93,6 @@ class FapshiAPI {
       console.error('Fapshi payment initialization failed:', error);
       throw error; // Re-throw the error instead of using fallback
     }
-      
-      return {
-        success: false,
-        error: error.message
-      };
-    }
   }
 
 
