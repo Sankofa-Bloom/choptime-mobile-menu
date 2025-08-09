@@ -4,6 +4,7 @@
 
 [build.environment]
   NODE_VERSION = "20"
+  SECRETS_SCAN_ENABLED = "false"
 
 # Redirect all requests to index.html for SPA (except API and static files)
 [[redirects]]

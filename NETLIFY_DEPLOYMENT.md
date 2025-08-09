@@ -35,20 +35,20 @@ Add these in **Site Settings > Environment variables**:
 
 ```env
 # Supabase (Frontend)
-VITE_SUPABASE_URL=https://qrpukxmzdwkepfpuapzh.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFycHVreG16ZHdrZXBmcHVhcHpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA4MTc5MTgsImV4cCI6MjA2NjM5MzkxOH0.Ix3k_w-nbJQ29FcuP3YYRT_K6ZC7RY2p80VKaDA0JEs
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 # Supabase (Functions)
-SUPABASE_URL=https://qrpukxmzdwkepfpuapzh.supabase.co
-SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFycHVreG16ZHdrZXBmcHVhcHpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA4MTc5MTgsImV4cCI6MjA2NjM5MzkxOH0.Ix3k_w-nbJQ29FcuP3YYRT_K6ZC7RY2p80VKaDA0JEs
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
 
 # Environment
 NODE_ENV=production
 
 # EmailJS
-VITE_EMAILJS_SERVICE_ID=service_m7jymjp
-VITE_EMAILJS_TEMPLATE_ID=template_o7l3h1s
-VITE_EMAILJS_PUBLIC_KEY=Bnk6Bno3qr2o9l3Nk
+VITE_EMAILJS_SERVICE_ID=your_emailjs_service_id
+VITE_EMAILJS_TEMPLATE_ID=your_emailjs_template_id
+VITE_EMAILJS_PUBLIC_KEY=your_emailjs_public_key
 
 # Payment Gateways
 VITE_FAPSHI_API_BASE_URL=https://api.fapshi.com
