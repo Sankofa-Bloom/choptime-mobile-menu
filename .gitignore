@@ -30,8 +30,12 @@ dist-ssr
 .env.production
 .env.test
 .env.vercel.production
+.env.netlify
 *.env
 server/.env
+
+# Netlify
+.netlify/
 
 # Production builds
 dist/
