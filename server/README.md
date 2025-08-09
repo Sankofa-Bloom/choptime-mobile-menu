@@ -13,7 +13,7 @@ This is a server-side API for handling Campay payment integration securely. It k
    Create a `.env` file in the server directory with:
    ```env
    CAMPAY_API_KEY=your_campay_api_key_here
-   CAMPAY_TEST_MODE=true
+   CAMPAY_BASE_URL=https://api.campay.net
    CAMPAY_WEBHOOK_KEY=your_webhook_key_here
    PORT=3001
    CORS_ORIGIN=http://localhost:8081

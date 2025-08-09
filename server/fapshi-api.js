@@ -5,7 +5,7 @@ class FapshiAPI {
     this.apiKey = process.env.FAPSHI_API_KEY;
     this.apiUser = process.env.FAPSHI_API_USER;
     this.baseUrl = process.env.FAPSHI_BASE_URL || 'https://api.fapshi.com';
-    this.testMode = process.env.FAPSHI_TEST_MODE === 'true';
+
     
     if (!this.apiKey || !this.apiUser) {
       console.warn('⚠️  Fapshi API credentials not configured');
@@ -101,20 +101,7 @@ class FapshiAPI {
     }
   }
 
-  getDevelopmentFallback(paymentData) {
-    // Create a development payment URL that simulates the payment flow
-    const paymentUrl = `http://localhost:3001/api/payment/simulate/${paymentData.reference}`;
-    
-    return {
-      success: true,
-      data: {
-        payment_url: paymentUrl,
-        reference: paymentData.reference,
-        status: 'pending',
-        transaction_id: `dev_fapshi_${Date.now()}`
-      }
-    };
-  }
+
 
   async checkPaymentStatus(reference) {
     try {
@@ -148,26 +135,7 @@ class FapshiAPI {
     }
   }
 
-  getDevelopmentStatusFallback(reference) {
-    // For development, simulate a successful payment status
-    return {
-      success: true,
-      data: {
-        reference: reference,
-        status: 'success',
-        amount: 100000, // 1000 XAF in cents
-        currency: 'XAF',
-        customer: {
-          name: 'Development User',
-          phone: '237612345678',
-          email: 'dev@example.com'
-        },
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        transaction_id: `dev_fapshi_${Date.now()}`
-      }
-    };
-  }
+
 
   verifyWebhookSignature(payload, signature) {
     // Implement HMAC-SHA256 signature verification

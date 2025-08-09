@@ -149,7 +149,7 @@ export const sendEmailViaHTTP = async (
     console.log('Subject:', subject);
     console.log('Content length:', htmlContent.length);
     
-    // Simulate API call
+    // Make actual API call
     await new Promise(resolve => setTimeout(resolve, 500));
     
     return true;

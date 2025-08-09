@@ -255,7 +255,7 @@ async function handlePaymentWebhook(req) {
 }
 
 async function sendPaymentConfirmationEmail(orderReference, customerEmail) {
-  if (!customerEmail || process.env.SKIP_EMAIL_SENDING === 'true') {
+  if (!customerEmail) {
     console.log('Skipping payment confirmation email');
     return;
   }
@@ -310,7 +310,7 @@ async function sendPaymentConfirmationEmail(orderReference, customerEmail) {
 }
 
 async function sendAdminPaymentNotification(orderReference, amount, currency) {
-  if (process.env.SKIP_EMAIL_SENDING === 'true') {
+  // Remove skip email check - always send emails in production
     console.log('Skipping admin payment notification');
     return;
   }
@@ -478,7 +478,7 @@ async function sendAdminPaymentNotification(orderReference, amount, currency) {
 }
 
 async function sendAdminPaymentFailureNotification(orderReference, amount, currency, customer) {
-  if (process.env.SKIP_EMAIL_SENDING === 'true') {
+  // Remove skip email check - always send emails in production
     console.log('Skipping admin payment failure notification');
     return;
   }
@@ -646,7 +646,7 @@ async function sendAdminPaymentFailureNotification(orderReference, amount, curre
 }
 
 async function sendAdminPaymentPendingNotification(orderReference, amount, currency, customer) {
-  if (process.env.SKIP_EMAIL_SENDING === 'true') {
+  // Remove skip email check - always send emails in production
     console.log('Skipping admin payment pending notification');
     return;
   }

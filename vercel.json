@@ -50,7 +50,7 @@
     "VITE_EMAILJS_GENERIC_TEMPLATE_ID": "@vite_emailjs_generic_template_id",
     "VITE_FAPSHI_API_USER": "@vite_fapshi_api_user",
     "VITE_FAPSHI_API_KEY": "@vite_fapshi_api_key",
-    "VITE_FAPSHI_TEST_MODE": "@vite_fapshi_test_mode",
+
     "VITE_ADMIN_EMAIL": "@vite_admin_email",
     "VITE_ADMIN_PHONE": "@vite_admin_phone",
     "VITE_ADMIN_WHATSAPP": "@vite_admin_whatsapp"

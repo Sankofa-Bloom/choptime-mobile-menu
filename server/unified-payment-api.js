@@ -29,13 +29,12 @@ const ENABLE_FAPSHI_PAYMENTS = process.env.ENABLE_FAPSHI_PAYMENTS === 'true' || 
 
 // Campay API configuration
 const CAMPAY_API_KEY = process.env.CAMPAY_API_KEY;
-const CAMPAY_TEST_MODE = process.env.CAMPAY_TEST_MODE === 'true' || false;
-const CAMPAY_BASE_URL = process.env.CAMPAY_BASE_URL || (CAMPAY_TEST_MODE ? 'https://sandbox-api.campay.net' : 'https://api.campay.net');
+const CAMPAY_BASE_URL = process.env.CAMPAY_BASE_URL || 'https://api.campay.net';
 
 // Fapshi API configuration
 const FAPSHI_API_USER = process.env.FAPSHI_API_USER;
 const FAPSHI_API_KEY = process.env.FAPSHI_API_KEY;
-const FAPSHI_TEST_MODE = process.env.FAPSHI_TEST_MODE === 'true' || false;
+
 const FAPSHI_BASE_URL = process.env.FAPSHI_BASE_URL || 'https://api.fapshi.com';
 
 const app = express();
@@ -123,8 +122,8 @@ console.log('Unified Payment API Server Starting...');
 console.log('Default Payment Method:', DEFAULT_PAYMENT_METHOD);
 console.log('Campay Payments Enabled:', ENABLE_CAMPAY_PAYMENTS);
 console.log('Fapshi Payments Enabled:', ENABLE_FAPSHI_PAYMENTS);
-console.log('Campay Test Mode:', CAMPAY_TEST_MODE);
-console.log('Fapshi Test Mode:', FAPSHI_TEST_MODE);
+console.log('Campay Base URL:', CAMPAY_BASE_URL);
+console.log('Fapshi Base URL:', FAPSHI_BASE_URL);
 
 // Security validation
 if (ENABLE_CAMPAY_PAYMENTS && !CAMPAY_API_KEY) {
@@ -285,19 +284,44 @@ app.post('/api/payment/initialize', validatePaymentRequest, async (req, res) => 
 
       console.log('Sending request to Campay:', campayRequest);
 
-      // For now, use mock response since Campay API is not accessible
-      const mockResponse = {
-        success: true,
-        data: {
-          payment_url: null,
-          reference: reference,
-          status: 'success',
-          transaction_id: `mock_campay_${Date.now()}`
-        }
-      };
+      // Make actual Campay API call
+      const fetch = require('node-fetch');
+      
+      try {
+        const response = await fetch(`${CAMPAY_BASE_URL}/payments/initialize`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.CAMPAY_API_KEY}`
+          },
+          body: JSON.stringify(campayRequest)
+        });
 
-      console.log('Campay mock response:', mockResponse);
-      res.json(mockResponse);
+        if (!response.ok) {
+          throw new Error(`Campay API error: ${response.status} - ${await response.text()}`);
+        }
+
+        const campayResult = await response.json();
+        
+        const successResponse = {
+          success: true,
+          data: {
+            payment_url: campayResult.data?.payment_url || campayResult.payment_url,
+            reference: reference,
+            status: 'pending',
+            transaction_id: campayResult.data?.transaction_id || campayResult.transaction_id
+          }
+        };
+
+        console.log('Campay API response:', successResponse);
+        res.json(successResponse);
+      } catch (error) {
+        console.error('Campay payment initialization failed:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Payment initialization failed: ' + error.message
+        });
+      }
       
     } else if (method === 'fapshi') {
       // Handle Fapshi payment using real API
@@ -384,19 +408,36 @@ app.post('/api/campay/initialize', validatePaymentRequest, async (req, res) => {
 
     console.log('Sending request to Campay:', campayRequest);
 
-    // For now, use mock response since Campay API is not accessible
-    const mockResponse = {
+    // Make actual Campay API call
+    const fetch = require('node-fetch');
+    
+    const response = await fetch(`${CAMPAY_BASE_URL}/payments/initialize`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${CAMPAY_API_KEY}`
+      },
+      body: JSON.stringify(campayRequest)
+    });
+
+    if (!response.ok) {
+      throw new Error(`Campay API error: ${response.status} - ${await response.text()}`);
+    }
+
+    const campayResult = await response.json();
+    
+    const successResponse = {
       success: true,
       data: {
-        payment_url: null,
+        payment_url: campayResult.data?.payment_url || campayResult.payment_url,
         reference: reference,
-        status: 'success',
-        transaction_id: `mock_campay_${Date.now()}`
+        status: 'pending',
+        transaction_id: campayResult.data?.transaction_id || campayResult.transaction_id
       }
     };
 
-    console.log('Campay mock response:', mockResponse);
-    res.json(mockResponse);
+    console.log('Campay API response:', successResponse);
+    res.json(successResponse);
     
   } catch (error) {
     console.error('Campay API error:', error);
@@ -621,27 +662,50 @@ app.get('/api/campay/status/:reference', async (req, res) => {
     
     console.log('Checking Campay payment status for:', reference);
 
-    // Mock status response
-    const mockStatus = {
+    // Make actual Campay API status check
+    const fetch = require('node-fetch');
+    
+    if (!CAMPAY_API_KEY) {
+      return res.status(500).json({
+        success: false,
+        error: 'Campay API key not configured'
+      });
+    }
+
+    const response = await fetch(`${CAMPAY_BASE_URL}/payments/status/${reference}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${CAMPAY_API_KEY}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Campay API error: ${response.status} - ${await response.text()}`);
+    }
+
+    const campayResult = await response.json();
+    
+    const statusResponse = {
       success: true,
       data: {
-        reference: reference,
-        status: 'success',
-        amount: 100000, // 1000 XAF in cents
-        currency: 'XAF',
+        reference: campayResult.data?.external_reference || reference,
+        status: campayResult.data?.status || campayResult.status,
+        amount: campayResult.data?.amount || campayResult.amount,
+        currency: campayResult.data?.currency || campayResult.currency || 'XAF',
         customer: {
-          name: 'Test Customer',
-          phone: '237612345678',
-          email: 'test@example.com'
+          name: campayResult.data?.customer?.name || 'Unknown',
+          phone: campayResult.data?.customer?.phone || '',
+          email: campayResult.data?.customer?.email || ''
         },
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        transaction_id: `mock_${method}_${Date.now()}`
+        created_at: campayResult.data?.created_at || campayResult.created_at,
+        updated_at: campayResult.data?.updated_at || campayResult.updated_at,
+        transaction_id: campayResult.data?.transaction_id || campayResult.transaction_id
       }
     };
 
-    console.log('Campay status check response:', mockStatus);
-    res.json(mockStatus);
+    console.log('Campay status check response:', statusResponse);
+    res.json(statusResponse);
     
   } catch (error) {
     console.error('Campay status check error:', error);
@@ -660,27 +724,22 @@ app.get('/api/fapshi/status/:reference', async (req, res) => {
     
     console.log('Checking Fapshi payment status for:', reference);
 
-    // Mock status response
-    const mockStatus = {
+    // Use actual Fapshi API for status check
+    const fapshiAPI = new FapshiAPI();
+    
+    const fapshiResult = await fapshiAPI.checkPaymentStatus(reference);
+    
+    if (!fapshiResult.success) {
+      throw new Error(fapshiResult.error || 'Fapshi status check failed');
+    }
+
+    const statusResponse = {
       success: true,
-      data: {
-        reference: reference,
-        status: 'success',
-        amount: 100000, // 1000 XAF in cents
-        currency: 'XAF',
-        customer: {
-          name: 'Test Customer',
-          phone: '237612345678',
-          email: 'test@example.com'
-        },
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        transaction_id: `mock_${method}_${Date.now()}`
-      }
+      data: fapshiResult.data
     };
 
-    console.log('Fapshi status check response:', mockStatus);
-    res.json(mockStatus);
+    console.log('Fapshi status check response:', statusResponse);
+    res.json(statusResponse);
     
   } catch (error) {
     console.error('Fapshi status check error:', error);

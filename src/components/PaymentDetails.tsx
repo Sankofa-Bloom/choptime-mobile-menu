@@ -495,7 +495,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
 
 
   const handlePaymentSuccess = async (paymentData: any, paymentMethod: string) => {
-    console.log('Mock payment success detected, proceeding with email sending');
+    console.log('Payment success detected, proceeding with email sending');
     console.log('Payment successful:', paymentData);
     
     console.log('About to update order in database...');

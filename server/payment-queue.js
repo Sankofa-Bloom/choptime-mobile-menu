@@ -149,21 +149,78 @@ class PaymentQueue {
 
   // Execute the actual payment
   async executePayment(paymentData) {
-    // Simulate payment processing time
-    await new Promise(resolve => setTimeout(resolve, Math.random() * 2000 + 500));
+    const { method, amount, currency, reference, customer } = paymentData;
 
-    // Here you would integrate with your payment gateway
-    // For now, we'll simulate success/failure based on amount
-    const success = Math.random() > 0.1; // 90% success rate
+    try {
+      let result;
+      
+      if (method === 'fapshi') {
+        const FapshiAPI = require('./fapshi-api');
+        const fapshiAPI = new FapshiAPI();
+        
+        result = await fapshiAPI.initializePayment({
+          amount: amount,
+          currency: currency,
+          reference: reference,
+          description: `Payment for order ${reference}`,
+          customer: customer,
+          callback_url: process.env.FAPSHI_CALLBACK_URL,
+          return_url: process.env.FAPSHI_RETURN_URL
+        });
+      } else if (method === 'campay') {
+        const fetch = require('node-fetch');
+        const CAMPAY_BASE_URL = process.env.CAMPAY_BASE_URL || 'https://api.campay.net';
+        
+        const response = await fetch(`${CAMPAY_BASE_URL}/payments/initialize`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.CAMPAY_API_KEY}`
+          },
+          body: JSON.stringify({
+            amount: Math.round(amount * 100), // Convert to cents
+            currency: currency.toUpperCase(),
+            external_reference: reference,
+            description: `Payment for order ${reference}`,
+            callback_url: process.env.CAMPAY_CALLBACK_URL,
+            return_url: process.env.CAMPAY_RETURN_URL,
+            customer_name: customer.name,
+            customer_phone: customer.phone,
+            customer_email: customer.email
+          })
+        });
 
-    if (success) {
-      return {
-        success: true,
-        transactionId: crypto.randomUUID(),
-        processedAt: new Date().toISOString()
-      };
-    } else {
-      throw new Error('Payment gateway error');
+        if (!response.ok) {
+          throw new Error(`Campay API error: ${response.status} - ${await response.text()}`);
+        }
+
+        const campayResult = await response.json();
+        result = {
+          success: true,
+          data: {
+            payment_url: campayResult.data?.payment_url || campayResult.payment_url,
+            reference: reference,
+            status: 'pending',
+            transaction_id: campayResult.data?.transaction_id || campayResult.transaction_id
+          }
+        };
+      } else {
+        throw new Error(`Unsupported payment method: ${method}`);
+      }
+
+      if (result.success) {
+        return {
+          success: true,
+          transactionId: result.data.transaction_id,
+          paymentUrl: result.data.payment_url,
+          processedAt: new Date().toISOString()
+        };
+      } else {
+        throw new Error(result.error || 'Payment initialization failed');
+      }
+    } catch (error) {
+      console.error('Payment execution failed:', error);
+      throw error;
     }
   }
 
@@ -388,14 +445,103 @@ class ConcurrentPaymentProcessor {
 
   // Process individual payment
   async processPayment(payment) {
-    // Simulate payment processing
-    await new Promise(resolve => setTimeout(resolve, Math.random() * 1000 + 200));
-    
-    return {
-      success: Math.random() > 0.1,
-      paymentId: payment.id,
-      processedAt: new Date().toISOString()
-    };
+    // Process actual payment using real APIs
+    try {
+      const result = await this.executePayment(payment);
+      
+      return {
+        success: true,
+        paymentId: payment.id,
+        transactionId: result.transactionId,
+        paymentUrl: result.paymentUrl,
+        processedAt: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('Payment processing failed:', error);
+      return {
+        success: false,
+        paymentId: payment.id,
+        error: error.message,
+        processedAt: new Date().toISOString()
+      };
+    }
+  }
+
+  // Execute actual payment using real payment APIs
+  async executePayment(paymentData) {
+    const { method, amount, currency, reference, customer } = paymentData;
+
+    try {
+      let result;
+      
+      if (method === 'fapshi') {
+        const FapshiAPI = require('./fapshi-api');
+        const fapshiAPI = new FapshiAPI();
+        
+        result = await fapshiAPI.initializePayment({
+          amount: amount,
+          currency: currency,
+          reference: reference,
+          description: `Payment for order ${reference}`,
+          customer: customer,
+          callback_url: process.env.FAPSHI_CALLBACK_URL,
+          return_url: process.env.FAPSHI_RETURN_URL
+        });
+      } else if (method === 'campay') {
+        const fetch = require('node-fetch');
+        const CAMPAY_BASE_URL = process.env.CAMPAY_BASE_URL || 'https://api.campay.net';
+        
+        const response = await fetch(`${CAMPAY_BASE_URL}/payments/initialize`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.CAMPAY_API_KEY}`
+          },
+          body: JSON.stringify({
+            amount: Math.round(amount * 100), // Convert to cents
+            currency: currency.toUpperCase(),
+            external_reference: reference,
+            description: `Payment for order ${reference}`,
+            callback_url: process.env.CAMPAY_CALLBACK_URL,
+            return_url: process.env.CAMPAY_RETURN_URL,
+            customer_name: customer.name,
+            customer_phone: customer.phone,
+            customer_email: customer.email
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`Campay API error: ${response.status} - ${await response.text()}`);
+        }
+
+        const campayResult = await response.json();
+        result = {
+          success: true,
+          data: {
+            payment_url: campayResult.data?.payment_url || campayResult.payment_url,
+            reference: reference,
+            status: 'pending',
+            transaction_id: campayResult.data?.transaction_id || campayResult.transaction_id
+          }
+        };
+      } else {
+        throw new Error(`Unsupported payment method: ${method}`);
+      }
+
+      if (result.success) {
+        return {
+          success: true,
+          transactionId: result.data.transaction_id,
+          paymentUrl: result.data.payment_url,
+          processedAt: new Date().toISOString()
+        };
+      } else {
+        throw new Error(result.error || 'Payment initialization failed');
+      }
+    } catch (error) {
+      console.error('Payment execution failed:', error);
+      throw error;
+    }
   }
 
   // Split array into chunks
