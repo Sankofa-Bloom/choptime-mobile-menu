@@ -1,7 +1,7 @@
 {
   "name": "choptym-mobile-menu",
   "private": true,
-  "version": "0.0.2",
+  "version": "0.0.3",
   "type": "module",
   "scripts": {
     "dev": "vite --mode development",
@@ -21,7 +21,14 @@
     "start": "vite preview --port 3000",
     "start:prod": "npm run build:prod && npm run start",
     "dev:setup": "cp .env.development .env && cd server && cp .env.development .env",
-    "prod:setup": "cp .env.production .env && cd server && cp .env.production .env"
+    "prod:setup": "cp .env.production .env && cd server && cp .env.production .env",
+    "version:patch": "npm version patch --no-git-tag-version",
+    "version:minor": "npm version minor --no-git-tag-version",
+    "version:major": "npm version major --no-git-tag-version",
+    "deploy:patch": "npm run version:patch && git add package.json && git commit -m \"🔖 Version bump: $(npm run version:current --silent)\" && git push origin main",
+    "deploy:minor": "npm run version:minor && git add package.json && git commit -m \"🔖 Version bump: $(npm run version:current --silent)\" && git push origin main",
+    "deploy:major": "npm run version:major && git add package.json && git commit -m \"🔖 Version bump: $(npm run version:current --silent)\" && git push origin main",
+    "version:current": "node -p \"require('./package.json').version\""
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
