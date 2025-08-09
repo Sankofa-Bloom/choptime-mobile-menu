@@ -27,20 +27,14 @@ module.exports = async function handler(req, res) {
           *,
           restaurant:restaurants(*),
           dish:dishes(*)
-        `)
-;
-
-      // Filter by town if provided
-      if (town && town !== 'all') {
-        query = query.eq('restaurants.town', town);
-      }
+        `);
 
       // Filter by restaurant if provided
       if (restaurant_id) {
         query = query.eq('restaurant_id', restaurant_id);
       }
 
-      query = query.order('dish.name');
+      query = query.order('id');
 
       const { data: menus, error } = await query;
 
