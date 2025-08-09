@@ -1,7 +1,8 @@
 {
   "name": "choptym-mobile-menu",
   "private": true,
-  "version": "0.0.5",
+  "description": "ChopTym - Cameroonian Food Delivery PWA",
+  "version": "0.0.6",
   "scripts": {
     "dev": "vite --mode development",
     "dev:full": "concurrently \"npm run dev\" \"npm run server\"",
