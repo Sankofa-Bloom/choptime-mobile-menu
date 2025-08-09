@@ -23,10 +23,10 @@ const AdminDashboard = () => {
 
   if (authLoading || dataLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-choptime-beige">
+      <div className="min-h-screen flex items-center justify-center bg-choptym-beige">
         <div className="flex items-center gap-2">
-          <Loader2 className="h-6 w-6 animate-spin text-choptime-orange" />
-          <span className="text-choptime-brown">Loading dashboard...</span>
+          <Loader2 className="h-6 w-6 animate-spin text-choptym-orange" />
+          <span className="text-choptym-brown">Loading dashboard...</span>
         </div>
       </div>
     );
@@ -34,9 +34,9 @@ const AdminDashboard = () => {
 
   if (!admin) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-choptime-beige">
+      <div className="min-h-screen flex items-center justify-center bg-choptym-beige">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-choptime-brown mb-4">Access Denied</h1>
+          <h1 className="text-2xl font-bold text-choptym-brown mb-4">Access Denied</h1>
           <p className="text-gray-600">You need to be logged in as an admin to access this page.</p>
         </div>
       </div>
@@ -44,13 +44,13 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-choptime-beige">
+    <div className="min-h-screen bg-choptym-beige">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-choptime-brown">ChopTym Admin</h1>
+              <h1 className="text-2xl font-bold text-choptym-brown">ChopTym Admin</h1>
               <p className="text-gray-600">Welcome back, {admin.email}</p>
             </div>
             <Button

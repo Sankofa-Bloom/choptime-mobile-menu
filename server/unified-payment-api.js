@@ -1,4 +1,6 @@
-require('dotenv').config();
+// Load environment-specific configuration
+const env = process.env.NODE_ENV || 'development';
+require('dotenv').config({ path: `.env.${env}` });
 const express = require('express');
 const cors = require('cors');
 const fetch = require('node-fetch');
@@ -52,6 +54,11 @@ app.get('/health', (req, res) => {
     environment: process.env.NODE_ENV,
     version: '1.0.0'
   });
+});
+
+// Favicon endpoint to prevent 404 errors
+app.get('/favicon.ico', (req, res) => {
+  res.status(204).end(); // No content response
 });
 
 // API routes for frontend data access
@@ -1167,6 +1174,8 @@ app.get('/api/fapshi/status/:reference', async (req, res) => {
     });
   }
 });
+
+
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

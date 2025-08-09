@@ -5,7 +5,8 @@
   "main": "unified-payment-api.js",
   "scripts": {
     "start": "node unified-payment-api.js",
-    "dev": "nodemon unified-payment-api.js",
+    "dev": "NODE_ENV=development nodemon unified-payment-api.js",
+    "dev:prod": "NODE_ENV=production nodemon unified-payment-api.js",
     "test": "echo \"No tests specified\" && exit 0",
     "lint": "eslint . --ext .js",
     "security-check": "npm audit",

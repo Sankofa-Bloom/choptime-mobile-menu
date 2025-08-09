@@ -119,7 +119,7 @@ const OrderManagement = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-choptime-brown">Order Management</h2>
+        <h2 className="text-2xl font-bold text-choptym-brown">Order Management</h2>
         <Button 
           onClick={fetchOrders}
           variant="outline"
@@ -213,7 +213,7 @@ const OrderManagement = () => {
                     </div>
                   </TableCell>
                   <TableCell>{order.restaurant_name}</TableCell>
-                  <TableCell className="font-semibold text-choptime-orange">
+                  <TableCell className="font-semibold text-choptym-orange">
                     {formatPrice(order.total_amount || 0)}
                   </TableCell>
                   <TableCell>

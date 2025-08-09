@@ -152,12 +152,12 @@ const RestaurantManagement = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-choptime-brown">Restaurant Management</h2>
+        <h2 className="text-2xl font-bold text-choptym-brown">Restaurant Management</h2>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button 
               onClick={resetForm}
-              className="choptime-gradient hover:opacity-90 text-white"
+              className="choptym-gradient hover:opacity-90 text-white"
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Restaurant
@@ -292,7 +292,7 @@ const RestaurantManagement = () => {
                 <Button 
                   type="submit"
                   disabled={uploading}
-                  className="choptime-gradient hover:opacity-90 text-white"
+                  className="choptym-gradient hover:opacity-90 text-white"
                 >
                   {uploading ? 'Processing...' : editingRestaurant ? 'Update' : 'Create'} Restaurant
                 </Button>

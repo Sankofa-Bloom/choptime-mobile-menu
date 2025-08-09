@@ -32,22 +32,24 @@ const createRateLimiter = (windowMs, max, message = 'Too many requests from this
 // CORS configuration
 const corsOptions = {
   origin: function (origin, callback) {
-    // Temporarily allow all origins for development
-    callback(null, true);
+    const isDevelopment = process.env.NODE_ENV === 'development';
     
-    // Original strict CORS configuration (commented out for development)
-    /*
-    const allowedOrigins = process.env.CORS_ORIGIN?.split(',') || ['http://localhost:3000', 'http://localhost:8080', 'http://localhost:5173'];
-    
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    if (isDevelopment) {
+      // Allow all origins in development
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      // Strict CORS for production
+      const allowedOrigins = process.env.CORS_ORIGIN?.split(',') || ['https://choptym.com', 'https://www.choptym.com'];
+      
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
     }
-    */
   },
   credentials: process.env.CORS_CREDENTIALS === 'true',
   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204

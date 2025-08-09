@@ -15,8 +15,8 @@ const CSVUploader = () => {
 
   const downloadTemplate = () => {
     const csvContent = `restaurant_name,town,contact_number,dish_name,dish_description,dish_category,price,cook_time,serves,is_popular,is_spicy,is_vegetarian
-ChopTime Delights,Douala,673289043,Jollof Rice,Delicious spiced rice with vegetables,Rice,2500,30-45 min,2-3 people,true,false,false
-ChopTime Delights,Douala,673289043,Pepper Soup,Spicy traditional soup,Soup,1800,25-30 min,1-2 people,false,true,false`;
+ChopTym Delights,Douala,673289043,Jollof Rice,Delicious spiced rice with vegetables,Rice,2500,30-45 min,2-3 people,true,false,false
+ChopTym Delights,Douala,673289043,Pepper Soup,Spicy traditional soup,Soup,1800,25-30 min,1-2 people,false,true,false`;
     
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
@@ -212,7 +212,7 @@ ChopTime Delights,Douala,673289043,Pepper Soup,Spicy traditional soup,Soup,1800,
             <Label htmlFor="csv-upload" className="cursor-pointer">
               <Button
                 disabled={uploading}
-                className="choptime-gradient hover:opacity-90 text-white"
+                className="choptym-gradient hover:opacity-90 text-white"
                 asChild
               >
                 <span>

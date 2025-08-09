@@ -65,7 +65,7 @@ const CustomOrderModal: React.FC<CustomOrderModalProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md mx-auto bg-white">
         <DialogHeader>
-          <DialogTitle className="text-choptime-brown text-lg font-bold">
+          <DialogTitle className="text-choptym-brown text-lg font-bold">
             📦 Custom Food Order
           </DialogTitle>
         </DialogHeader>
@@ -78,7 +78,7 @@ const CustomOrderModal: React.FC<CustomOrderModalProps> = ({
               placeholder="e.g., Kati Kati with Yams"
               value={customDishName}
               onChange={(e) => setCustomDishName(e.target.value)}
-              className="border-choptime-orange/30"
+              className="border-choptym-orange/30"
             />
           </div>
 
@@ -89,7 +89,7 @@ const CustomOrderModal: React.FC<CustomOrderModalProps> = ({
               placeholder="e.g., Mama's Kitchen, Food Palace"
               value={restaurantName}
               onChange={(e) => setRestaurantName(e.target.value)}
-              className="border-choptime-orange/30"
+              className="border-choptym-orange/30"
             />
           </div>
 
@@ -101,7 +101,7 @@ const CustomOrderModal: React.FC<CustomOrderModalProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="border-choptime-orange/30"
+                className="border-choptym-orange/30"
               >
                 <Minus className="w-4 h-4" />
               </Button>
@@ -111,7 +111,7 @@ const CustomOrderModal: React.FC<CustomOrderModalProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={() => setQuantity(quantity + 1)}
-                className="border-choptime-orange/30"
+                className="border-choptym-orange/30"
               >
                 <Plus className="w-4 h-4" />
               </Button>
@@ -125,7 +125,7 @@ const CustomOrderModal: React.FC<CustomOrderModalProps> = ({
               type="number"
               value={estimatedPrice}
               onChange={(e) => setEstimatedPrice(Number(e.target.value))}
-              className="border-choptime-orange/30"
+              className="border-choptym-orange/30"
               min="500"
               step="100"
             />
@@ -138,7 +138,7 @@ const CustomOrderModal: React.FC<CustomOrderModalProps> = ({
               placeholder="e.g., 123 Main Street, Douala"
               value={restaurantAddress}
               onChange={(e) => setRestaurantAddress(e.target.value)}
-              className="border-choptime-orange/30"
+              className="border-choptym-orange/30"
             />
           </div>
 
@@ -149,7 +149,7 @@ const CustomOrderModal: React.FC<CustomOrderModalProps> = ({
                                   placeholder="e.g., +1234567890"
               value={restaurantPhone}
               onChange={(e) => setRestaurantPhone(e.target.value)}
-              className="border-choptime-orange/30"
+              className="border-choptym-orange/30"
             />
           </div>
 
@@ -162,7 +162,7 @@ const CustomOrderModal: React.FC<CustomOrderModalProps> = ({
               placeholder="Any special requests or modifications..."
               value={specialInstructions}
               onChange={(e) => setSpecialInstructions(e.target.value)}
-              className="border-choptime-orange/30"
+              className="border-choptym-orange/30"
               rows={3}
             />
           </div>
@@ -171,14 +171,14 @@ const CustomOrderModal: React.FC<CustomOrderModalProps> = ({
             <Button
               variant="outline"
               onClick={onClose}
-              className="flex-1 border-choptime-orange/30"
+              className="flex-1 border-choptym-orange/30"
             >
               Cancel
             </Button>
             <Button
               onClick={handleSubmit}
               disabled={!customDishName.trim() || !restaurantName.trim() || !restaurantAddress.trim() || !restaurantPhone.trim()}
-              className="flex-1 choptime-gradient hover:opacity-90 text-white"
+              className="flex-1 choptym-gradient hover:opacity-90 text-white"
             >
               Add to Cart
             </Button>

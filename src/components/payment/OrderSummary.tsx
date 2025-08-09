@@ -52,7 +52,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
 
   return (
     <div className="space-y-4">
-      <h3 className="font-semibold text-choptime-brown">Order Details</h3>
+      <h3 className="font-semibold text-choptym-brown">Order Details</h3>
       
       <div className="bg-white border rounded-lg p-4">
         <div className="flex justify-between items-start mb-2">
@@ -91,7 +91,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
       {/* Delivery Info */}
       <div className="space-y-2">
         <div className="flex items-center gap-2">
-          <Truck className="w-4 h-4 text-choptime-orange" />
+          <Truck className="w-4 h-4 text-choptym-orange" />
           <span className="font-medium">Delivery Information</span>
         </div>
         {deliveryZone && (
@@ -105,17 +105,8 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
       {!isCustomOrder && (
         <div className="space-y-2">
           <div className="flex justify-between">
-            <span>Subtotal:</span>
-            <span>{subtotal.toLocaleString()} FCFA</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Delivery Fee:</span>
-            <span>{deliveryFee.toLocaleString()} FCFA</span>
-          </div>
-          <Separator />
-          <div className="flex justify-between font-semibold text-lg">
-            <span>Total:</span>
-            <span className="text-choptime-orange">{total.toLocaleString()} FCFA</span>
+            <span>Order Total (includes delivery):</span>
+            <span className="text-choptym-orange font-semibold">{total.toLocaleString()} FCFA</span>
           </div>
         </div>
       )}

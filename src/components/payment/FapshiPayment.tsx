@@ -239,7 +239,7 @@ const FapshiPayment: React.FC<FapshiPaymentProps> = ({
   return (
     <Card className="max-w-md mx-auto">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-choptime-brown">
+        <CardTitle className="flex items-center gap-2 text-choptym-brown">
           <CreditCard className="w-5 h-5" />
           Mobile Money Payment
         </CardTitle>
@@ -262,7 +262,7 @@ const FapshiPayment: React.FC<FapshiPaymentProps> = ({
         {/* Payment Amount */}
         <div className="text-center p-4 bg-gray-50 rounded-lg">
           <p className="text-sm text-gray-600">Amount to Pay</p>
-          <p className="text-2xl font-bold text-choptime-brown">
+          <p className="text-2xl font-bold text-choptym-brown">
             {currency} {amount.toLocaleString()}
           </p>
         </div>
@@ -289,7 +289,7 @@ const FapshiPayment: React.FC<FapshiPaymentProps> = ({
             <>
               <Button 
                 onClick={handleOpenPaymentPage}
-                className="w-full bg-choptime-orange hover:bg-choptime-orange/90"
+                className="w-full bg-choptym-orange hover:bg-choptym-orange/90"
               >
                 <ExternalLink className="w-4 h-4 mr-2" />
                 Pay Now
@@ -310,7 +310,7 @@ const FapshiPayment: React.FC<FapshiPaymentProps> = ({
           {(paymentStatus === 'failed' || paymentStatus === 'cancelled') && (
             <Button 
               onClick={initializePayment}
-              className="w-full bg-choptime-orange hover:bg-choptime-orange/90"
+              className="w-full bg-choptym-orange hover:bg-choptym-orange/90"
             >
               Try Again
             </Button>

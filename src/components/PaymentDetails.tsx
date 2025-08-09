@@ -81,10 +81,12 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
   const adminEmail: string = 'admin@choptym.com';
 
   useEffect(() => {
-    if (currentOrder?.location && selectedRestaurant?.town) {
+    // Only calculate delivery fee for custom orders
+    // Regular orders already have delivery fee included in total
+    if (isCustomOrder && currentOrder?.location && selectedRestaurant?.town) {
       calculateDeliveryFee();
     }
-  }, [currentOrder?.location, selectedRestaurant?.town]);
+  }, [currentOrder?.location, selectedRestaurant?.town, isCustomOrder]);
 
   const calculateDeliveryFee = async () => {
     if (!currentOrder?.location || !selectedRestaurant?.town) return;
@@ -618,8 +620,10 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
     );
   }
 
-    const subtotal = isCustomOrder ? 0 : (orderDetails?.total || 0);
-  const total = subtotal + deliveryFee;
+    // For regular orders, the total already includes delivery fee from cart
+    // For custom orders, we need to add delivery fee
+    const subtotal = isCustomOrder ? 0 : (orderDetails?.price || 0);
+    const total = isCustomOrder ? (subtotal + deliveryFee) : (orderDetails?.total || 0);
 
   // Show Campay payment component if selected
   // Redirect to payment gateway if payment URL is available
@@ -629,7 +633,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
       <div className="max-w-md mx-auto text-center">
         <Card>
           <CardContent className="p-6">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-choptime-orange mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-choptym-orange mx-auto mb-4"></div>
             <p className="text-gray-600">Redirecting to payment gateway...</p>
           </CardContent>
         </Card>
@@ -643,7 +647,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
     <>
       <Card className="max-w-2xl mx-auto">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-choptime-brown">
+          <CardTitle className="flex items-center gap-2 text-choptym-brown">
             <CreditCard className="w-5 h-5" />
             Order Summary
           </CardTitle>
@@ -699,7 +703,7 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
             <Button
               onClick={handleSubmitOrder}
               disabled={loading || !customerEmail.trim()}
-              className="flex-1 choptime-gradient hover:opacity-90 text-white"
+              className="flex-1 choptym-gradient hover:opacity-90 text-white"
             >
               {loading ? (
                 <>

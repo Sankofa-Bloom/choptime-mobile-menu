@@ -8,7 +8,7 @@ const Footer: React.FC = () => {
   const navigate = useNavigate();
   
   return (
-    <footer className="bg-choptime-brown text-white py-8">
+    <footer className="bg-choptym-brown text-white py-8">
       <div className="container mx-auto px-4">
         <div className="grid md:grid-cols-3 gap-8">
           <div>
@@ -36,7 +36,7 @@ const Footer: React.FC = () => {
               </div>
               <button
                 onClick={() => navigate('/contact')}
-                className="text-choptime-orange hover:text-white transition-colors duration-200 text-sm font-medium"
+                className="text-choptym-orange hover:text-white transition-colors duration-200 text-sm font-medium"
               >
                 Send us a message →
               </button>

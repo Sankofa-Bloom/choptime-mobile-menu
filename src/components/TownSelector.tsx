@@ -21,11 +21,11 @@ const TownSelector: React.FC<TownSelectorProps> = ({ onTownSelect, selectedTown,
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="flex items-center justify-center gap-2 text-choptime-brown">
-            <MapPin className="w-5 h-5 text-choptime-orange" />
+          <CardTitle className="flex items-center justify-center gap-2 text-choptym-brown">
+            <MapPin className="w-5 h-5 text-choptym-orange" />
             {selectedTown ? 'Change Your Town' : 'Select Your Town'}
           </CardTitle>
-          <p className="text-sm text-choptime-brown/70">
+          <p className="text-sm text-choptym-brown/70">
             {selectedTown 
               ? 'Choose a different location to see available restaurants'
               : 'Choose your location to see available restaurants'
@@ -38,8 +38,8 @@ const TownSelector: React.FC<TownSelectorProps> = ({ onTownSelect, selectedTown,
               key={town}
               onClick={() => onTownSelect(town)}
               variant="outline"
-              className={`w-full justify-start border-choptime-orange/30 hover:bg-choptime-orange hover:text-white ${
-                selectedTown === town ? 'bg-choptime-orange text-white' : ''
+              className={`w-full justify-start border-choptym-orange/30 hover:bg-choptym-orange hover:text-white ${
+                selectedTown === town ? 'bg-choptym-orange text-white' : ''
               }`}
             >
               <MapPin className="w-4 h-4 mr-2" />

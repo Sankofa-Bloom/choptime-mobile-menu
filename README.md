@@ -50,13 +50,15 @@ cd choptym-mobile-menu
 
 3. **Environment Configuration**
    ```bash
-   # Copy environment files
-   cp .env.example .env
-   cp server/.env.example server/.env
+   # Quick setup for development (recommended)
+   ./setup-env.sh development
    
-   # Edit with your credentials
-   nano .env
-   nano server/.env
+   # Or setup for production
+   ./setup-env.sh production
+   
+   # Manual setup (alternative)
+   cp .env.development .env
+   cp server/.env.development server/.env
    ```
 
 4. **Database Setup**
@@ -73,6 +75,10 @@ cd choptym-mobile-menu
    # Or start separately
    npm run dev          # Frontend only
    npm run server       # Backend only
+   
+   # Environment switching
+   ./setup-env.sh development  # Switch to development
+   ./setup-env.sh production   # Switch to production
    ```
 
 ## 🔧 Configuration

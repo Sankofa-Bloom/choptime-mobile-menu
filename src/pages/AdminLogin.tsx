@@ -22,10 +22,10 @@ const AdminLogin = () => {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-choptime-beige">
+      <div className="min-h-screen flex items-center justify-center bg-choptym-beige">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-choptime-orange mx-auto mb-4"></div>
-          <p className="text-choptime-brown">Checking authentication...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-choptym-orange mx-auto mb-4"></div>
+          <p className="text-choptym-brown">Checking authentication...</p>
         </div>
       </div>
     );
@@ -61,14 +61,14 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-choptime-beige px-4">
+    <div className="min-h-screen flex items-center justify-center bg-choptym-beige px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-choptime-brown flex items-center justify-center gap-2">
-            <KeyRound className="w-5 h-5 text-choptime-orange" />
+          <CardTitle className="text-2xl font-bold text-choptym-brown flex items-center justify-center gap-2">
+            <KeyRound className="w-5 h-5 text-choptym-orange" />
             ChopTym Admin
           </CardTitle>
-          <p className="text-sm text-choptime-brown/70 mt-2">
+          <p className="text-sm text-choptym-brown/70 mt-2">
             Enter admin PIN to access the dashboard
           </p>
         </CardHeader>
@@ -99,7 +99,7 @@ const AdminLogin = () => {
             <Button 
               type="submit" 
               disabled={loading || pin.length !== 4}
-              className="w-full choptime-gradient hover:opacity-90 text-white"
+              className="w-full choptym-gradient hover:opacity-90 text-white"
             >
               {loading ? (
                 <>

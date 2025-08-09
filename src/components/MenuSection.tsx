@@ -32,29 +32,29 @@ const MenuSection: React.FC<MenuSectionProps> = ({
   return (
     <section className="py-8">
       <div className="container mx-auto px-4">
-        <h3 className="text-2xl font-bold text-choptime-brown mb-6">Our Menu</h3>
+        <h3 className="text-2xl font-bold text-choptym-brown mb-6">Our Menu</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Custom Order Card */}
-          <Card className="overflow-hidden choptime-shadow hover:shadow-lg transition-all duration-300 animate-slide-up border-2 border-dashed border-choptime-orange/50">
-            <div className="relative bg-gradient-to-br from-choptime-orange/10 to-choptime-beige/50 h-48 flex items-center justify-center">
+          <Card className="overflow-hidden choptym-shadow hover:shadow-lg transition-all duration-300 animate-slide-up border-2 border-dashed border-choptym-orange/50">
+            <div className="relative bg-gradient-to-br from-choptym-orange/10 to-choptym-beige/50 h-48 flex items-center justify-center">
               <div className="text-center">
-                <Package className="w-16 h-16 text-choptime-orange mx-auto mb-3" />
-                <Badge className="bg-choptime-orange text-white">Custom Order</Badge>
+                <Package className="w-16 h-16 text-choptym-orange mx-auto mb-3" />
+                <Badge className="bg-choptym-orange text-white">Custom Order</Badge>
               </div>
             </div>
             <CardContent className="p-4">
-              <h4 className="font-bold text-lg text-choptime-brown mb-2">📦 Custom Food Order</h4>
-              <p className="text-sm text-choptime-brown/70 mb-3">
+              <h4 className="font-bold text-lg text-choptym-brown mb-2">📦 Custom Food Order</h4>
+              <p className="text-sm text-choptym-brown/70 mb-3">
                 Can't find what you're looking for? Order any dish from your favorite restaurant!
               </p>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-choptime-orange">
+                <span className="text-sm font-medium text-choptym-orange">
                   Starting from {formatPrice(2000)}
                 </span>
                 <Button 
                   onClick={onCustomOrder}
                   disabled={!selectedTown || restaurants.length === 0}
-                  className="choptime-gradient hover:opacity-90 text-white disabled:opacity-50"
+                  className="choptym-gradient hover:opacity-90 text-white disabled:opacity-50"
                 >
                   {restaurants.length > 0 ? 'Order Custom' : 'No Restaurants'}
                 </Button>
@@ -68,19 +68,19 @@ const MenuSection: React.FC<MenuSectionProps> = ({
             const minPrice = availableRestaurants.length > 0 ? Math.min(...availableRestaurants.map(r => getDishPrice(dish.id, r.id))) : 0;
             
             return (
-              <Card key={dish.id} className="overflow-hidden choptime-shadow hover:shadow-lg transition-all duration-300 animate-slide-up" style={{ animationDelay: `${(index + 1) * 100}ms` }}>
+              <Card key={dish.id} className="overflow-hidden choptym-shadow hover:shadow-lg transition-all duration-300 animate-slide-up" style={{ animationDelay: `${(index + 1) * 100}ms` }}>
                 <div className="relative">
                   <img 
                     src={dish.image_url || 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400'} 
                     alt={dish.name}
                     className="w-full h-48 object-cover"
                   />
-                  <Badge className="absolute top-2 left-2 bg-choptime-orange text-white">
+                  <Badge className="absolute top-2 left-2 bg-choptym-orange text-white">
                     {dish.category}
                   </Badge>
                   <div className="absolute top-2 right-2 flex gap-1">
                     {dish.is_popular && (
-                      <Badge variant="secondary" className="bg-white/90 text-choptime-orange">
+                      <Badge variant="secondary" className="bg-white/90 text-choptym-orange">
                         Popular
                       </Badge>
                     )}
@@ -97,9 +97,9 @@ const MenuSection: React.FC<MenuSectionProps> = ({
                   </div>
                 </div>
                 <CardContent className="p-4">
-                  <h4 className="font-bold text-lg text-choptime-brown mb-2">{dish.name}</h4>
-                  <p className="text-sm text-choptime-brown/70 mb-3 line-clamp-2">{dish.description}</p>
-                  <div className="flex items-center gap-4 text-xs text-choptime-brown/60 mb-3">
+                  <h4 className="font-bold text-lg text-choptym-brown mb-2">{dish.name}</h4>
+                  <p className="text-sm text-choptym-brown/70 mb-3 line-clamp-2">{dish.description}</p>
+                  <div className="flex items-center gap-4 text-xs text-choptym-brown/60 mb-3">
                     <div className="flex items-center gap-1">
                       <Clock className="w-3 h-3" />
                       <span>{dish.cook_time}</span>
@@ -110,13 +110,13 @@ const MenuSection: React.FC<MenuSectionProps> = ({
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold text-choptime-orange">
+                    <span className="text-lg font-bold text-choptym-orange">
                       {availableRestaurants.length > 0 ? `From ${formatPrice(minPrice)}` : 'Not Available'}
                     </span>
                     <Button 
                       onClick={() => onAddToCart(dish)}
                       disabled={availableRestaurants.length === 0}
-                      className="choptime-gradient hover:opacity-90 text-white disabled:opacity-50"
+                      className="choptym-gradient hover:opacity-90 text-white disabled:opacity-50"
                     >
                       {availableRestaurants.length > 0 ? 'Choose Restaurant' : 'Not Available'}
                     </Button>

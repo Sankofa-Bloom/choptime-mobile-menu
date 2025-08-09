@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --mode development",
     "dev:full": "concurrently \"npm run dev\" \"npm run server\"",
     "server": "cd server && npm run dev",
     "build": "tsc && vite build",
@@ -19,7 +19,9 @@
     "test": "echo \"No tests specified\" && exit 0",
     "test:build": "npm run build && npm run type-check",
     "start": "vite preview --port 3000",
-    "start:prod": "npm run build:prod && npm run start"
+    "start:prod": "npm run build:prod && npm run start",
+    "dev:setup": "cp .env.development .env && cd server && cp .env.development .env",
+    "prod:setup": "cp .env.production .env && cd server && cp .env.production .env"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",

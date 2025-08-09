@@ -55,8 +55,8 @@ const CartSection: React.FC<CartSectionProps> = ({
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-3 mb-8">
-            <ShoppingCart className="h-8 w-8 text-choptime-orange" />
-            <h2 className="text-3xl font-bold text-choptime-brown">Your Order</h2>
+                    <ShoppingCart className="h-8 w-8 text-choptym-orange" />
+        <h2 className="text-3xl font-bold text-choptym-brown">Your Order</h2>
           </div>
 
           <div className="grid md:grid-cols-2 gap-8">
@@ -64,13 +64,13 @@ const CartSection: React.FC<CartSectionProps> = ({
             <div>
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-choptime-brown">Cart Items</CardTitle>
+                  <CardTitle className="text-choptym-brown">Cart Items</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {cart.map((item, index) => (
                     <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex-1">
-                        <h4 className="font-medium text-choptime-brown">
+                        <h4 className="font-medium text-choptym-brown">
                           {'dish' in item ? item.dish.name : item.customDishName}
                           {!('dish' in item) && <span className="text-sm text-orange-600"> (Custom)</span>}
                         </h4>
@@ -78,7 +78,7 @@ const CartSection: React.FC<CartSectionProps> = ({
                         {'specialInstructions' in item && item.specialInstructions && (
                           <p className="text-xs text-gray-500 mt-1">Note: {item.specialInstructions}</p>
                         )}
-                        <p className="text-sm font-medium text-choptime-orange">
+                        <p className="text-sm font-medium text-choptym-orange">
                           {formatPrice(('dish' in item ? item.price : item.estimatedPrice) * item.quantity)}
                         </p>
                       </div>
@@ -116,7 +116,7 @@ const CartSection: React.FC<CartSectionProps> = ({
                     </div>
                     <div className="flex justify-between font-bold text-lg">
                       <span>Total:</span>
-                      <span className="text-choptime-orange">{formatPrice(calculateTotal())}</span>
+                      <span className="text-choptym-orange">{formatPrice(calculateTotal())}</span>
                     </div>
                   </div>
                 </CardContent>
@@ -127,7 +127,7 @@ const CartSection: React.FC<CartSectionProps> = ({
             <div>
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-choptime-brown">Delivery Details</CardTitle>
+                  <CardTitle className="text-choptym-brown">Delivery Details</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
@@ -214,7 +214,7 @@ const CartSection: React.FC<CartSectionProps> = ({
 
                   <Button
                     onClick={onPlaceOrder}
-                    className="w-full choptime-gradient hover:opacity-90 text-white"
+                    className="w-full choptym-gradient hover:opacity-90 text-white"
                     size="lg"
                   >
                     <ShoppingCart className="mr-2 h-5 w-5" />

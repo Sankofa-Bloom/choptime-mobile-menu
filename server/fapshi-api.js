@@ -55,8 +55,7 @@ class FapshiAPI {
     try {
       // Check if we have valid API credentials
       if (!this.apiKey || !this.apiUser) {
-        console.warn('Fapshi API credentials not configured, using development fallback');
-        return this.getDevelopmentFallback(paymentData);
+        throw new Error('Fapshi API credentials not configured. Please set FAPSHI_API_KEY and FAPSHI_API_USER environment variables.');
       }
 
       // Use redirect endpoint instead of direct return URL
@@ -92,12 +91,8 @@ class FapshiAPI {
       };
     } catch (error) {
       console.error('Fapshi payment initialization failed:', error);
-      
-      // If it's an API error (404, 401, etc.), use development fallback
-      if (error.message.includes('404') || error.message.includes('401') || error.message.includes('403')) {
-        console.warn('Fapshi API error detected, using development fallback');
-        return this.getDevelopmentFallback(paymentData);
-      }
+      throw error; // Re-throw the error instead of using fallback
+    }
       
       return {
         success: false,
@@ -125,8 +120,7 @@ class FapshiAPI {
     try {
       // Check if we have valid API credentials
       if (!this.apiKey || !this.apiUser) {
-        console.warn('Fapshi API credentials not configured, using development fallback for status check');
-        return this.getDevelopmentStatusFallback(reference);
+        throw new Error('Fapshi API credentials not configured. Please set FAPSHI_API_KEY and FAPSHI_API_USER environment variables.');
       }
 
       const response = await this.makeRequest(`/payments/status/${reference}`);
@@ -150,17 +144,7 @@ class FapshiAPI {
       };
     } catch (error) {
       console.error('Fapshi payment status check failed:', error);
-      
-      // If it's an API error, use development fallback
-      if (error.message.includes('404') || error.message.includes('401') || error.message.includes('403')) {
-        console.warn('Fapshi API error detected, using development fallback for status check');
-        return this.getDevelopmentStatusFallback(reference);
-      }
-      
-      return {
-        success: false,
-        error: error.message
-      };
+      throw error; // Re-throw the error instead of using fallback
     }
   }
 

@@ -39,7 +39,7 @@ const RestaurantSelectionModal: React.FC<RestaurantSelectionModalProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-choptime-brown">
+          <DialogTitle className="text-choptym-brown">
             Choose Restaurant for {dish.name}
           </DialogTitle>
           <DialogDescription>
@@ -49,14 +49,14 @@ const RestaurantSelectionModal: React.FC<RestaurantSelectionModalProps> = ({
         
         <div className="space-y-4">
           {dish.description && (
-            <div className="bg-choptime-beige p-4 rounded-lg">
-              <p className="text-sm text-choptime-brown/80">{dish.description}</p>
+            <div className="bg-choptym-beige p-4 rounded-lg">
+              <p className="text-sm text-choptym-brown/80">{dish.description}</p>
               <div className="flex gap-2 mt-2">
                 <Badge variant="outline" className="text-xs">
                   {dish.category}
                 </Badge>
                 {dish.is_popular && (
-                  <Badge className="bg-choptime-orange text-white text-xs">
+                  <Badge className="bg-choptym-orange text-white text-xs">
                     Popular
                   </Badge>
                 )}
@@ -76,7 +76,7 @@ const RestaurantSelectionModal: React.FC<RestaurantSelectionModalProps> = ({
 
           {restaurants.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-choptime-brown/70">No restaurants available for this dish in your selected town.</p>
+              <p className="text-choptym-brown/70">No restaurants available for this dish in your selected town.</p>
             </div>
           ) : (
             <div className="grid gap-4">
@@ -94,12 +94,12 @@ const RestaurantSelectionModal: React.FC<RestaurantSelectionModalProps> = ({
                           />
                         )}
                         <div className="flex-1">
-                          <h4 className="font-semibold text-choptime-brown">{restaurant.name}</h4>
-                          <div className="flex items-center gap-2 text-sm text-choptime-brown/70 mt-1">
+                          <h4 className="font-semibold text-choptym-brown">{restaurant.name}</h4>
+                          <div className="flex items-center gap-2 text-sm text-choptym-brown/70 mt-1">
                             <MapPin className="w-3 h-3" />
                             <span>{restaurant.town}</span>
                           </div>
-                          <div className="flex items-center gap-2 text-sm text-choptime-brown/70">
+                          <div className="flex items-center gap-2 text-sm text-choptym-brown/70">
                             <Clock className="w-3 h-3" />
                             <span>
                               {restaurant.delivery_time_min || 15}-{restaurant.delivery_time_max || 45} min delivery
@@ -107,12 +107,12 @@ const RestaurantSelectionModal: React.FC<RestaurantSelectionModalProps> = ({
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-lg font-bold text-choptime-orange mb-2">
+                          <div className="text-lg font-bold text-choptym-orange mb-2">
                             {formatPrice(price)}
                           </div>
                           <Button
                             onClick={() => handleSelectRestaurant(restaurant)}
-                            className="choptime-gradient hover:opacity-90 text-white"
+                            className="choptym-gradient hover:opacity-90 text-white"
                             size="sm"
                           >
                             Select Restaurant

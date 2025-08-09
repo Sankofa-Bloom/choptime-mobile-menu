@@ -159,12 +159,12 @@ const DishManagement = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-choptime-brown">Dish Management</h2>
+        <h2 className="text-2xl font-bold text-choptym-brown">Dish Management</h2>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button 
               onClick={resetForm}
-              className="choptime-gradient hover:opacity-90 text-white"
+              className="choptym-gradient hover:opacity-90 text-white"
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Dish
@@ -294,7 +294,7 @@ const DishManagement = () => {
                 <Button 
                   type="submit"
                   disabled={uploading}
-                  className="choptime-gradient hover:opacity-90 text-white"
+                  className="choptym-gradient hover:opacity-90 text-white"
                 >
                   {uploading ? 'Processing...' : editingDish ? 'Update' : 'Create'} Dish
                 </Button>
@@ -344,7 +344,7 @@ const DishManagement = () => {
                   <TableCell>
                     <div className="flex gap-1 flex-wrap">
                       {dish.is_popular && (
-                        <Badge className="bg-choptime-orange text-white text-xs">Popular</Badge>
+                        <Badge className="bg-choptym-orange text-white text-xs">Popular</Badge>
                       )}
                       {dish.is_spicy && (
                         <Badge variant="destructive" className="text-xs">Spicy</Badge>

@@ -64,7 +64,7 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				// ChopTym brand colors
-				choptime: {
+				choptym: {
 					orange: '#D57A1F',
 					brown: '#5A2D0C',
 					beige: '#FDF1E0',

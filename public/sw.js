@@ -1,5 +1,5 @@
 
-const CACHE_NAME = 'choptime-v1';
+const CACHE_NAME = 'choptym-v1';
 const urlsToCache = [
   '/',
   '/manifest.json',
@@ -12,7 +12,7 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('ChopTime cache opened');
+        console.log('ChopTym cache opened');
         return cache.addAll(urlsToCache);
       })
       .catch((error) => {
@@ -68,13 +68,13 @@ self.addEventListener('activate', (event) => {
 // Push notification support (future feature)
 self.addEventListener('push', (event) => {
   const options = {
-            body: event.data ? event.data.text() : 'Your ChopTime order is ready!',
+            body: event.data ? event.data.text() : 'Your ChopTym order is ready!',
     icon: '/logo.png',
     badge: '/logo.png',
-          tag: 'choptime-notification'
+          tag: 'choptym-notification'
   };
 
   event.waitUntil(
-    self.registration.showNotification('ChopTime', options)
+    self.registration.showNotification('ChopTym', options)
   );
 });

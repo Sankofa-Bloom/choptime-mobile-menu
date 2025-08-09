@@ -9,6 +9,10 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    hmr: {
+      port: 8080,
+      host: 'localhost'
+    },
     proxy: {
       '/api/campay': {
         target: 'http://localhost:3001',
@@ -16,6 +20,21 @@ export default defineConfig(({ mode }) => ({
         secure: false,
       },
       '/api/email': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/api/payment': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/api/fapshi': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/api/calculate-delivery-fee': {
         target: 'http://localhost:3001',
         changeOrigin: true,
         secure: false,

@@ -92,12 +92,12 @@ const DeliveryManagement = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-choptime-brown">Delivery Zone Management</h2>
+        <h2 className="text-2xl font-bold text-choptym-brown">Delivery Zone Management</h2>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button 
               onClick={resetForm}
-              className="choptime-gradient hover:opacity-90 text-white"
+              className="choptym-gradient hover:opacity-90 text-white"
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Delivery Zone
@@ -189,7 +189,7 @@ const DeliveryManagement = () => {
                 </Button>
                 <Button 
                   type="submit"
-                  className="choptime-gradient hover:opacity-90 text-white"
+                  className="choptym-gradient hover:opacity-90 text-white"
                 >
                   {editingZone ? 'Update' : 'Create'} Zone
                 </Button>
@@ -228,7 +228,7 @@ const DeliveryManagement = () => {
                       <TableCell>
                         {zone.distance_min}-{zone.distance_max}km
                       </TableCell>
-                      <TableCell className="font-semibold text-choptime-orange">
+                      <TableCell className="font-semibold text-choptym-orange">
                         {formatPrice(zone.fee)}
                       </TableCell>
                       <TableCell>

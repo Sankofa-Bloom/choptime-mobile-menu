@@ -24,7 +24,7 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
 
   return (
     <div className="space-y-4">
-      <h3 className="font-semibold text-choptime-brown">Order Method</h3>
+      <h3 className="font-semibold text-choptym-brown">Order Method</h3>
       
       <div className="grid gap-3">
         <label className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 bg-green-50 border-green-200">
@@ -34,7 +34,7 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
             value="fapshi"
             checked={paymentMethod === 'fapshi'}
             onChange={(e) => setPaymentMethod(e.target.value as 'campay' | 'fapshi')}
-            className="text-choptime-orange"
+            className="text-choptym-orange"
           />
           <Smartphone className="w-5 h-5 text-green-600" />
           <div className="flex-1">
@@ -52,7 +52,7 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
             value="campay"
             checked={paymentMethod === 'campay'}
             onChange={(e) => setPaymentMethod(e.target.value as 'campay' | 'fapshi')}
-            className="text-choptime-orange"
+            className="text-choptym-orange"
           />
           <Smartphone className="w-5 h-5 text-blue-600" />
           <div className="flex-1">
