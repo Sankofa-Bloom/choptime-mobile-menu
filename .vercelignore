@@ -1,6 +1,0 @@
-node_modules
-.git
-server/node_modules
-server/.env*
-.env.development
-.env.local
