@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { Restaurant, Dish, RestaurantMenu, Order, CustomOrder, DeliveryFee, UserTown } from '@/types/restaurant';
 
 // Backend API base URL
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL !== undefined 
+  ? import.meta.env.VITE_API_BASE_URL 
+  : 'http://localhost:3001';
 
 export const useChopTymData = (selectedTown?: string) => {
   const [dishes, setDishes] = useState<Dish[]>([]);
