@@ -66,7 +66,10 @@ export const useChopTymData = (selectedTown?: string) => {
   // Helper function for API calls
   const apiCall = async (endpoint: string, options: RequestInit = {}) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/${endpoint}`, {
+      const url = `${API_BASE_URL}/api/${endpoint}`;
+      console.log('🔧 Making API call to:', url);
+      
+      const response = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
           ...options.headers,
@@ -74,13 +77,21 @@ export const useChopTymData = (selectedTown?: string) => {
         ...options,
       });
 
+      console.log('🔧 API Response status:', response.status);
+
       if (!response.ok) {
-        throw new Error(`API call failed: ${response.status}`);
+        const errorText = await response.text();
+        console.error('🚨 API Response error:', errorText);
+        throw new Error(`API call failed: ${response.status} - ${errorText}`);
       }
 
-      return await response.json();
+      const data = await response.json();
+      console.log('🔧 API Response data type:', typeof data);
+      console.log('🔧 API Response sample:', Array.isArray(data) ? `Array(${data.length})` : data);
+      
+      return data;
     } catch (error) {
-      console.error(`API call error for ${endpoint}:`, error);
+      console.error(`🚨 API call error for ${endpoint}:`, error);
       throw error;
     }
   };
@@ -89,9 +100,12 @@ export const useChopTymData = (selectedTown?: string) => {
   const fetchDishes = async () => {
     try {
       console.log('🧪 Fetching dishes from:', API_BASE_URL + '/api/dishes');
-      const data = await apiCall('dishes');
-      console.log('✅ Dishes response:', data);
-      setDishes(data || []);
+      const response = await apiCall('dishes');
+      console.log('✅ Dishes response:', response);
+      
+      // Handle both direct data and wrapped response formats
+      const data = response?.data || response || [];
+      setDishes(data);
     } catch (err) {
       logError('dishes', err);
     }
@@ -102,9 +116,12 @@ export const useChopTymData = (selectedTown?: string) => {
     try {
       const endpoint = town ? `restaurants?town=${encodeURIComponent(town)}` : 'restaurants';
       console.log('🧪 Fetching restaurants from:', API_BASE_URL + '/api/' + endpoint);
-      const data = await apiCall(endpoint);
-      console.log('✅ Restaurants response:', data);
-      setRestaurants(data || []);
+      const response = await apiCall(endpoint);
+      console.log('✅ Restaurants response:', response);
+      
+      // Handle both direct data and wrapped response formats
+      const data = response?.data || response || [];
+      setRestaurants(data);
     } catch (err) {
       logError('restaurants', err);
     }
@@ -115,9 +132,12 @@ export const useChopTymData = (selectedTown?: string) => {
     try {
       const endpoint = town ? `restaurant-menus?town=${encodeURIComponent(town)}` : 'restaurant-menus';
       console.log('🧪 Fetching restaurant menus from:', API_BASE_URL + '/api/' + endpoint);
-      const data = await apiCall(endpoint);
-      console.log('✅ Restaurant menus response:', data);
-      setRestaurantMenus(data || []);
+      const response = await apiCall(endpoint);
+      console.log('✅ Restaurant menus response:', response);
+      
+      // Handle both direct data and wrapped response formats
+      const data = response?.data || response || [];
+      setRestaurantMenus(data);
     } catch (err) {
       logError('restaurant menus', err);
     }
@@ -127,8 +147,11 @@ export const useChopTymData = (selectedTown?: string) => {
   const fetchDeliveryFees = async () => {
     try {
       console.log('🧪 Fetching delivery zones from:', API_BASE_URL + '/api/delivery-zones');
-      const data = await apiCall('delivery-zones');
-      console.log('✅ Delivery zones response:', data);
+      const response = await apiCall('delivery-zones');
+      console.log('✅ Delivery zones response:', response);
+      
+      // Handle both direct data and wrapped response formats
+      const data = response?.data || response || [];
       
       // Convert zones to delivery fees format for backward compatibility
       const fees = data?.reduce((acc: DeliveryFee[], zone: any) => {
@@ -267,13 +290,21 @@ export const useChopTymData = (selectedTown?: string) => {
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      await Promise.all([
-        fetchDishes(),
-        fetchRestaurants(selectedTown),
-        fetchRestaurantMenus(selectedTown),
-        fetchDeliveryFees()
-      ]);
-      setLoading(false);
+      setError(null); // Reset error state
+      
+      try {
+        await Promise.all([
+          fetchDishes(),
+          fetchRestaurants(selectedTown),
+          fetchRestaurantMenus(selectedTown),
+          fetchDeliveryFees()
+        ]);
+      } catch (err) {
+        console.error('🚨 Failed to load data:', err);
+        setError('Failed to load menu data');
+      } finally {
+        setLoading(false);
+      }
     };
 
     loadData();

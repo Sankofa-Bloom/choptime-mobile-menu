@@ -7,10 +7,11 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 exports.handler = async (event, context) => {
   // Set CORS headers
   const headers = {
-    'Access-Control-Allow-Origin': 'https://www.choptym.com,https://choptym.com',
+    'Access-Control-Allow-Origin': '*', // More permissive for production
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Access-Control-Allow-Credentials': 'true',
+    'Access-Control-Allow-Credentials': 'false',
+    'Content-Type': 'application/json',
   };
 
   // Handle preflight request
@@ -44,10 +45,7 @@ exports.handler = async (event, context) => {
       return {
         statusCode: 200,
         headers,
-        body: JSON.stringify({
-          success: true,
-          data: deliveryZones || []
-        }),
+        body: JSON.stringify(deliveryZones || []), // Return data directly for consistency
       };
     } catch (error) {
       console.error('Unexpected error:', error);
