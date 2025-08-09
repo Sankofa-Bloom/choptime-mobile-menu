@@ -8,6 +8,9 @@ import ThankYou from '@/pages/ThankYou';
 import PaymentSuccess from '@/pages/PaymentSuccess';
 import WhatsAppButton from '@/components/WhatsAppButton';
 import { SplashScreen } from '@/components/SplashScreen';
+
+// App component debug logging
+console.log('🚀 APP COMPONENT: Loading App.tsx');
 import { Toaster } from '@/components/ui/toaster';
 
 function App() {
