@@ -43,6 +43,18 @@ export const useChopTymData = (selectedTown?: string) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
+  // Enhanced error logging
+  const logError = (source: string, err: any) => {
+    console.error(`🚨 ERROR in ${source}:`, err);
+    console.error('🚨 Error details:', {
+      message: err?.message,
+      status: err?.status,
+      response: err?.response,
+      stack: err?.stack
+    });
+    setError(`Failed to load ${source}`);
+  };
+  
   // Simple delivery fee lookup function (no API calls needed)
   const getDeliveryFeeForTown = (town: string): number => {
     const deliveryInfo = deliveryFees.find(
@@ -81,8 +93,7 @@ export const useChopTymData = (selectedTown?: string) => {
       console.log('✅ Dishes response:', data);
       setDishes(data || []);
     } catch (err) {
-      console.error('❌ Error fetching dishes:', err);
-      setError('Failed to load dishes');
+      logError('dishes', err);
     }
   };
 
@@ -90,11 +101,12 @@ export const useChopTymData = (selectedTown?: string) => {
   const fetchRestaurants = async (town?: string) => {
     try {
       const endpoint = town ? `restaurants?town=${encodeURIComponent(town)}` : 'restaurants';
+      console.log('🧪 Fetching restaurants from:', API_BASE_URL + '/api/' + endpoint);
       const data = await apiCall(endpoint);
+      console.log('✅ Restaurants response:', data);
       setRestaurants(data || []);
     } catch (err) {
-      console.error('Error fetching restaurants:', err);
-      setError('Failed to load restaurants');
+      logError('restaurants', err);
     }
   };
 
@@ -102,18 +114,21 @@ export const useChopTymData = (selectedTown?: string) => {
   const fetchRestaurantMenus = async (town?: string) => {
     try {
       const endpoint = town ? `restaurant-menus?town=${encodeURIComponent(town)}` : 'restaurant-menus';
+      console.log('🧪 Fetching restaurant menus from:', API_BASE_URL + '/api/' + endpoint);
       const data = await apiCall(endpoint);
+      console.log('✅ Restaurant menus response:', data);
       setRestaurantMenus(data || []);
     } catch (err) {
-      console.error('Error fetching restaurant menus:', err);
-      setError('Failed to load menu items');
+      logError('restaurant menus', err);
     }
   };
 
   // Fetch delivery zones instead of fees
   const fetchDeliveryFees = async () => {
     try {
+      console.log('🧪 Fetching delivery zones from:', API_BASE_URL + '/api/delivery-zones');
       const data = await apiCall('delivery-zones');
+      console.log('✅ Delivery zones response:', data);
       
       // Convert zones to delivery fees format for backward compatibility
       const fees = data?.reduce((acc: DeliveryFee[], zone: any) => {
@@ -132,8 +147,7 @@ export const useChopTymData = (selectedTown?: string) => {
       
       setDeliveryFees(fees);
     } catch (err) {
-      console.error('Error fetching delivery fees:', err);
-      setError('Failed to load delivery information');
+      logError('delivery fees', err);
     }
   };
 
