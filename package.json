@@ -3,6 +3,9 @@
   "private": true,
   "description": "ChopTym - Cameroonian Food Delivery PWA",
   "version": "0.0.30",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "dev": "vite --mode development",
     "dev:full": "concurrently \"npm run dev\" \"npm run server\"",
