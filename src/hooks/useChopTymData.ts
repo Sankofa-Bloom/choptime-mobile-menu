@@ -11,6 +11,10 @@ export const useChopTymData = (selectedTown?: string) => {
   const [deliveryFees, setDeliveryFees] = useState<DeliveryFee[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Cache for delivery fee calculations to prevent repeated API calls
+  const [deliveryFeeCache, setDeliveryFeeCache] = useState<Map<string, { fee: number; timestamp: number }>>(new Map());
+  const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes cache duration
 
   // Helper function for API calls
   const apiCall = async (endpoint: string, options: RequestInit = {}) => {
@@ -96,17 +100,51 @@ export const useChopTymData = (selectedTown?: string) => {
     }
   };
 
-  // Enhanced delivery fee calculation using zones
+  // Enhanced delivery fee calculation using zones with caching
   const getDeliveryFee = async (town: string, locationDescription?: string): Promise<number> => {
+    const cacheKey = `${town}-${locationDescription || ''}`;
+    const now = Date.now();
+    
+    // Check cache first
+    const cachedResult = deliveryFeeCache.get(cacheKey);
+    if (cachedResult && (now - cachedResult.timestamp) < CACHE_DURATION) {
+      console.log(`Using cached delivery fee for ${town}: ${cachedResult.fee} FCFA`);
+      return cachedResult.fee;
+    }
+    
     try {
+      console.log(`Fetching delivery fee for ${town}...`);
       const data = await apiCall('calculate-delivery-fee', {
         method: 'POST',
         body: JSON.stringify({ town_name: town, location_description: locationDescription || '' })
       });
-      return data && data.length > 0 ? data[0].fee : 500;
+      
+      const fee = data && data.length > 0 ? data[0].fee : 500;
+      
+      // Cache the result
+      setDeliveryFeeCache(prev => {
+        const newCache = new Map(prev);
+        newCache.set(cacheKey, { fee, timestamp: now });
+        return newCache;
+      });
+      
+      console.log(`Delivery fee for ${town}: ${fee} FCFA (cached for 30 minutes)`);
+      return fee;
     } catch (err) {
       console.error('Error calculating delivery fee:', err);
-      return 500; // Default fee
+      
+      // Try to use existing delivery fees as fallback
+      const existingFee = deliveryFees.find(f => f.town.toLowerCase() === town.toLowerCase());
+      const fallbackFee = existingFee?.fee || 500;
+      
+      // Cache the fallback fee for shorter duration
+      setDeliveryFeeCache(prev => {
+        const newCache = new Map(prev);
+        newCache.set(cacheKey, { fee: fallbackFee, timestamp: now });
+        return newCache;
+      });
+      
+      return fallbackFee;
     }
   };
 
@@ -219,6 +257,12 @@ export const useChopTymData = (selectedTown?: string) => {
     }
   };
 
+  // Clear delivery fee cache (useful when admin updates fees)
+  const clearDeliveryFeeCache = () => {
+    setDeliveryFeeCache(new Map());
+    console.log('Delivery fee cache cleared');
+  };
+
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -249,11 +293,13 @@ export const useChopTymData = (selectedTown?: string) => {
     saveCustomOrder,
     getUserOrders,
     getUserCustomOrders,
+    clearDeliveryFeeCache,
     refetch: () => {
       fetchDishes();
       fetchRestaurants(selectedTown);
       fetchRestaurantMenus(selectedTown);
       fetchDeliveryFees();
+      clearDeliveryFeeCache(); // Clear cache on refetch to get updated fees
     }
   };
 };
