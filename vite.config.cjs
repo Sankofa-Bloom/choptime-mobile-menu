@@ -1,5 +1,5 @@
 const { defineConfig } = require("vite");
-const react = require("@vitejs/plugin-react-swc");
+const react = require("@vitejs/plugin-react-swc").default;
 const path = require("path");
 const { VitePWA } = require('vite-plugin-pwa');
 
@@ -41,7 +41,7 @@ module.exports = defineConfig(({ mode }) => ({
     }
   },
   plugins: [
-    react.default(),
+    react(),
     VitePWA({
       registerType: 'autoUpdate',
       workbox: {
