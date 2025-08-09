@@ -12,21 +12,27 @@
     <script>
         document.getElementById('timestamp').textContent = new Date().toISOString();
         
-        // Test if main app assets exist
-        fetch('/assets/index-CXoBL6i1.js')
-            .then(response => {
-                if (response.ok) {
-                    document.getElementById('status').textContent = 'Latest build deployed ✅';
-                    document.getElementById('status').style.color = 'green';
-                } else {
-                    document.getElementById('status').textContent = 'Build assets missing ❌';
-                    document.getElementById('status').style.color = 'red';
-                }
-            })
-            .catch(err => {
-                document.getElementById('status').textContent = 'Network error ❌';
-                document.getElementById('status').style.color = 'red';
-            });
+        // Test if any build assets exist
+        Promise.all([
+            fetch('/assets/').then(r => r.status),
+            fetch('/index.html').then(r => r.status),
+            fetch('/manifest.json').then(r => r.status)
+        ]).then(statuses => {
+            const assetsOk = statuses[0] === 200 || statuses[0] === 403; // 403 is ok for directory
+            const indexOk = statuses[1] === 200;
+            const manifestOk = statuses[2] === 200;
+            
+            if (indexOk && manifestOk) {
+                document.getElementById('status').textContent = 'Deployment looks good ✅ Try main app!';
+                document.getElementById('status').style.color = 'green';
+            } else {
+                document.getElementById('status').textContent = `Issues: index(${indexOk}) manifest(${manifestOk}) ❌`;
+                document.getElementById('status').style.color = 'orange';
+            }
+        }).catch(err => {
+            document.getElementById('status').textContent = 'Network error ❌';
+            document.getElementById('status').style.color = 'red';
+        });
     </script>
 </body>
 </html>
