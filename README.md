@@ -21,7 +21,7 @@ A modern, production-ready food delivery application specializing in authentic C
 - **Database**: Supabase (PostgreSQL)
 - **Payments**: Campay API
 - **Email**: Nodemailer with Gmail SMTP
-- **Deployment**: Vercel/Netlify ready
+- **Deployment**: Netlify ready
 
 ## 📦 Installation
 
@@ -133,19 +133,15 @@ CAMPAY_BASE_URL=https://api.campay.net
 
 ## 🚀 Deployment
 
-### Vercel (Recommended)
+### Netlify (Recommended)
 
-1. **Connect Repository**
-   ```bash
-   # Install Vercel CLI
-   npm i -g vercel
-   
-   # Deploy
-   vercel
-   ```
+1. **Deploy via Git**
+   - Go to [netlify.com](https://netlify.com)
+   - Connect GitHub repository: `Sankofa-Bloom/choptime-mobile-menu`
+   - Auto-deploys from main branch
 
 2. **Environment Variables**
-   - Add all environment variables in Vercel dashboard
+   - Add all environment variables in Netlify dashboard
    - Set `NODE_ENV=production`
 
 3. **Build Settings**

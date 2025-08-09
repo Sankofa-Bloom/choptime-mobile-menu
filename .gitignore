@@ -29,7 +29,6 @@ dist-ssr
 .env.development
 .env.production
 .env.test
-.env.vercel.production
 .env.netlify
 *.env
 server/.env
@@ -79,4 +78,4 @@ workbox-*.js
 # Documentation files (except README.md and deployment guides)
 *.md
 !README.md
-!VERCEL_DEPLOYMENT.md
+!NETLIFY_DEPLOYMENT.md
