@@ -1,4 +1,5 @@
 {
+  "_comment": "Force rebuild to apply environment variables",
   "version": 2,
   "builds": [
     {
