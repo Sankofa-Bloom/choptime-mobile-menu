@@ -2,12 +2,12 @@
   "name": "choptym-mobile-menu",
   "private": true,
   "description": "ChopTym - Cameroonian Food Delivery PWA",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "scripts": {
     "dev": "vite --mode development",
     "dev:full": "concurrently \"npm run dev\" \"npm run server\"",
     "server": "cd server && npm run dev",
-    "build": "npx vite build",
+    "build": "vite build",
     "build:prod": "tsc && vite build --mode production",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
@@ -28,7 +28,9 @@
     "deploy:patch": "npm run version:patch && git add package.json && git commit -m \"🔖 Version bump: $(npm run version:current --silent)\" && git push origin main",
     "deploy:minor": "npm run version:minor && git add package.json && git commit -m \"🔖 Version bump: $(npm run version:current --silent)\" && git push origin main",
     "deploy:major": "npm run version:major && git add package.json && git commit -m \"🔖 Version bump: $(npm run version:current --silent)\" && git push origin main",
-    "version:current": "node -p \"require('./package.json').version\""
+    "version:current": "node -p \"require('./package.json').version\"",
+    "postinstall": "echo 'Vite version:' && npx vite --version",
+    "prebuild": "echo 'Starting build process...' && node -e \"console.log('Node version:', process.version)\" && echo 'Checking Vite...' && npx vite --version"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
