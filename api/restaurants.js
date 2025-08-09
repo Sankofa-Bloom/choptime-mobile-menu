@@ -24,7 +24,6 @@ module.exports = async function handler(req, res) {
       let query = supabase
         .from('restaurants')
         .select('*')
-        .eq('status', 'active')
         .order('name');
 
       // Filter by town if provided

@@ -48,7 +48,7 @@ module.exports = async function handler(req, res) {
       const { data: dishes, error } = await supabase
         .from('dishes')
         .select('*')
-        .eq('status', 'active')
+
         .order('name');
 
       if (error) {

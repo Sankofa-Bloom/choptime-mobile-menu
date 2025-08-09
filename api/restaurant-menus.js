@@ -28,7 +28,7 @@ module.exports = async function handler(req, res) {
           restaurant:restaurants(*),
           dish:dishes(*)
         `)
-        .eq('status', 'active');
+;
 
       // Filter by town if provided
       if (town && town !== 'all') {

@@ -22,7 +22,7 @@ module.exports = async function handler(req, res) {
       const { data: deliveryZones, error } = await supabase
         .from('delivery_zones')
         .select('*')
-        .eq('status', 'active')
+
         .order('town');
 
       if (error) {

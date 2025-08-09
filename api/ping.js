@@ -4,3 +4,4 @@ module.exports = function handler(req, res) {
     success: true
   });
 };
+
