@@ -21,7 +21,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.emailjs.com https://api.emailjs.com https://vercel.live; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' http://localhost:* https://localhost:* https://*.supabase.co https://www.emailjs.com https://api.emailjs.com https://api.fapshi.com https://sandbox.fapshi.com https://*.fapshi.com https://api.campay.net https://sandbox.campay.net https://api.choptym.com; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';"
+          "value": "default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' data: https:; connect-src 'self' http: https:; frame-src 'self' https:; object-src 'none'; base-uri 'self'; form-action 'self';"
         },
         {
           "key": "X-Frame-Options",
