@@ -37,7 +37,7 @@
   "env": {
     "VITE_SUPABASE_URL": "https://qrpukxmzdwkepfpuapzh.supabase.co",
     "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFycHVreG16ZHdrZXBmcHVhcHpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA4MTc5MTgsImV4cCI6MjA2NjM5MzkxOH0.Ix3k_w-nbJQ29FcuP3YYRT_K6ZC7RY2p80VKaDA0JEs",
-    "VITE_API_BASE_URL": "https://api.choptym.com",
+    "VITE_API_BASE_URL": "",
     "VITE_DEFAULT_PAYMENT_METHOD": "fapshi",
     "VITE_CAMPAY_CALLBACK_URL": "https://api.choptym.com/api/payment-webhook",
     "VITE_CAMPAY_RETURN_URL": "https://choptym.com/payment-success",
