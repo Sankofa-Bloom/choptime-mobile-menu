@@ -20,13 +20,20 @@ const getApiBaseUrl = () => {
 
 const API_BASE_URL = getApiBaseUrl();
 
-// Debug logging to see what API base URL is being used
+  // Debug logging to see what API base URL is being used
 console.log('🔧 API_BASE_URL Debug:', {
   VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
   window_origin: typeof window !== 'undefined' ? window.location.origin : 'N/A',
   final_API_BASE_URL: API_BASE_URL,
   timestamp: new Date().toISOString()
 });
+
+console.log('🧪 Expected working endpoints:');
+console.log('✅ Should work: ' + API_BASE_URL + '/api/hello');
+console.log('✅ Should work: ' + API_BASE_URL + '/api/ping');
+console.log('🧪 Testing: ' + API_BASE_URL + '/api/dishes');
+console.log('🧪 Testing: ' + API_BASE_URL + '/api/restaurants');
+console.log('🧪 Testing: ' + API_BASE_URL + '/api/restaurant-menus');
 
 export const useChopTymData = (selectedTown?: string) => {
   const [dishes, setDishes] = useState<Dish[]>([]);
@@ -69,10 +76,12 @@ export const useChopTymData = (selectedTown?: string) => {
   // Fetch dishes
   const fetchDishes = async () => {
     try {
+      console.log('🧪 Fetching dishes from:', API_BASE_URL + '/api/dishes');
       const data = await apiCall('dishes');
+      console.log('✅ Dishes response:', data);
       setDishes(data || []);
     } catch (err) {
-      console.error('Error fetching dishes:', err);
+      console.error('❌ Error fetching dishes:', err);
       setError('Failed to load dishes');
     }
   };
