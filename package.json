@@ -2,12 +2,12 @@
   "name": "choptym-mobile-menu",
   "private": true,
   "description": "ChopTym - Cameroonian Food Delivery PWA",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "scripts": {
     "dev": "vite --mode development",
     "dev:full": "concurrently \"npm run dev\" \"npm run server\"",
     "server": "cd server && npm run dev",
-    "build": "node ./node_modules/vite/bin/vite.js build",
+    "build": "npx vite build",
     "build:prod": "tsc && vite build --mode production",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
@@ -28,8 +28,7 @@
     "deploy:patch": "npm run version:patch && git add package.json && git commit -m \"🔖 Version bump: $(npm run version:current --silent)\" && git push origin main",
     "deploy:minor": "npm run version:minor && git add package.json && git commit -m \"🔖 Version bump: $(npm run version:current --silent)\" && git push origin main",
     "deploy:major": "npm run version:major && git add package.json && git commit -m \"🔖 Version bump: $(npm run version:current --silent)\" && git push origin main",
-    "version:current": "node -p \"require('./package.json').version\"",
-    "prebuild": "echo 'Debugging Vite installation on Vercel...' && echo 'Checking if node_modules exists:' && ls -la node_modules/ | head -10 && echo 'Checking if vite directory exists:' && ls -la node_modules/vite/ 2>/dev/null || echo 'Vite directory not found!' && echo 'Checking vite package.json:' && cat node_modules/vite/package.json 2>/dev/null | head -20 || echo 'Vite package.json not found!' && echo 'Checking bin directory:' && find node_modules/vite/ -name '*.js' 2>/dev/null || echo 'No JS files found in vite!'"
+    "version:current": "node -p \"require('./package.json').version\""
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
