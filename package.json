@@ -1,13 +1,13 @@
 {
   "name": "choptym-mobile-menu",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.0.2",
   "type": "module",
   "scripts": {
     "dev": "vite --mode development",
     "dev:full": "concurrently \"npm run dev\" \"npm run server\"",
     "server": "cd server && npm run dev",
-    "build": "vite build",
+    "build": "npx vite build",
     "build:prod": "tsc && vite build --mode production",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
