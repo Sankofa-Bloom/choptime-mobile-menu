@@ -56,11 +56,24 @@ class FapshiService {
   private serverUrl: string;
 
   constructor() {
-    // Use our unified payment API server instead of direct Fapshi API
-    this.serverUrl = import.meta.env.VITE_API_BASE_URL !== undefined 
-      ? import.meta.env.VITE_API_BASE_URL 
-      : 'http://localhost:3001';
+    // Smart API URL detection for cross-platform compatibility
+    this.serverUrl = this.getApiBaseUrl();
     console.log('FapshiService initialized:', { serverUrl: this.serverUrl });
+  }
+
+  private getApiBaseUrl(): string {
+    // If explicitly set in environment, use it
+    if (import.meta.env.VITE_API_BASE_URL) {
+      return import.meta.env.VITE_API_BASE_URL;
+    }
+    
+    // For web deployment, detect current origin for same-origin API calls
+    if (typeof window !== 'undefined') {
+      return window.location.origin;
+    }
+    
+    // Fallback for development/SSR
+    return 'http://localhost:3001';
   }
 
   private async makeRequest(endpoint: string, method: 'GET' | 'POST' = 'GET', body?: any): Promise<any> {

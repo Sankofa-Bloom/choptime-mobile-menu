@@ -1,4 +1,23 @@
 // Server-side email service - no exposed keys
+
+/**
+ * Smart API base URL detection for cross-platform compatibility
+ */
+const getApiBaseUrl = (): string => {
+  // If explicitly set in environment, use it
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  
+  // For web deployment, detect current origin for same-origin API calls
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+  
+  // Fallback for development/SSR
+  return 'http://localhost:3001';
+};
+
 export interface OrderEmailData {
   orderReference: string;
   customerName: string;
@@ -18,9 +37,7 @@ export const sendOrderConfirmationEmail = async (orderData: OrderEmailData): Pro
   try {
     console.log('Sending order confirmation email via server:', orderData);
     
-    const serverUrl = import.meta.env.VITE_API_BASE_URL !== undefined 
-      ? import.meta.env.VITE_API_BASE_URL 
-      : 'http://localhost:3001';
+    const serverUrl = getApiBaseUrl();
     const response = await fetch(`${serverUrl}/api/email/send-order-confirmation`, {
       method: 'POST',
       headers: {
@@ -50,9 +67,7 @@ export const sendAdminNotificationEmail = async (orderData: OrderEmailData): Pro
   try {
     console.log('Sending admin notification email via server:', orderData);
     
-    const serverUrl = import.meta.env.VITE_API_BASE_URL !== undefined 
-      ? import.meta.env.VITE_API_BASE_URL 
-      : 'http://localhost:3001';
+    const serverUrl = getApiBaseUrl();
     const response = await fetch(`${serverUrl}/api/email/send-admin-notification`, {
       method: 'POST',
       headers: {
@@ -86,9 +101,7 @@ export const sendOrderStatusUpdateEmail = async (
   try {
     console.log('Sending order status update email via server:', { orderData, status, message });
     
-    const serverUrl = import.meta.env.VITE_API_BASE_URL !== undefined 
-      ? import.meta.env.VITE_API_BASE_URL 
-      : 'http://localhost:3001';
+    const serverUrl = getApiBaseUrl();
     const response = await fetch(`${serverUrl}/api/email/send-status-update`, {
       method: 'POST',
       headers: {

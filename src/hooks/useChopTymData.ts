@@ -1,17 +1,30 @@
 import { useState, useEffect } from 'react';
 import { Restaurant, Dish, RestaurantMenu, Order, CustomOrder, DeliveryFee, UserTown } from '@/types/restaurant';
 
-// Backend API base URL
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL !== undefined 
-  ? import.meta.env.VITE_API_BASE_URL 
-  : 'http://localhost:3001';
+// Smart API base URL detection for cross-platform compatibility
+const getApiBaseUrl = () => {
+  // If explicitly set in environment, use it
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  
+  // For web deployment, detect current origin for same-origin API calls
+  if (typeof window !== 'undefined') {
+    // In browser: use current origin for same-origin API calls
+    return window.location.origin;
+  }
+  
+  // Fallback for development/SSR
+  return 'http://localhost:3001';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 // Debug logging to see what API base URL is being used
 console.log('🔧 API_BASE_URL Debug:', {
   VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
-  API_BASE_URL,
-  isUndefined: import.meta.env.VITE_API_BASE_URL === undefined,
-  isEmpty: import.meta.env.VITE_API_BASE_URL === '',
+  window_origin: typeof window !== 'undefined' ? window.location.origin : 'N/A',
+  final_API_BASE_URL: API_BASE_URL,
   timestamp: new Date().toISOString()
 });
 
