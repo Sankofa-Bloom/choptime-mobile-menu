@@ -6,6 +6,15 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL !== undefined
   ? import.meta.env.VITE_API_BASE_URL 
   : 'http://localhost:3001';
 
+// Debug logging to see what API base URL is being used
+console.log('🔧 API_BASE_URL Debug:', {
+  VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
+  API_BASE_URL,
+  isUndefined: import.meta.env.VITE_API_BASE_URL === undefined,
+  isEmpty: import.meta.env.VITE_API_BASE_URL === '',
+  timestamp: new Date().toISOString()
+});
+
 export const useChopTymData = (selectedTown?: string) => {
   const [dishes, setDishes] = useState<Dish[]>([]);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
