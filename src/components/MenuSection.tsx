@@ -71,7 +71,7 @@ const MenuSection: React.FC<MenuSectionProps> = ({
               <Card key={dish.id} className="overflow-hidden choptym-shadow hover:shadow-lg transition-all duration-300 animate-slide-up" style={{ animationDelay: `${(index + 1) * 100}ms` }}>
                 <div className="relative">
                   <img 
-                    src={dish.image_url || '/placeholder.svg'} 
+                    src={dish.image_url && !dish.image_url.includes('fbcdn.net') ? dish.image_url : '/placeholder.svg'} 
                     alt={dish.name}
                     className="w-full h-48 object-cover"
                     onError={(e) => {

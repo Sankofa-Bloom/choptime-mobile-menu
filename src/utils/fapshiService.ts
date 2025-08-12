@@ -113,8 +113,8 @@ class FapshiService {
 
   async initializePayment(paymentData: FapshiPaymentRequest): Promise<FapshiPaymentResponse> {
     try {
-      // Use our unified payment API
-      const endpoint = '/api/fapshi/initialize';
+      // Use Netlify function directly for production
+      const endpoint = '/.netlify/functions/fapshi-initialize';
       const response = await this.makeRequest(endpoint, 'POST', paymentData);
       
       return {
@@ -134,8 +134,8 @@ class FapshiService {
 
   async checkPaymentStatus(reference: string): Promise<FapshiPaymentStatus> {
     try {
-      // Use our unified payment API
-      const endpoint = `/api/fapshi/status/${reference}`;
+      // Use Netlify function directly for production
+      const endpoint = `/.netlify/functions/fapshi-status?reference=${reference}`;
       const response = await this.makeRequest(endpoint);
       
       return {

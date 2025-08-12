@@ -41,7 +41,7 @@ exports.handler = async (event, context) => {
         };
       }
 
-      const { reference } = event.pathParameters || {};
+      const { reference } = event.queryStringParameters || {};
       
       if (!reference) {
         return {
