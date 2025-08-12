@@ -71,9 +71,14 @@ const MenuSection: React.FC<MenuSectionProps> = ({
               <Card key={dish.id} className="overflow-hidden choptym-shadow hover:shadow-lg transition-all duration-300 animate-slide-up" style={{ animationDelay: `${(index + 1) * 100}ms` }}>
                 <div className="relative">
                   <img 
-                    src={dish.image_url || 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400'} 
+                    src={dish.image_url || '/placeholder.svg'} 
                     alt={dish.name}
                     className="w-full h-48 object-cover"
+                    onError={(e) => {
+                      // Fallback to local placeholder if image fails to load
+                      const target = e.target as HTMLImageElement;
+                      target.src = '/placeholder.svg';
+                    }}
                   />
                   <Badge className="absolute top-2 left-2 bg-choptym-orange text-white">
                     {dish.category}
