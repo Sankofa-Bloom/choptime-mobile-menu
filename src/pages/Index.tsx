@@ -4,7 +4,7 @@ import { Restaurant, Dish, OrderItem, CustomOrderItem, Order, CustomOrder } from
 import { useChopTymData } from '@/hooks/useChopTymData';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { debugPWAInstallPrompt } from '@/utils/pwaDebug';
-import PaymentDetails from '@/components/PaymentDetails';
+
 import Header from '@/components/Header';
 import HeroSection from '@/components/HeroSection';
 import MenuSection from '@/components/MenuSection';
@@ -57,10 +57,7 @@ const Index = () => {
   const [showCustomOrderModal, setShowCustomOrderModal] = useState(false);
   const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
   const [showCart, setShowCart] = useState(false);
-  const [showPaymentDetails, setShowPaymentDetails] = useState(false);
-  const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
-  const [paymentOrderDetails, setPaymentOrderDetails] = useState<any>(null);
-  const [customOrder, setCustomOrder] = useState<CustomOrder | null>(null);
+
 
   const { 
     dishes, 
@@ -105,7 +102,7 @@ const Index = () => {
     loadUserPreferences();
   }, []);
 
-  // Handle payment success state
+  // Handle payment success state and cart preservation
   useEffect(() => {
     if (location.state?.paymentSuccess) {
       const { orderReference, paymentReference } = location.state;
@@ -130,6 +127,15 @@ const Index = () => {
       });
       
       // Clear location state to prevent showing again on refresh
+      navigate('/', { replace: true });
+    } else if (location.state?.preserveCart && location.state?.cart) {
+      // Restore cart when returning from order details page
+      setCart(location.state.cart);
+      if (location.state.selectedTown) {
+        setSelectedTown(location.state.selectedTown);
+      }
+      
+      // Clear location state to prevent restoring again on refresh
       navigate('/', { replace: true });
     }
   }, [location.state, toast, navigate]);
@@ -316,9 +322,16 @@ const Index = () => {
       selectedTown
     });
 
-    setSelectedRestaurant(restaurant);
-    setPaymentOrderDetails(orderData);
-    setShowPaymentDetails(true);
+    // Navigate to order details page instead of showing popup
+    navigate('/order-details', {
+      state: {
+        selectedRestaurant: restaurant,
+        orderDetails: orderData,
+        customOrder: null,
+        cart: cart,
+        selectedTown: selectedTown
+      }
+    });
   };
 
   const formatPrice = (price: number) => {
@@ -408,36 +421,7 @@ const Index = () => {
       
       <Footer />
 
-      {/* Payment Details Modal */}
-      {showPaymentDetails && paymentOrderDetails && selectedRestaurant && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="w-full max-w-2xl">
-            <PaymentDetails
-              selectedRestaurant={selectedRestaurant}
-              orderDetails={paymentOrderDetails}
-              customOrder={customOrder}
-              onBack={() => setShowPaymentDetails(false)}
-              onOrderComplete={() => {
-                setShowPaymentDetails(false);
-                setCart([]);
-                setOrderDetails({
-                  customerName: '',
-                  phone: '',
-                  deliveryAddress: '',
-                  additionalMessage: '',
-                  paymentMethod: 'campay',
-                  total: 0,
-                  deliveryFee: 0
-                });
-                toast({
-                  title: "Order Submitted!",
-                  description: "Your order has been submitted successfully.",
-                });
-              }}
-            />
-          </div>
-        </div>
-      )}
+
 
       {/* Modals */}
       <TownSelector 
