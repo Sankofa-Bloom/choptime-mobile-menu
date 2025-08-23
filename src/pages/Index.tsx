@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Restaurant, Dish, OrderItem, CustomOrderItem, Order, CustomOrder } from '@/types/restaurant';
 import { useChopTymData } from '@/hooks/useChopTymData';
+import { usePWAInstall } from '@/hooks/usePWAInstall';
+import { debugPWAInstallPrompt } from '@/utils/pwaDebug';
 import PaymentDetails from '@/components/PaymentDetails';
 import Header from '@/components/Header';
 import HeroSection from '@/components/HeroSection';
@@ -37,6 +39,17 @@ const Index = () => {
     total: 0,
     deliveryFee: 0
   });
+
+  // PWA installation hook
+  const { showInstallPrompt, installPWA, dismissPrompt } = usePWAInstall();
+
+  // PWA Debug initialization (development only)
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      const cleanup = debugPWAInstallPrompt();
+      return cleanup;
+    }
+  }, []);
 
   // Modal states
   const [showTownSelector, setShowTownSelector] = useState(false);
@@ -359,9 +372,9 @@ const Index = () => {
         cartItemCount={cartItemCount}
         onTownChange={() => setShowTownSelector(true)}
         onCartClick={() => setShowCart(!showCart)}
-        showPWAPrompt={false}
-        onInstallPWA={() => {}}
-        onDismissPWA={() => {}}
+        showPWAPrompt={showInstallPrompt}
+        onInstallPWA={installPWA}
+        onDismissPWA={dismissPrompt}
       />
       
       <main className="relative z-10">
