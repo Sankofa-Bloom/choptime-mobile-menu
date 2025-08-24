@@ -22,7 +22,7 @@ EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
 EMAIL_USER=your_gmail_address@gmail.com
 EMAIL_PASS=your_gmail_app_password
-ADMIN_EMAIL=admin@choptym.com
+ADMIN_EMAIL=support@choptym.com
 ```
 
 ### Supabase Configuration

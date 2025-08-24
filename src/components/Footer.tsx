@@ -28,11 +28,11 @@ const Footer: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <MessageCircle className="w-4 h-4" />
-                <span>admin@choptym.com</span>
+                <span>support@choptym.com</span>
               </div>
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4" />
-                <span>Buea & Limbe, Cameroon</span>
+                <span>Busumbu Junction, Limbe</span>
               </div>
               <button
                 onClick={() => navigate('/contact')}
@@ -58,7 +58,7 @@ const Footer: React.FC = () => {
         
                   <div className="text-center text-sm text-white/60">
             <p>&copy; 2024 ChopTym. Made with ❤️ for Cameroon.</p>
-                          <p className="mt-1">Support: admin@choptym.com</p>
+                          <p className="mt-1">Support: support@choptym.com</p>
         </div>
       </div>
     </footer>

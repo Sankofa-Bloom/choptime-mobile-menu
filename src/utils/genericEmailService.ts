@@ -131,7 +131,7 @@ export class GenericEmailService {
       from_email: params.from_email,
       from_phone: params.from_phone || '',
       // Admin email for replies
-      reply_to: 'admin@choptym.com'
+      reply_to: 'support@choptym.com'
     };
 
     return this.sendEmail(mappedParams as any);
@@ -210,7 +210,7 @@ export class GenericEmailService {
       const completeParams = {
               company_name: 'ChopTym',
       company_address: 'Busumbu Junction, Limbe - Cameroon',
-      admin_email: 'admin@choptym.com',
+      admin_email: 'support@choptym.com',
       admin_phone: '+237670416449',
         ...params
       };
@@ -221,7 +221,7 @@ export class GenericEmailService {
         // Common mappings for all email types
         to_name: completeParams.customer_name || completeParams.from_name || 'Customer',
         to_email: completeParams.customer_email || completeParams.from_email || completeParams.admin_email,
-        reply_to: completeParams.admin_email || 'admin@example.com',
+        reply_to: completeParams.admin_email || 'support@choptym.com',
         // Ensure all required fields are present
         customer_name: completeParams.customer_name || completeParams.from_name || 'Customer',
         customer_email: completeParams.customer_email || completeParams.from_email || completeParams.admin_email,

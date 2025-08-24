@@ -159,7 +159,7 @@ const Contact: React.FC = () => {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">Email</h3>
                   <p className="text-gray-600">
-                    admin@choptym.com
+                    support@choptym.com
                   </p>
                 </div>
               </div>
@@ -169,9 +169,9 @@ const Contact: React.FC = () => {
                   <Phone className="h-6 w-6 text-orange-500" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Phone</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">Phone / WhatsApp</h3>
                   <p className="text-gray-600">
-                    +237670416449
+                    +237 670 416 449
                   </p>
                 </div>
               </div>

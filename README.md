@@ -225,7 +225,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🆘 Support
 
-- **Email**: admin@choptym.com
+- **Email**: support@choptym.com
 - **Phone**: +237670416449
 - **Documentation**: [Wiki](https://github.com/Sankofa-Bloom/choptym-mobile-menu/wiki)
 

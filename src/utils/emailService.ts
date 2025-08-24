@@ -138,7 +138,7 @@ export const sendEmailViaHTTP = async (
   recipientEmail: string,
   subject: string,
   htmlContent: string,
-      fromEmail: string = 'admin@choptym.com',
+      fromEmail: string = 'support@choptym.com',
   apiKey?: string
 ): Promise<boolean> => {
   try {

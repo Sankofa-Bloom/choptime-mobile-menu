@@ -175,7 +175,7 @@ export const useAdminAuth = () => {
       // Create admin data for session
       const adminData = {
         id: 'admin-pin-user',
-                  email: 'admin@choptym.com',
+                  email: 'support@choptym.com',
         role: 'admin',
         active: true,
         created_at: new Date().toISOString(),
