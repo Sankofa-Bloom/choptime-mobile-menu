@@ -21,13 +21,14 @@ interface Restaurant {
 }
 
 interface OrderDetails {
-  dishName: string;
-  quantity: number;
-  price: number;
+  cart: any[];
+  subtotal: number;
   total: number;
   customerName: string;
   customerPhone: string;
   location: string;
+  deliveryFee: number;
+  additionalMessage: string;
 }
 
 interface CustomOrder {
@@ -143,12 +144,15 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
       }];
     }
     
-    if (orderDetails) {
-      return [{
-        name: orderDetails.dishName,
-        quantity: orderDetails.quantity,
-        price: orderDetails.price
-      }];
+    if (orderDetails && orderDetails.cart) {
+      return orderDetails.cart.map(item => ({
+        name: 'dish' in item ? item.dish.name : item.customDishName,
+        quantity: item.quantity,
+        price: 'dish' in item ? item.price : item.estimatedPrice,
+        isCustom: !('dish' in item),
+        specialInstructions: 'specialInstructions' in item ? item.specialInstructions : undefined,
+        restaurant: item.restaurant.name
+      }));
     }
     
     return [];
@@ -264,13 +268,13 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
       },
       delivery_address: currentOrder.location,
       total_amount: getOrderTotal(),
-      delivery_fee: isCustomOrder ? deliveryFee : 0,
+      delivery_fee: isCustomOrder ? deliveryFee : (orderDetails?.deliveryFee || 0),
       restaurant_id: selectedRestaurant.id,
       restaurant_name: selectedRestaurant.name,
       order_details: {
         items: getOrderItems(),
         customOrder: isCustomOrder ? customOrder : null,
-        additionalMessage: additionalMessage,
+        additionalMessage: additionalMessage || (orderDetails?.additionalMessage || ''),
         isCustomOrder: isCustomOrder
       }
     };
@@ -315,13 +319,66 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
       <RestaurantInfo restaurant={selectedRestaurant} />
 
       {/* Order Summary */}
-      <OrderSummary
-        orderDetails={orderDetails}
-        customOrder={customOrder}
-        deliveryFee={isCustomOrder ? deliveryFee : 0}
-        deliveryZone={deliveryZone}
-        total={getOrderTotal()}
-      />
+      <div className="space-y-4">
+        <h3 className="font-semibold text-choptym-brown">Order Summary</h3>
+        
+        {orderDetails && orderDetails.cart && (
+          <div className="space-y-3">
+            {orderDetails.cart.map((item, index) => (
+              <div key={index} className="bg-white border rounded-lg p-4">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <h4 className="font-medium">
+                      {'dish' in item ? item.dish.name : item.customDishName}
+                    </h4>
+                    <p className="text-sm text-gray-600">From: {item.restaurant.name}</p>
+                    {'specialInstructions' in item && item.specialInstructions && (
+                      <p className="text-sm text-gray-600 mt-1">
+                        Note: {item.specialInstructions}
+                      </p>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium">Qty: {item.quantity}</p>
+                    <p className="text-sm text-choptym-orange">
+                      {(('dish' in item ? item.price : item.estimatedPrice) * item.quantity).toLocaleString()} FCFA
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+            
+            <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+              <div className="flex justify-between">
+                <span>Subtotal:</span>
+                <span>{orderDetails.subtotal.toLocaleString()} FCFA</span>
+              </div>
+              {orderDetails.deliveryFee > 0 && (
+                <div className="flex justify-between">
+                  <span>Delivery Fee:</span>
+                  <span>{orderDetails.deliveryFee.toLocaleString()} FCFA</span>
+                </div>
+              )}
+              <div className="border-t pt-2">
+                <div className="flex justify-between font-semibold text-choptym-orange">
+                  <span>Total:</span>
+                  <span>{orderDetails.total.toLocaleString()} FCFA</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isCustomOrder && customOrder && (
+          <OrderSummary
+            orderDetails={null}
+            customOrder={customOrder}
+            deliveryFee={deliveryFee}
+            deliveryZone={deliveryZone}
+            total={getOrderTotal()}
+          />
+        )}
+      </div>
 
       {/* Customer Information */}
       <Card>
@@ -381,6 +438,11 @@ const PaymentDetails: React.FC<PaymentDetailsProps> = ({
               className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-choptym-orange focus:border-transparent"
               rows={3}
             />
+            {orderDetails?.additionalMessage && (
+              <p className="text-sm text-gray-600 mt-1">
+                Previous note: {orderDetails.additionalMessage}
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>

@@ -307,21 +307,22 @@ const Index = () => {
     const firstCartItem = cart[0];
     const restaurant = restaurants.find(r => r.id === firstCartItem.restaurant.id) || null;
 
-    // Create order details for PaymentDetails component
+    // Create order details that include the full cart structure
     const orderData = {
-      dishName: firstCartItem.dish?.name || firstCartItem.customDishName || 'Mixed Order',
-      quantity: cart.reduce((total, item) => total + item.quantity, 0),
-      price: calculateSubtotal(),
+      cart: cart,
+      subtotal: calculateSubtotal(),
       total: calculateTotal(),
       customerName: orderDetails.customerName,
       customerPhone: orderDetails.phone,
-      location: `${selectedTown}, ${orderDetails.deliveryAddress}`
+      location: `${selectedTown}, ${orderDetails.deliveryAddress}`,
+      deliveryFee: orderDetails.deliveryFee,
+      additionalMessage: orderDetails.additionalMessage
     };
 
     console.log('Creating order data:', {
       orderData,
       restaurant,
-      firstCartItem,
+      cart,
       orderDetails,
       selectedTown
     });
