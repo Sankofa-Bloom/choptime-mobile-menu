@@ -13,6 +13,7 @@ import Footer from '@/components/Footer';
 import TownSelector from '@/components/TownSelector';
 import RestaurantSelectionModal from '@/components/RestaurantSelectionModal';
 import CustomOrderModal from '@/components/CustomOrderModal';
+import PaymentDetails from '@/components/PaymentDetails';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 
@@ -57,6 +58,9 @@ const Index = () => {
   const [showCustomOrderModal, setShowCustomOrderModal] = useState(false);
   const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
   const [showCart, setShowCart] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
+  const [currentOrderData, setCurrentOrderData] = useState<any>(null);
+  const [selectedRestaurant, setSelectedRestaurant] = useState<any>(null);
 
 
   const { 
@@ -322,20 +326,42 @@ const Index = () => {
       selectedTown
     });
 
-    // Navigate to order details page instead of showing popup
-    navigate('/order-details', {
-      state: {
-        selectedRestaurant: restaurant,
-        orderDetails: orderData,
-        customOrder: null,
-        cart: cart,
-        selectedTown: selectedTown
-      }
-    });
+    // Show payment details directly instead of navigating
+    setCurrentOrderData(orderData);
+    setSelectedRestaurant(restaurant);
+    setShowPayment(true);
+    setShowCart(false); // Hide the cart when showing payment
   };
 
   const formatPrice = (price: number) => {
     return `${price.toLocaleString()} FCFA`;
+  };
+
+  const handleBackFromPayment = () => {
+    setShowPayment(false);
+    setShowCart(true); // Show cart again when going back
+  };
+
+  const handleOrderComplete = () => {
+    // Clear cart and order data
+    setCart([]);
+    setOrderDetails({
+      customerName: '',
+      phone: '',
+      deliveryAddress: '',
+      additionalMessage: '',
+      paymentMethod: 'mtn_momo',
+      total: 0,
+      deliveryFee: 0
+    });
+    
+    // Reset payment states
+    setShowPayment(false);
+    setCurrentOrderData(null);
+    setSelectedRestaurant(null);
+    
+    // Navigate to thank you page
+    navigate('/thank-you');
   };
 
   if (loading) {
@@ -403,7 +429,7 @@ const Index = () => {
           onCustomOrder={() => setShowCustomOrderModal(true)}
         />
         
-        {cart.length > 0 && (
+        {cart.length > 0 && !showPayment && (
           <div id="cart-section">
             <CartSection 
               cart={cart}
@@ -414,6 +440,18 @@ const Index = () => {
               onPlaceOrder={handlePlaceOrder}
               calculateSubtotal={calculateSubtotal}
               calculateTotal={calculateTotal}
+            />
+          </div>
+        )}
+
+        {showPayment && currentOrderData && selectedRestaurant && (
+          <div id="payment-section" className="container mx-auto px-4 py-8">
+            <PaymentDetails
+              selectedRestaurant={selectedRestaurant}
+              orderDetails={currentOrderData}
+              customOrder={null}
+              onBack={handleBackFromPayment}
+              onOrderComplete={handleOrderComplete}
             />
           </div>
         )}

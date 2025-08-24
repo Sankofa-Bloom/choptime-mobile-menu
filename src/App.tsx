@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import Index from '@/pages/Index';
-import OrderDetails from '@/pages/OrderDetails';
+
 import NotFound from '@/pages/NotFound';
 import AdminLogin from '@/pages/AdminLogin';
 import AdminDashboard from '@/pages/AdminDashboard';
@@ -45,7 +45,7 @@ function App() {
     >
       <Routes>
         <Route path="/" element={<Index />} />
-        <Route path="/order-details" element={<OrderDetails />} />
+
         <Route path="/dash/login" element={<AdminLogin />} />
         <Route path="/dash/chp-ctrl" element={<AdminDashboard />} />
         <Route path="/thank-you" element={<ThankYou />} />

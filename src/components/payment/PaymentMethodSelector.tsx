@@ -1,96 +1,49 @@
 import React from 'react';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CheckCircle, Mail, CreditCard, Smartphone, DollarSign } from 'lucide-react';
+import { Smartphone } from 'lucide-react';
 
-interface PaymentMethodSelectorProps {
-  paymentMethod: 'campay' | 'fapshi';
-  setPaymentMethod: (method: 'campay' | 'fapshi') => void;
-  isCustomOrder: boolean;
-  momoNumber: string;
-  setMomoNumber: (number: string) => void;
-  adminEmail: string;
+interface PaymentMethodInfoProps {
+  isCustomOrder?: boolean;
 }
 
-const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
-  paymentMethod,
-  setPaymentMethod,
-  isCustomOrder,
-  momoNumber,
-  setMomoNumber,
-  adminEmail
-}) => {
-
+const PaymentMethodInfo: React.FC<PaymentMethodInfoProps> = ({ isCustomOrder = false }) => {
   return (
     <div className="space-y-4">
-      <h3 className="font-semibold text-choptym-brown">Order Method</h3>
+      <h3 className="font-semibold text-choptym-brown">Payment Method</h3>
       
-      <div className="grid gap-3">
-        <label className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 bg-green-50 border-green-200">
-          <input
-            type="radio"
-            name="paymentMethod"
-            value="fapshi"
-            checked={paymentMethod === 'fapshi'}
-            onChange={(e) => setPaymentMethod(e.target.value as 'campay' | 'fapshi')}
-            className="text-choptym-orange"
-          />
-          <Smartphone className="w-5 h-5 text-green-600" />
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div className="flex items-center space-x-3">
+          <Smartphone className="w-6 h-6 text-yellow-600" />
           <div className="flex-1">
-            <div className="font-medium">Secure Online Payment</div>
-            <div className="text-sm text-gray-600">
-              MTN MoMo, Orange Money, Card Payment & Bank Transfer
+            <div className="font-medium text-yellow-800">MTN Mobile Money</div>
+            <div className="text-sm text-yellow-700">
+              Secure payment with MTN MoMo - The only payment method available
             </div>
           </div>
-        </label>
-        
-        <label className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 bg-blue-50 border-blue-200">
-          <input
-            type="radio"
-            name="paymentMethod"
-            value="campay"
-            checked={paymentMethod === 'campay'}
-            onChange={(e) => setPaymentMethod(e.target.value as 'campay' | 'fapshi')}
-            className="text-choptym-orange"
-          />
-          <Smartphone className="w-5 h-5 text-blue-600" />
-          <div className="flex-1">
-            <div className="font-medium">Secure Online Payment</div>
-            <div className="text-sm text-gray-600">
-              MTN MoMo, Orange Money, Moov Money, Card Payment & Bank Transfer
-            </div>
-          </div>
-        </label>
+        </div>
       </div>
 
-      {paymentMethod === 'fapshi' && !isCustomOrder && (
-        <Alert>
-          <Smartphone className="h-4 w-4" />
-          <AlertDescription>
-            <p className="font-medium mb-2">Secure Online Payment</p>
-            <p className="text-sm">
-              You'll be redirected to a secure payment page where you can choose between MTN MoMo, Orange Money, Card Payment, and Bank Transfer. 
-              Your payment will be processed securely and you'll receive instant confirmation.
-            </p>
-          </AlertDescription>
-        </Alert>
-      )}
-      
-      {paymentMethod === 'campay' && !isCustomOrder && (
-        <Alert>
-          <Smartphone className="h-4 w-4" />
-          <AlertDescription>
-            <p className="font-medium mb-2">Secure Online Payment</p>
-            <p className="text-sm">
-              You'll be redirected to a secure payment page where you can choose between MTN MoMo, Orange Money, Moov Money, Card Payment, and Bank Transfer. 
-              Your payment will be processed securely and you'll receive instant confirmation.
-            </p>
-          </AlertDescription>
-        </Alert>
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+        <div className="text-sm text-blue-800">
+          <p className="font-medium mb-1">How MTN MoMo Payment Works:</p>
+          <ul className="text-xs space-y-1 list-disc list-inside">
+            <li>Enter your MTN MoMo number</li>
+            <li>You'll receive a payment request on your phone</li>
+            <li>Approve the payment with your MTN MoMo PIN</li>
+            <li>Your order will be confirmed automatically</li>
+          </ul>
+        </div>
+      </div>
+
+      {isCustomOrder && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+          <div className="text-sm text-green-800">
+            <p className="font-medium">Custom Order</p>
+            <p className="text-xs">Payment will be processed based on your specified budget.</p>
+          </div>
+        </div>
       )}
     </div>
   );
 };
 
-export default PaymentMethodSelector;
+export default PaymentMethodInfo;

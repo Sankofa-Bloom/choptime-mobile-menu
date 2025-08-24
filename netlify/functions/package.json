@@ -1,0 +1,23 @@
+{
+  "name": "choptym-netlify-functions",
+  "version": "1.0.0",
+  "description": "Netlify Functions for ChopTym MTN MoMo Payment Integration",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.54.0",
+    "node-fetch": "^2.7.0",
+    "nodemailer": "^6.10.1",
+    "uuid": "^9.0.1"
+  },
+  "keywords": [
+    "netlify-functions",
+    "mtn-momo",
+    "choptym",
+    "payment"
+  ],
+  "author": "ChopTym Team",
+  "license": "MIT"
+}

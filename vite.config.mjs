@@ -85,8 +85,14 @@ export default defineConfig(({ mode }) => ({
         scope: '/',
         icons: [
           {
-            src: '/logo.png',
-            sizes: '72x72 96x96 128x128 144x144 152x152 192x192 384x384 512x512',
+            src: '/logo-192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'maskable any'
+          },
+          {
+            src: '/logo-512.png',
+            sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable any'
           }
