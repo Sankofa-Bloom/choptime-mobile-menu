@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Minus, Plus, ShoppingCart, MessageCircle } from 'lucide-react';
+import { Minus, Plus, ShoppingCart, MessageCircle, CreditCard, CheckCircle, XCircle, Clock, AlertCircle, ExternalLink } from 'lucide-react';
 import { OrderItem, CustomOrderItem } from '@/types/restaurant';
+import { useToast } from '@/hooks/use-toast';
+import SwychrService from '@/utils/swychrService';
 
 interface OrderDetails {
   customerName: string;
@@ -18,15 +20,17 @@ interface OrderDetails {
   deliveryFee: number;
 }
 
+type PaymentStatus = 'idle' | 'creating_link' | 'redirecting' | 'pending' | 'checking' | 'success' | 'failed';
+
 interface CartSectionProps {
   cart: (OrderItem | CustomOrderItem)[];
   orderDetails: OrderDetails;
   selectedTown: string;
   onOrderDetailsChange: (details: OrderDetails) => void;
   onQuantityUpdate: (index: number, newQuantity: number) => void;
-  onPlaceOrder: () => void;
   calculateSubtotal: () => number;
   calculateTotal: () => number;
+  onOrderComplete?: () => void;
 }
 
 const CartSection: React.FC<CartSectionProps> = ({
@@ -35,12 +39,49 @@ const CartSection: React.FC<CartSectionProps> = ({
   selectedTown,
   onOrderDetailsChange,
   onQuantityUpdate,
-  onPlaceOrder,
   calculateSubtotal,
-  calculateTotal
+  calculateTotal,
+  onOrderComplete
 }) => {
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('idle');
+  const [customerEmail, setCustomerEmail] = useState('');
+  const [transactionId, setTransactionId] = useState('');
+  const [paymentLink, setPaymentLink] = useState('');
+  const [statusCheckInterval, setStatusCheckInterval] = useState<NodeJS.Timeout | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState(600); // 10 minutes
+  const { toast } = useToast();
+
+  const swychrService = new SwychrService();
+
+  useEffect(() => {
+    return () => {
+      if (statusCheckInterval) {
+        clearInterval(statusCheckInterval);
+      }
+    };
+  }, [statusCheckInterval]);
+
+  // Countdown timer for payment timeout
+  useEffect(() => {
+    if (paymentStatus === 'pending' && timeRemaining > 0) {
+      const timer = setTimeout(() => {
+        setTimeRemaining(prev => prev - 1);
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    } else if (timeRemaining === 0 && paymentStatus === 'pending') {
+      handlePaymentTimeout();
+    }
+  }, [timeRemaining, paymentStatus]);
+
   const formatPrice = (price: number) => {
     return `${price.toLocaleString()} FCFA`;
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   const handleInputChange = (field: keyof OrderDetails, value: string | number) => {
@@ -48,6 +89,201 @@ const CartSection: React.FC<CartSectionProps> = ({
       ...orderDetails,
       [field]: value
     });
+  };
+
+  const handlePaymentTimeout = () => {
+    setPaymentStatus('failed');
+    if (statusCheckInterval) {
+      clearInterval(statusCheckInterval);
+    }
+    toast({
+      title: "Payment Timeout",
+      description: "Payment took too long to complete. Please try again.",
+      variant: "destructive"
+    });
+  };
+
+  const validateOrderDetails = (): boolean => {
+    if (!orderDetails.customerName.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please enter your full name.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    if (!orderDetails.phone.trim()) {
+      toast({
+        title: "Missing Information", 
+        description: "Please enter your phone number.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    if (!orderDetails.deliveryAddress.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please enter your delivery address.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    if (!customerEmail.trim() || !customerEmail.includes('@')) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    return true;
+  };
+
+  const generateOrderReference = () => {
+    const timestamp = Date.now();
+    const townCode = selectedTown.slice(0, 3).toUpperCase();
+    const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+    return `${townCode}-${timestamp}-${random}`;
+  };
+
+  const handleInitiatePayment = async () => {
+    if (!validateOrderDetails()) return;
+
+    try {
+      setPaymentStatus('creating_link');
+      
+      const orderReference = generateOrderReference();
+      const txId = swychrService.generateTransactionId(orderReference);
+      setTransactionId(txId);
+
+      const formattedPhone = swychrService.formatPhoneNumber(`237${orderDetails.phone}`);
+      
+      const orderData = {
+        cart: cart,
+        subtotal: calculateSubtotal(),
+        total: calculateTotal(),
+        customerName: orderDetails.customerName,
+        customerPhone: orderDetails.phone,
+        customerEmail: customerEmail,
+        location: `${selectedTown}, ${orderDetails.deliveryAddress}`,
+        deliveryFee: orderDetails.deliveryFee,
+        additionalMessage: orderDetails.additionalMessage,
+        orderReference: orderReference
+      };
+
+      const paymentData = {
+        country_code: 'CM',
+        name: orderDetails.customerName,
+        email: customerEmail,
+        mobile: formattedPhone,
+        amount: calculateTotal(),
+        transaction_id: txId,
+        description: `ChopTym Order - ${orderReference}`,
+        pass_digital_charge: true
+      };
+
+      // Store payment record
+      await swychrService.storePaymentRecord(orderData, txId);
+
+      const response = await swychrService.createPaymentLink(paymentData);
+
+      if (response.success && response.data?.payment_link) {
+        setPaymentLink(response.data.payment_link);
+        setPaymentStatus('redirecting');
+        
+        toast({
+          title: "Payment Link Created",
+          description: "Redirecting you to complete payment...",
+        });
+
+        // Redirect to payment link
+        setTimeout(() => {
+          window.open(response.data.payment_link, '_blank');
+          setPaymentStatus('pending');
+          setTimeRemaining(600);
+          startStatusPolling(txId);
+        }, 2000);
+        
+      } else {
+        throw new Error(response.error || 'Failed to create payment link');
+      }
+    } catch (error) {
+      console.error('Payment initialization error:', error);
+      setPaymentStatus('failed');
+      
+      toast({
+        title: "Payment Error",
+        description: error instanceof Error ? error.message : "Failed to create payment link. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const startStatusPolling = (txId: string) => {
+    const interval = setInterval(async () => {
+      try {
+        setPaymentStatus('checking');
+        const statusResponse = await swychrService.checkPaymentStatus(txId);
+        
+        if (statusResponse.success && statusResponse.data) {
+          const status = statusResponse.data.status?.toLowerCase();
+          
+          if (status === 'completed' || status === 'successful' || status === 'success') {
+            setPaymentStatus('success');
+            clearInterval(interval);
+            setStatusCheckInterval(null);
+            
+            toast({
+              title: "Payment Successful! 🎉",
+              description: "Your order has been confirmed and will be processed shortly.",
+            });
+
+            // Call onOrderComplete after a short delay to show success message
+            setTimeout(() => {
+              onOrderComplete?.();
+            }, 3000);
+            
+          } else if (status === 'failed' || status === 'cancelled' || status === 'error') {
+            setPaymentStatus('failed');
+            clearInterval(interval);
+            setStatusCheckInterval(null);
+            
+            toast({
+              title: "Payment Failed",
+              description: `Payment ${status}. Please try again.`,
+              variant: "destructive"
+            });
+          } else {
+            setPaymentStatus('pending');
+          }
+        }
+      } catch (error) {
+        console.error('Status check error:', error);
+      }
+    }, 5000);
+    
+    setStatusCheckInterval(interval);
+  };
+
+  const openPaymentLink = () => {
+    if (paymentLink) {
+      window.open(paymentLink, '_blank');
+    }
+  };
+
+  const resetPayment = () => {
+    setPaymentStatus('idle');
+    setTransactionId('');
+    setPaymentLink('');
+    setTimeRemaining(600);
+    if (statusCheckInterval) {
+      clearInterval(statusCheckInterval);
+      setStatusCheckInterval(null);
+    }
   };
 
   return (
@@ -183,7 +419,7 @@ const CartSection: React.FC<CartSectionProps> = ({
                       <p className="text-xs text-gray-600 font-medium">Available Payment Options:</p>
                       <div className="flex flex-wrap gap-2">
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
-                          MTN Mobile Money
+                          Mobile Money
                         </span>
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-orange-100 text-orange-800">
                           Orange Money
@@ -202,6 +438,21 @@ const CartSection: React.FC<CartSectionProps> = ({
                   </div>
 
                   <div>
+                    <Label htmlFor="customerEmail">Email Address *</Label>
+                    <Input
+                      id="customerEmail"
+                      type="email"
+                      value={customerEmail}
+                      onChange={(e) => setCustomerEmail(e.target.value)}
+                      placeholder="your@email.com"
+                      required
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Required for payment notifications and order updates
+                    </p>
+                  </div>
+
+                  <div>
                     <Label htmlFor="additionalMessage">Additional Message</Label>
                     <Textarea
                       id="additionalMessage"
@@ -212,18 +463,108 @@ const CartSection: React.FC<CartSectionProps> = ({
                     />
                   </div>
 
-                  <Button
-                    onClick={onPlaceOrder}
-                    className="w-full choptym-gradient hover:opacity-90 text-white"
-                    size="lg"
-                  >
-                    <ShoppingCart className="mr-2 h-5 w-5" />
-                    Complete Order & Pay &rarr;
-                  </Button>
+                  {/* Payment Status Display */}
+                  {paymentStatus !== 'idle' && (
+                    <div className="space-y-4">
+                      {paymentStatus === 'creating_link' && (
+                        <div className="flex items-center justify-center p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                          <Clock className="w-5 h-5 text-blue-500 mr-2 animate-spin" />
+                          <span className="text-blue-700">Creating payment link...</span>
+                        </div>
+                      )}
 
-                  <p className="text-xs text-gray-500 text-center">
-                    You'll be redirected to our secure payment gateway to complete your payment.
-                  </p>
+                      {paymentStatus === 'redirecting' && (
+                        <div className="flex items-center justify-center p-4 bg-green-50 border border-green-200 rounded-lg">
+                          <ExternalLink className="w-5 h-5 text-green-500 mr-2" />
+                          <span className="text-green-700">Redirecting to payment...</span>
+                        </div>
+                      )}
+
+                      {(paymentStatus === 'pending' || paymentStatus === 'checking') && (
+                        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center">
+                              <Clock className="w-5 h-5 text-yellow-500 mr-2" />
+                              <span className="text-yellow-700 font-medium">Waiting for payment...</span>
+                            </div>
+                            <span className="text-yellow-600 font-mono text-sm">
+                              {formatTime(timeRemaining)}
+                            </span>
+                          </div>
+                          <p className="text-yellow-600 text-sm mb-3">
+                            Complete your payment in the opened window
+                          </p>
+                          {paymentLink && (
+                            <Button 
+                              onClick={openPaymentLink}
+                              variant="outline"
+                              size="sm"
+                              className="border-yellow-500 text-yellow-700 hover:bg-yellow-100"
+                            >
+                              <ExternalLink className="w-4 h-4 mr-2" />
+                              Open Payment Link Again
+                            </Button>
+                          )}
+                        </div>
+                      )}
+
+                      {paymentStatus === 'success' && (
+                        <div className="flex items-center justify-center p-4 bg-green-50 border border-green-200 rounded-lg">
+                          <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
+                          <span className="text-green-700 font-medium">Payment Successful! 🎉</span>
+                        </div>
+                      )}
+
+                      {paymentStatus === 'failed' && (
+                        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                          <div className="flex items-center mb-2">
+                            <XCircle className="w-5 h-5 text-red-500 mr-2" />
+                            <span className="text-red-700 font-medium">Payment Failed</span>
+                          </div>
+                          <p className="text-red-600 text-sm mb-3">
+                            There was an issue processing your payment. Please try again.
+                          </p>
+                          <Button 
+                            onClick={resetPayment}
+                            variant="outline"
+                            size="sm"
+                            className="border-red-500 text-red-700 hover:bg-red-100"
+                          >
+                            Try Again
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Payment Button */}
+                  {paymentStatus === 'idle' && (
+                    <>
+                      <Button
+                        onClick={handleInitiatePayment}
+                        className="w-full choptym-gradient hover:opacity-90 text-white"
+                        size="lg"
+                      >
+                        <CreditCard className="mr-2 h-5 w-5" />
+                        Complete Order & Pay {formatPrice(calculateTotal())}
+                      </Button>
+
+                      <p className="text-xs text-gray-500 text-center">
+                        You'll be redirected to our secure payment gateway to complete your payment.
+                      </p>
+                    </>
+                  )}
+
+                  {paymentStatus === 'failed' && (
+                    <Button
+                      onClick={handleInitiatePayment}
+                      className="w-full choptym-gradient hover:opacity-90 text-white"
+                      size="lg"
+                    >
+                      <CreditCard className="mr-2 h-5 w-5" />
+                      Retry Payment {formatPrice(calculateTotal())}
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             </div>

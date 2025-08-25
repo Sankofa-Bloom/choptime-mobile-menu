@@ -47,7 +47,7 @@ const Footer: React.FC = () => {
             <h5 className="font-bold text-lg mb-4">Delivery Info</h5>
             <div className="text-sm text-white/80 space-y-1">
               <p>🕐 Delivery: 30-60 minutes</p>
-              <p>💳 Payment: MTN/Orange Money, Cash</p>
+              <p>💳 Payment: Mobile Money, Online Payment</p>
               <p>🚚 Delivery fees vary by town</p>
               <p>📧 Order tracking via email</p>
             </div>

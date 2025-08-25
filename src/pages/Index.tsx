@@ -13,7 +13,7 @@ import Footer from '@/components/Footer';
 import TownSelector from '@/components/TownSelector';
 import RestaurantSelectionModal from '@/components/RestaurantSelectionModal';
 import CustomOrderModal from '@/components/CustomOrderModal';
-import PaymentDetails from '@/components/PaymentDetails';
+
 import { useNavigate, useLocation } from 'react-router-dom';
 
 
@@ -36,7 +36,7 @@ const Index = () => {
     phone: '',
     deliveryAddress: '',
     additionalMessage: '',
-    paymentMethod: 'campay',
+    paymentMethod: 'swychr',
     total: 0,
     deliveryFee: 0
   });
@@ -58,9 +58,6 @@ const Index = () => {
   const [showCustomOrderModal, setShowCustomOrderModal] = useState(false);
   const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
   const [showCart, setShowCart] = useState(false);
-  const [showPayment, setShowPayment] = useState(false);
-  const [currentOrderData, setCurrentOrderData] = useState<any>(null);
-  const [selectedRestaurant, setSelectedRestaurant] = useState<any>(null);
 
 
   const { 
@@ -125,7 +122,7 @@ const Index = () => {
         phone: '',
         deliveryAddress: '',
         additionalMessage: '',
-        paymentMethod: 'campay',
+        paymentMethod: 'swychr',
         total: 0,
         deliveryFee: 0
       });
@@ -283,66 +280,6 @@ const Index = () => {
 
 
 
-  const handlePlaceOrder = async () => {
-    // Validation
-    if (cart.length === 0) {
-      toast({
-        title: "Cart is empty",
-        description: "Please add items to your cart before ordering.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (!orderDetails.customerName || !orderDetails.phone || !orderDetails.deliveryAddress) {
-      toast({
-        title: "Missing information",
-        description: "Please fill in all required fields.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Get the first restaurant from cart for order details
-    const firstCartItem = cart[0];
-    const restaurant = restaurants.find(r => r.id === firstCartItem.restaurant.id) || null;
-
-    // Create order details that include the full cart structure
-    const orderData = {
-      cart: cart,
-      subtotal: calculateSubtotal(),
-      total: calculateTotal(),
-      customerName: orderDetails.customerName,
-      customerPhone: orderDetails.phone,
-      location: `${selectedTown}, ${orderDetails.deliveryAddress}`,
-      deliveryFee: orderDetails.deliveryFee,
-      additionalMessage: orderDetails.additionalMessage
-    };
-
-    console.log('Creating order data:', {
-      orderData,
-      restaurant,
-      cart,
-      orderDetails,
-      selectedTown
-    });
-
-    // Show payment details directly instead of navigating
-    setCurrentOrderData(orderData);
-    setSelectedRestaurant(restaurant);
-    setShowPayment(true);
-    setShowCart(false); // Hide the cart when showing payment
-  };
-
-  const formatPrice = (price: number) => {
-    return `${price.toLocaleString()} FCFA`;
-  };
-
-  const handleBackFromPayment = () => {
-    setShowPayment(false);
-    setShowCart(true); // Show cart again when going back
-  };
-
   const handleOrderComplete = () => {
     // Clear cart and order data
     setCart([]);
@@ -351,19 +288,20 @@ const Index = () => {
       phone: '',
       deliveryAddress: '',
       additionalMessage: '',
-      paymentMethod: 'mtn_momo',
+      paymentMethod: 'swychr',
       total: 0,
       deliveryFee: 0
     });
     
-    // Reset payment states
-    setShowPayment(false);
-    setCurrentOrderData(null);
-    setSelectedRestaurant(null);
-    
     // Navigate to thank you page
     navigate('/thank-you');
   };
+
+  const formatPrice = (price: number) => {
+    return `${price.toLocaleString()} FCFA`;
+  };
+
+  
 
   if (loading) {
     return (
@@ -430,7 +368,7 @@ const Index = () => {
           onCustomOrder={() => setShowCustomOrderModal(true)}
         />
         
-        {cart.length > 0 && !showPayment && (
+        {cart.length > 0 && (
           <div id="cart-section">
             <CartSection 
               cart={cart}
@@ -438,20 +376,8 @@ const Index = () => {
               selectedTown={selectedTown}
               onOrderDetailsChange={setOrderDetails}
               onQuantityUpdate={handleQuantityUpdate}
-              onPlaceOrder={handlePlaceOrder}
               calculateSubtotal={calculateSubtotal}
               calculateTotal={calculateTotal}
-            />
-          </div>
-        )}
-
-        {showPayment && currentOrderData && selectedRestaurant && (
-          <div id="payment-section" className="container mx-auto px-4 py-8">
-            <PaymentDetails
-              selectedRestaurant={selectedRestaurant}
-              orderDetails={currentOrderData}
-              customOrder={null}
-              onBack={handleBackFromPayment}
               onOrderComplete={handleOrderComplete}
             />
           </div>

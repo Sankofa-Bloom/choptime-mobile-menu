@@ -6,7 +6,7 @@ A modern, production-ready food delivery application specializing in authentic C
 
 - **Modern UI/UX** - Beautiful, responsive design with African-inspired patterns
 - **Real-time Ordering** - Live order tracking and status updates
-- **Secure Payments** - Integrated Campay payment gateway
+- **Secure Payments** - Integrated Swychr payment gateway
 - **Email Notifications** - Automated order confirmations and admin alerts
 - **PWA Support** - Installable as a mobile app
 - **Multi-town Delivery** - Support for Buea and Limbe
@@ -19,7 +19,7 @@ A modern, production-ready food delivery application specializing in authentic C
 - **UI Components**: Radix UI, Tailwind CSS
 - **Backend**: Node.js, Express
 - **Database**: Supabase (PostgreSQL)
-- **Payments**: Campay API
+- **Payments**: Swychr API
 - **Email**: Nodemailer with Gmail SMTP
 - **Deployment**: Netlify ready
 
@@ -30,7 +30,7 @@ A modern, production-ready food delivery application specializing in authentic C
 - Node.js 18+ 
 - npm or yarn
 - Supabase account
-- Campay payment account
+- Swychr payment account
 - Gmail account (for email notifications)
 
 ### Setup
@@ -92,9 +92,7 @@ VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 # Payment
-VITE_DEFAULT_PAYMENT_METHOD=campay
-VITE_CAMPAY_CALLBACK_URL=your_webhook_url
-VITE_CAMPAY_RETURN_URL=your_success_url
+VITE_DEFAULT_PAYMENT_METHOD=swychr
 
 # Admin
 VITE_ADMIN_EMAIL=admin@yourdomain.com
@@ -113,17 +111,17 @@ SMTP_PASS=your_app_password
 ADMIN_EMAIL=admin@yourdomain.com
 ADMIN_PHONE=+1234567890
 
-# Campay API
-CAMPAY_API_KEY=your_campay_api_key
-CAMPAY_BASE_URL=https://api.campay.net
+# Swychr API
+SWYCHR_EMAIL=your_swychr_email@example.com
+SWYCHR_PASSWORD=your_swychr_password
 ```
 
 ### Payment Setup
 
-1. **Campay Configuration**
-   - Sign up at [Campay](https://campay.net)
-   - Get your Permanent Access Token
-   - Configure webhook URL in dashboard
+1. **Swychr Configuration**
+   - Sign up at [Swychr/AccountPe](https://www.accountpe.com/)
+   - Get your API credentials (email/password)
+   - Contact support to enable API access
    - Test in sandbox mode first
 
 2. **Gmail SMTP Setup**
