@@ -16,9 +16,16 @@ async function storePaymentRecord(data) {
       .insert([
         {
           transaction_id: data.transaction_id,
-          order_data: data.order_data,
+          order_reference: data.order_data?.orderReference,
+          customer_name: data.order_data?.customerName,
+          customer_email: data.order_data?.customerEmail,
+          customer_phone: data.order_data?.customerPhone,
+          amount: data.order_data?.total || 0,
+          currency: 'XAF',
           payment_method: data.payment_method || 'swychr',
           status: data.status || 'pending',
+          description: `ChopTym Order - ${data.order_data?.orderReference}`,
+          order_data: data.order_data,
           created_at: new Date().toISOString()
         }
       ]);
