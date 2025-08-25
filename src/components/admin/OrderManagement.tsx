@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ShoppingBag, Search, Filter } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import ChopTymLoader from '@/components/ui/ChopTymLoader';
 import { Order, CustomOrder } from '@/types/restaurant';
 import { toast } from '@/components/ui/use-toast';
 
@@ -232,8 +233,16 @@ const OrderManagement = () => {
           </Table>
           
           {allOrders.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              {loading ? 'Loading orders...' : 'No orders found'}
+            <div className="text-center py-8">
+              {loading ? (
+                <ChopTymLoader 
+                  size="md"
+                  message="Loading orders..."
+                  subMessage="Fetching order data"
+                />
+              ) : (
+                <div className="text-muted-foreground">No orders found</div>
+              )}
             </div>
           )}
         </CardContent>

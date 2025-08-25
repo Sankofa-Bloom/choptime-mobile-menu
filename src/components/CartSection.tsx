@@ -9,6 +9,7 @@ import { Minus, Plus, ShoppingCart, MessageCircle, CreditCard, CheckCircle, XCir
 import { OrderItem, CustomOrderItem } from '@/types/restaurant';
 import { useToast } from '@/hooks/use-toast';
 import SwychrService from '@/utils/swychrService';
+import ChopTymLoader from '@/components/ui/ChopTymLoader';
 
 interface OrderDetails {
   customerName: string;
@@ -450,43 +451,52 @@ const CartSection: React.FC<CartSectionProps> = ({
                   {paymentStatus !== 'idle' && (
                     <div className="space-y-4">
                       {paymentStatus === 'creating_link' && (
-                        <div className="flex items-center justify-center p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                          <Clock className="w-5 h-5 text-blue-500 mr-2 animate-spin" />
-                          <span className="text-blue-700">Creating payment link...</span>
+                        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                          <ChopTymLoader 
+                            size="sm" 
+                            message="Creating payment link..."
+                            className="py-2"
+                          />
                         </div>
                       )}
 
                       {paymentStatus === 'redirecting' && (
-                        <div className="flex items-center justify-center p-4 bg-green-50 border border-green-200 rounded-lg">
-                          <ExternalLink className="w-5 h-5 text-green-500 mr-2" />
-                          <span className="text-green-700">Redirecting to payment...</span>
+                        <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                          <ChopTymLoader 
+                            size="sm" 
+                            message="Redirecting to payment..."
+                            className="py-2"
+                          />
                         </div>
                       )}
 
                       {(paymentStatus === 'pending' || paymentStatus === 'checking') && (
                         <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center">
-                              <Clock className="w-5 h-5 text-yellow-500 mr-2" />
-                              <span className="text-yellow-700 font-medium">Waiting for payment...</span>
-                            </div>
+                          <div className="text-center mb-4">
+                            <ChopTymLoader 
+                              size="sm" 
+                              message="Waiting for payment..."
+                              subMessage="Complete your payment in the opened window"
+                              className="py-2"
+                            />
+                          </div>
+                          <div className="text-center">
                             <span className="text-yellow-600 font-mono text-sm">
-                              {formatTime(timeRemaining)}
+                              Time remaining: {formatTime(timeRemaining)}
                             </span>
                           </div>
-                          <p className="text-yellow-600 text-sm mb-3">
-                            Complete your payment in the opened window
-                          </p>
                           {paymentLink && (
-                            <Button 
-                              onClick={openPaymentLink}
-                              variant="outline"
-                              size="sm"
-                              className="border-yellow-500 text-yellow-700 hover:bg-yellow-100"
-                            >
-                              <ExternalLink className="w-4 h-4 mr-2" />
-                              Open Payment Link Again
-                            </Button>
+                            <div className="text-center mt-3">
+                              <Button 
+                                onClick={openPaymentLink}
+                                variant="outline"
+                                size="sm"
+                                className="border-yellow-500 text-yellow-700 hover:bg-yellow-100"
+                              >
+                                <ExternalLink className="w-4 h-4 mr-2" />
+                                Open Payment Link Again
+                              </Button>
+                            </div>
                           )}
                         </div>
                       )}

@@ -5,6 +5,7 @@ import { useAdminData } from '@/hooks/useAdminData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, Users, ChefHat, MapPin, TrendingUp, LogOut } from 'lucide-react';
+import ChopTymLoader from '@/components/ui/ChopTymLoader';
 import RestaurantManagement from '@/components/admin/RestaurantManagement';
 import DishManagement from '@/components/admin/DishManagement';
 import OrderManagement from '@/components/admin/OrderManagement';
@@ -23,12 +24,12 @@ const AdminDashboard = () => {
 
   if (authLoading || dataLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-choptym-beige">
-        <div className="flex items-center gap-2">
-          <Loader2 className="h-6 w-6 animate-spin text-choptym-orange" />
-          <span className="text-choptym-brown">Loading dashboard...</span>
-        </div>
-      </div>
+      <ChopTymLoader 
+        size="lg"
+        message="Loading dashboard..."
+        subMessage="Setting up your admin panel"
+        fullScreen={true}
+      />
     );
   }
 

@@ -13,6 +13,7 @@ import Footer from '@/components/Footer';
 import TownSelector from '@/components/TownSelector';
 import RestaurantSelectionModal from '@/components/RestaurantSelectionModal';
 import CustomOrderModal from '@/components/CustomOrderModal';
+import ChopTymLoader from '@/components/ui/ChopTymLoader';
 
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -305,13 +306,12 @@ const Index = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-choptym-beige">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-choptym-orange mx-auto mb-4"></div>
-          <p className="text-choptym-brown font-medium">Loading delicious options...</p>
-          <p className="text-choptym-brown/60 text-sm mt-2">Please wait while we prepare your menu</p>
-        </div>
-      </div>
+      <ChopTymLoader 
+        size="lg"
+        message="Loading delicious options..."
+        subMessage="Please wait while we prepare your menu"
+        fullScreen={true}
+      />
     );
   }
 

@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, KeyRound } from 'lucide-react';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
+import ChopTymLoader from '@/components/ui/ChopTymLoader';
 
 const AdminLogin = () => {
   const [pin, setPin] = useState('');
@@ -22,12 +23,11 @@ const AdminLogin = () => {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-choptym-beige">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-choptym-orange mx-auto mb-4"></div>
-          <p className="text-choptym-brown">Checking authentication...</p>
-        </div>
-      </div>
+      <ChopTymLoader 
+        size="md"
+        message="Checking authentication..."
+        fullScreen={true}
+      />
     );
   }
 
