@@ -21,7 +21,7 @@ interface ImageGalleryProps {
   category?: string;
   entityType?: string;
   entityId?: string;
-  onImageSelect?: (image: any) => void;
+  onImageSelect?: (image: ImageFile) => void;
   selectable?: boolean;
   showControls?: boolean;
   className?: string;

@@ -356,7 +356,7 @@ const DynamicMenuManagement: React.FC = () => {
 
       // Copy menu items
       if (previousMenu.daily_menu_items && previousMenu.daily_menu_items.length > 0) {
-        const itemsToInsert = previousMenu.daily_menu_items.map((item: any) => ({
+        const itemsToInsert = previousMenu.daily_menu_items.map((item: { dish_id: string; price: number; availability: boolean; available_quantity?: number; special_notes?: string }) => ({
           daily_menu_id: newMenu.id,
           dish_id: item.dish_id,
           price: item.price,
@@ -428,7 +428,7 @@ const DynamicMenuManagement: React.FC = () => {
     }]);
   };
 
-  const updateMenuItem = (index: number, field: keyof DailyMenuItem, value: any) => {
+  const updateMenuItem = (index: number, field: keyof DailyMenuItem, value: string | number | boolean | undefined) => {
     setEditingMenuItems(prev => prev.map((item, i) => 
       i === index ? { ...item, [field]: value } : item
     ));

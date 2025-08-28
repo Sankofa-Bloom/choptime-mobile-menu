@@ -7,8 +7,17 @@ import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { useChopTymData } from '@/hooks/useChopTymData';
 import { useToast } from '@/hooks/use-toast';
 
+interface ImageUploadResult {
+  success: boolean;
+  image_url: string;
+  file_path: string;
+  file_name: string;
+  file_size: number;
+  mime_type: string;
+}
+
 interface ImageUploadProps {
-  onImageUploaded?: (imageData: any) => void;
+  onImageUploaded?: (imageData: ImageUploadResult) => void;
   category?: string;
   entityType?: string;
   entityId?: string;

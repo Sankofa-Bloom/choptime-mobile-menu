@@ -72,7 +72,7 @@ ChopTym Delights,Douala,673289043,Pepper Soup,Spicy traditional soup,Soup,1800,2
       // Process each row
       for (let i = 1; i < lines.length; i++) {
         const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
-        const row: any = {};
+        const row: Record<string, string> = {};
         headers.forEach((header, index) => {
           row[header] = values[index] || '';
         });

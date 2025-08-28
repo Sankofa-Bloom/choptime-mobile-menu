@@ -196,7 +196,14 @@ const ComprehensiveOrderManagement: React.FC = () => {
     try {
       setLoading(true);
 
-      const updateFields: any = { status: newStatus };
+      const updateFields: {
+        status: string;
+        confirmed_at?: string;
+        preparing_at?: string;
+        ready_at?: string;
+        out_for_delivery_at?: string;
+        delivered_at?: string;
+      } = { status: newStatus };
       
       // Add timestamp for status changes
       switch (newStatus) {

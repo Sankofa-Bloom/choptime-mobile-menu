@@ -8,7 +8,7 @@ import { GripVertical, GripHorizontal } from 'lucide-react';
 
 interface DraggableItem {
   id: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface DraggableListProps<T extends DraggableItem> {
