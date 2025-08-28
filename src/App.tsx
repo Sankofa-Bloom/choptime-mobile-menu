@@ -10,6 +10,7 @@ import PaymentSuccess from '@/pages/PaymentSuccess';
 import WhatsAppButton from '@/components/WhatsAppButton';
 import { SplashScreen } from '@/components/SplashScreen';
 import ProtectedRoute from '@/components/admin/ProtectedRoute';
+import AdminSetup from '@/components/admin/AdminSetup';
 
 // App component debug logging
 console.log('🚀 APP COMPONENT: Loading App.tsx');
@@ -49,13 +50,14 @@ function App() {
 
         {/* Admin Routes */}
         <Route path="/dash/login" element={<AdminLogin />} />
-        <Route 
-          path="/dash/chp-ctrl" 
+        <Route path="/dash/setup" element={<AdminSetup />} />
+        <Route
+          path="/dash/chp-ctrl"
           element={
             <ProtectedRoute>
               <AdminDashboard />
             </ProtectedRoute>
-          } 
+          }
         />
         
         {/* Public Routes */}

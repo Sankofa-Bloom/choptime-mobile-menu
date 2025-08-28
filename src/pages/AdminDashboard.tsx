@@ -58,7 +58,7 @@ const AdminDashboardContent: React.FC = () => {
     error,
     refetch
   } = useAdminData();
-  
+
   const { addNotification } = useNotifications();
 
   // =============================================================================
@@ -217,16 +217,16 @@ const AdminDashboardContent: React.FC = () => {
                 <span className="hidden sm:inline">Refresh</span>
               </Button>
               
-              <Button
-                onClick={logoutAdmin}
-                variant="outline"
+            <Button
+              onClick={logoutAdmin}
+              variant="outline"
                 size="sm"
                 className="flex items-center gap-2 hover:bg-red-50 hover:border-red-200 hover:text-red-700 transition-all duration-200 self-start sm:self-auto w-full sm:w-auto justify-center"
-              >
-                <LogOut className="h-4 w-4" />
+            >
+              <LogOut className="h-4 w-4" />
                 <span className="hidden sm:inline">Logout</span>
                 <span className="sm:hidden">Exit</span>
-              </Button>
+            </Button>
             </div>
           </div>
         </div>
@@ -257,7 +257,7 @@ const AdminDashboardContent: React.FC = () => {
                 <p className="text-xs text-blue-600 mt-1">All time orders</p>
               </CardContent>
             </Card>
-
+            
             <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                 <CardTitle className="text-sm font-medium text-green-700">Total Revenue</CardTitle>
@@ -270,7 +270,7 @@ const AdminDashboardContent: React.FC = () => {
                 <p className="text-xs text-green-600 mt-1">All time revenue</p>
               </CardContent>
             </Card>
-
+            
             <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                 <CardTitle className="text-sm font-medium text-purple-700">Pending Orders</CardTitle>
@@ -283,7 +283,7 @@ const AdminDashboardContent: React.FC = () => {
                 <p className="text-xs text-purple-600 mt-1">Awaiting processing</p>
               </CardContent>
             </Card>
-
+            
             <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                 <CardTitle className="text-sm font-medium text-orange-700">Avg Order Value</CardTitle>

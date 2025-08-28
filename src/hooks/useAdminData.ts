@@ -66,21 +66,21 @@ export const useAdminData = () => {
    */
   const fetchData = useCallback(async () => {
     try {
-      setLoading(true);
+    setLoading(true);
       setError(null);
       
-      await Promise.all([
-        fetchRestaurants(),
-        fetchDishes(),
-        fetchDeliveryZones(),
-        fetchStats()
-      ]);
+    await Promise.all([
+      fetchRestaurants(),
+      fetchDishes(),
+      fetchDeliveryZones(),
+      fetchStats()
+    ]);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch data';
       setError(errorMessage);
       console.error('Data fetch error:', err);
     } finally {
-      setLoading(false);
+    setLoading(false);
     }
   }, []);
 
@@ -89,11 +89,11 @@ export const useAdminData = () => {
    */
   const fetchRestaurants = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from('restaurants')
-        .select('*')
-        .order('name');
-      
+    const { data, error } = await supabase
+      .from('restaurants')
+      .select('*')
+      .order('name');
+    
       if (error) throw error;
       setRestaurants(data || []);
     } catch (err) {
@@ -107,11 +107,11 @@ export const useAdminData = () => {
    */
   const fetchDishes = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from('dishes')
-        .select('*')
-        .order('name');
-      
+    const { data, error } = await supabase
+      .from('dishes')
+      .select('*')
+      .order('name');
+    
       if (error) throw error;
       setDishes(data || []);
     } catch (err) {
@@ -125,11 +125,11 @@ export const useAdminData = () => {
    */
   const fetchDeliveryZones = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from('delivery_zones')
-        .select('*')
-        .order('town', { ascending: true });
-      
+    const { data, error } = await supabase
+      .from('delivery_zones')
+      .select('*')
+      .order('town', { ascending: true });
+    
       if (error) throw error;
       setDeliveryZones(data || []);
     } catch (err) {
@@ -143,11 +143,11 @@ export const useAdminData = () => {
    */
   const fetchStats = useCallback(async () => {
     try {
-      const { data, error } = await supabase.rpc('get_order_stats');
+    const { data, error } = await supabase.rpc('get_order_stats');
       if (error) throw error;
       
       if (data && data.length > 0) {
-        setStats(data[0]);
+      setStats(data[0]);
       }
     } catch (err) {
       console.error('Stats fetch error:', err);
@@ -250,12 +250,12 @@ export const useAdminData = () => {
       setLoading(true);
       setError(null);
       
-      const { data, error } = await supabase
-        .from('restaurants')
-        .insert([restaurantData])
-        .select()
-        .single();
-      
+    const { data, error } = await supabase
+      .from('restaurants')
+      .insert([restaurantData])
+      .select()
+      .single();
+    
       if (error) throw error;
       
       await fetchRestaurants();
@@ -277,13 +277,13 @@ export const useAdminData = () => {
       setLoading(true);
       setError(null);
       
-      const { data, error } = await supabase
-        .from('restaurants')
-        .update(restaurantData)
-        .eq('id', id)
-        .select()
-        .single();
-      
+    const { data, error } = await supabase
+      .from('restaurants')
+      .update(restaurantData)
+      .eq('id', id)
+      .select()
+      .single();
+    
       if (error) throw error;
       
       await fetchRestaurants();
@@ -305,11 +305,11 @@ export const useAdminData = () => {
       setLoading(true);
       setError(null);
       
-      const { error } = await supabase
-        .from('restaurants')
-        .delete()
-        .eq('id', id);
-      
+    const { error } = await supabase
+      .from('restaurants')
+      .delete()
+      .eq('id', id);
+    
       if (error) throw error;
       
       await fetchRestaurants();
@@ -331,12 +331,12 @@ export const useAdminData = () => {
       setLoading(true);
       setError(null);
       
-      const { data, error } = await supabase
-        .from('dishes')
-        .insert([{ ...dishData, admin_created: true }])
-        .select()
-        .single();
-      
+    const { data, error } = await supabase
+      .from('dishes')
+      .insert([{ ...dishData, admin_created: true }])
+      .select()
+      .single();
+    
       if (error) throw error;
       
       await fetchDishes();
@@ -358,13 +358,13 @@ export const useAdminData = () => {
       setLoading(true);
       setError(null);
       
-      const { data, error } = await supabase
-        .from('dishes')
-        .update(dishData)
-        .eq('id', id)
-        .select()
-        .single();
-      
+    const { data, error } = await supabase
+      .from('dishes')
+      .update(dishData)
+      .eq('id', id)
+      .select()
+      .single();
+    
       if (error) throw error;
       
       await fetchDishes();
@@ -386,11 +386,11 @@ export const useAdminData = () => {
       setLoading(true);
       setError(null);
       
-      const { error } = await supabase
-        .from('dishes')
-        .delete()
-        .eq('id', id);
-      
+    const { error } = await supabase
+      .from('dishes')
+      .delete()
+      .eq('id', id);
+    
       if (error) throw error;
       
       await fetchDishes();
@@ -450,9 +450,9 @@ export const useAdminData = () => {
       setLoading(true);
       setError(null);
       
-      const { error } = await supabase
+    const { error } = await supabase
         .from('restaurants')
-        .delete()
+      .delete()
         .in('id', ids);
       
       if (error) throw error;
