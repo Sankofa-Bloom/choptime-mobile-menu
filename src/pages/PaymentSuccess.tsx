@@ -32,7 +32,7 @@ const PaymentSuccess: React.FC = () => {
         variant: "default",
       });
     }
-  }, [location, toast]);
+  }, [location, toast, sendConfirmationEmails]);
 
   const sendConfirmationEmails = async (reference: string) => {
     if (emailsSent) return; // Prevent duplicate emails

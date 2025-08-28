@@ -68,7 +68,7 @@ export const useAdminData = () => {
     try {
     setLoading(true);
       setError(null);
-      
+
     await Promise.all([
       fetchRestaurants(),
       fetchDishes(),
@@ -82,7 +82,7 @@ export const useAdminData = () => {
     } finally {
     setLoading(false);
     }
-  }, []);
+  }, [fetchRestaurants, fetchDishes, fetchDeliveryZones, fetchStats]);
 
   /**
    * Fetch restaurants with error handling

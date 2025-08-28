@@ -54,6 +54,18 @@ const CartSection: React.FC<CartSectionProps> = ({
 
   const swychrService = new SwychrService();
 
+  const handlePaymentTimeout = () => {
+    setPaymentStatus('failed');
+    if (statusCheckInterval) {
+      clearInterval(statusCheckInterval);
+    }
+    toast({
+      title: "Payment Timeout",
+      description: "Payment took too long to complete. Please try again.",
+      variant: "destructive"
+    });
+  };
+
   useEffect(() => {
     return () => {
       if (statusCheckInterval) {
@@ -73,7 +85,7 @@ const CartSection: React.FC<CartSectionProps> = ({
     } else if (timeRemaining === 0 && paymentStatus === 'pending') {
       handlePaymentTimeout();
     }
-  }, [timeRemaining, paymentStatus]);
+  }, [timeRemaining, paymentStatus, handlePaymentTimeout]);
 
   const formatPrice = (price: number) => {
     return `${price.toLocaleString()} FCFA`;
@@ -89,18 +101,6 @@ const CartSection: React.FC<CartSectionProps> = ({
     onOrderDetailsChange({
       ...orderDetails,
       [field]: value
-    });
-  };
-
-  const handlePaymentTimeout = () => {
-    setPaymentStatus('failed');
-    if (statusCheckInterval) {
-      clearInterval(statusCheckInterval);
-    }
-    toast({
-      title: "Payment Timeout",
-      description: "Payment took too long to complete. Please try again.",
-      variant: "destructive"
     });
   };
 

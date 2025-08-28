@@ -125,7 +125,7 @@ const ComprehensiveOrderManagement: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [addNotification]);
+  }, [addNotification, applyFilters]);
 
   /**
    * Apply filters to orders

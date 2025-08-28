@@ -57,7 +57,7 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({
   const { listImages, deleteImage } = useChopTymData();
   const { toast } = useToast();
 
-  const loadImages = async () => {
+  const loadImages = useCallback(async () => {
     try {
       setLoading(true);
       const result = await listImages(category, entityType, entityId);
@@ -72,11 +72,11 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [category, entityType, entityId, listImages, toast]);
 
   useEffect(() => {
     loadImages();
-  }, [category, entityType, entityId]);
+  }, [loadImages]);
 
   const handleDelete = async (imageName: string) => {
     if (!confirm('Are you sure you want to delete this image?')) return;

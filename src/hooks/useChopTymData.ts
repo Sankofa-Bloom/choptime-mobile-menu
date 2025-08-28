@@ -287,30 +287,30 @@ export const useChopTymData = (selectedTown?: string) => {
 
 
 
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    setError(null); // Reset error state
+
+    try {
+      await Promise.all([
+        fetchDishes(),
+        fetchRestaurants(selectedTown),
+        fetchRestaurantMenus(selectedTown),
+        fetchDeliveryFees()
+      ]);
+    } catch (err) {
+      console.error('🚨 Failed to load data:', err);
+      setError('Failed to load menu data');
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedTown, fetchDishes, fetchRestaurants, fetchRestaurantMenus, fetchDeliveryFees]);
+
   useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      setError(null); // Reset error state
-
-      try {
-        await Promise.all([
-          fetchDishes(),
-          fetchRestaurants(selectedTown),
-          fetchRestaurantMenus(selectedTown),
-          fetchDeliveryFees()
-        ]);
-      } catch (err) {
-        console.error('🚨 Failed to load data:', err);
-        setError('Failed to load menu data');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     // Only load data once on mount, not on every selectedTown change
     // The data is town-filtered at the API level, so we don't need to refetch everything
     loadData();
-  }, []); // Empty dependency array - only run once on mount
+  }, [loadData]); // Include loadData in dependencies to prevent stale closure
 
   return {
     dishes,

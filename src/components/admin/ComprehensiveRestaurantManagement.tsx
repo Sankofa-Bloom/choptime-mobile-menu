@@ -88,7 +88,7 @@ const ComprehensiveRestaurantManagement: React.FC = () => {
   // DATA FETCHING
   // =============================================================================
 
-  const fetchRestaurants = async () => {
+  const fetchRestaurants = useCallback(async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -109,7 +109,7 @@ const ComprehensiveRestaurantManagement: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [addNotification]);
 
   // =============================================================================
   // CRUD OPERATIONS
@@ -713,7 +713,7 @@ const ComprehensiveRestaurantManagement: React.FC = () => {
 
   useEffect(() => {
     fetchRestaurants();
-  }, []);
+  }, [fetchRestaurants]);
 
   // =============================================================================
   // MAIN RENDER

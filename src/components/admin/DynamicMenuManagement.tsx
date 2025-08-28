@@ -77,10 +77,10 @@ const DynamicMenuManagement: React.FC = () => {
   // DATA FETCHING
   // =============================================================================
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      
+
       // Fetch restaurants with dynamic menus
       const { data: restaurantsData, error: restaurantsError } = await supabase
         .from('restaurants')
@@ -113,9 +113,9 @@ const DynamicMenuManagement: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [addNotification, fetchDailyMenus]);
 
-  const fetchDailyMenus = async () => {
+  const fetchDailyMenus = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('daily_menus')
@@ -141,7 +141,7 @@ const DynamicMenuManagement: React.FC = () => {
         duration: 5000
       });
     }
-  };
+  }, [selectedDate, addNotification]);
 
   // =============================================================================
   // CRUD OPERATIONS
@@ -547,11 +547,11 @@ const DynamicMenuManagement: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   useEffect(() => {
     fetchDailyMenus();
-  }, [selectedDate]);
+  }, [fetchDailyMenus]);
 
   // =============================================================================
   // MAIN RENDER

@@ -183,7 +183,7 @@ const Index = () => {
     }
     setShowRestaurantModal(false);
     setSelectedDish(null);
-  }, [selectedDish]);
+  }, [selectedDish, addToCart]);
 
   const addToCart = useCallback((dish: Dish, restaurant: Restaurant, price: number) => {
     setCart(prevCart => {
