@@ -38,6 +38,9 @@ import KeyboardShortcutsHelp from '@/components/admin/KeyboardShortcutsHelp';
 import DataSearchFilters from '@/components/admin/DataSearchFilters';
 import BulkOperations from '@/components/admin/BulkOperations';
 import ChopTymLoader from '@/components/ui/ChopTymLoader';
+import ComprehensiveOrderManagement from '@/components/admin/ComprehensiveOrderManagement';
+import ComprehensiveRestaurantManagement from '@/components/admin/ComprehensiveRestaurantManagement';
+import DynamicMenuManagement from '@/components/admin/DynamicMenuManagement';
 
 // =============================================================================
 // ADMIN DASHBOARD COMPONENT
@@ -53,23 +56,10 @@ const AdminDashboardContent: React.FC = () => {
     stats, 
     loading, 
     error,
-    filteredRestaurants,
-    filteredDishes,
-    filteredDeliveryZones,
-    filters,
-    updateFilters,
-    clearFilters,
-    bulkUpdateRestaurantStatus,
-    bulkDeleteRestaurants,
-    exportToCSV,
-    exportToJSON,
     refetch
   } = useAdminData();
   
   const { addNotification } = useNotifications();
-  const [selectedRestaurants, setSelectedRestaurants] = useState<string[]>([]);
-  const [selectedDishes, setSelectedDishes] = useState<string[]>([]);
-  const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
 
   // =============================================================================
   // KEYBOARD SHORTCUTS
@@ -108,41 +98,12 @@ const AdminDashboardContent: React.FC = () => {
       key: 'Delete',
       description: 'Delete selected items',
       action: () => {
-        if (selectedRestaurants.length > 0) {
-          handleBulkDeleteRestaurants();
-        } else if (selectedDishes.length > 0) {
-          // TODO: Implement dish deletion
-          addNotification({
-            type: 'warning',
-            title: 'Delete Dishes',
-            message: 'Dish deletion not yet implemented',
-            duration: 3000
-          });
-        }
-      }
-    },
-    {
-      key: 'a',
-      ctrl: true,
-      description: 'Select all items',
-      action: () => {
-        if (selectedRestaurants.length === 0) {
-          setSelectedRestaurants(filteredRestaurants.map(r => r.id));
-          addNotification({
-            type: 'info',
-            title: 'Select All',
-            message: 'All restaurants selected',
-            duration: 2000
-          });
-        } else {
-          setSelectedRestaurants([]);
-          addNotification({
-            type: 'info',
-            title: 'Clear Selection',
-            message: 'Selection cleared',
-            duration: 2000
-          });
-        }
+        addNotification({
+          type: 'info',
+          title: 'Delete Items',
+          message: 'Use the delete buttons in each management section',
+          duration: 3000
+        });
       }
     },
     {
@@ -165,102 +126,6 @@ const AdminDashboardContent: React.FC = () => {
   // =============================================================================
   // EVENT HANDLERS
   // =============================================================================
-
-  /**
-   * Handle bulk restaurant status update
-   */
-  const handleBulkStatusUpdate = async (active: boolean) => {
-    if (selectedRestaurants.length === 0) return;
-    
-    const result = await bulkUpdateRestaurantStatus(selectedRestaurants, active);
-    
-    if (result.success) {
-      addNotification({
-        type: 'success',
-        title: 'Bulk Update Success',
-        message: result.message,
-        duration: 5000
-      });
-      setSelectedRestaurants([]);
-    } else {
-      addNotification({
-        type: 'error',
-        title: 'Bulk Update Failed',
-        message: result.message,
-        duration: 5000
-      });
-    }
-  };
-
-  /**
-   * Handle bulk restaurant deletion
-   */
-  const handleBulkDeleteRestaurants = async () => {
-    if (selectedRestaurants.length === 0) return;
-    
-    const result = await bulkDeleteRestaurants(selectedRestaurants);
-    
-    if (result.success) {
-      addNotification({
-        type: 'success',
-        title: 'Bulk Delete Success',
-        message: result.message,
-        duration: 5000
-      });
-      setSelectedRestaurants([]);
-    } else {
-      addNotification({
-        type: 'error',
-        title: 'Bulk Delete Failed',
-        message: result.message,
-        duration: 5000
-      });
-    }
-  };
-
-  /**
-   * Handle restaurant export
-   */
-  const handleRestaurantExport = () => {
-    const result = exportToCSV(filteredRestaurants, 'restaurants');
-    if (result.success) {
-      addNotification({
-        type: 'success',
-        title: 'Export Success',
-        message: 'Restaurants exported to CSV successfully!',
-        duration: 4000
-      });
-    } else {
-      addNotification({
-        type: 'error',
-        title: 'Export Failed',
-        message: result.error || 'Failed to export restaurants',
-        duration: 4000
-      });
-    }
-  };
-
-  /**
-   * Handle dish export
-   */
-  const handleDishExport = () => {
-    const result = exportToCSV(filteredDishes, 'dishes');
-    if (result.success) {
-      addNotification({
-        type: 'success',
-        title: 'Export Success',
-        message: 'Dishes exported to CSV successfully!',
-        duration: 4000
-      });
-    } else {
-      addNotification({
-        type: 'error',
-        title: 'Export Failed',
-        message: result.error || 'Failed to export dishes',
-        duration: 4000
-      });
-    }
-  };
 
   /**
    * Handle data refresh
@@ -440,24 +305,34 @@ const AdminDashboardContent: React.FC = () => {
             <Zap className="h-5 w-5 sm:h-6 sm:w-6 text-choptym-orange" />
             Quick Actions
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <Button
+              onClick={() => document.getElementById('orders-section')?.scrollIntoView({ behavior: 'smooth' })}
+              className="h-16 sm:h-20 bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium transition-all duration-200 group hover:scale-105"
+            >
+              <div className="flex flex-col items-center gap-2">
+                <ShoppingBag className="h-6 w-6 sm:h-8 sm:w-8 group-hover:scale-110 transition-transform duration-200" />
+                <span className="text-sm sm:text-base">Order Management</span>
+              </div>
+            </Button>
+
             <Button
               onClick={() => document.getElementById('restaurants-section')?.scrollIntoView({ behavior: 'smooth' })}
               className="h-16 sm:h-20 bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200 group hover:scale-105"
             >
               <div className="flex flex-col items-center gap-2">
                 <Users className="h-6 w-6 sm:h-8 sm:w-8 group-hover:scale-110 transition-transform duration-200" />
-                <span className="text-sm sm:text-base">Manage Restaurants</span>
+                <span className="text-sm sm:text-base">Restaurant Partners</span>
               </div>
             </Button>
 
             <Button
-              onClick={() => document.getElementById('dishes-section')?.scrollIntoView({ behavior: 'smooth' })}
+              onClick={() => document.getElementById('dynamic-menu-section')?.scrollIntoView({ behavior: 'smooth' })}
               className="h-16 sm:h-20 bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium transition-all duration-200 group hover:scale-105"
             >
               <div className="flex flex-col items-center gap-2">
-                <ShoppingBag className="h-6 w-6 sm:h-8 sm:w-8 group-hover:scale-110 transition-transform duration-200" />
-                <span className="text-sm sm:text-base">Manage Dishes</span>
+                <Calendar className="h-6 w-6 sm:h-8 sm:w-8 group-hover:scale-110 transition-transform duration-200" />
+                <span className="text-sm sm:text-base">Daily Menus</span>
               </div>
             </Button>
 
@@ -467,290 +342,122 @@ const AdminDashboardContent: React.FC = () => {
             >
               <div className="flex flex-col items-center gap-2">
                 <MapPin className="h-6 w-6 sm:h-8 sm:w-8 group-hover:scale-110 transition-transform duration-200" />
-                <span className="text-sm sm:text-base">Delivery Zones</span>
+                <span className="text-sm sm:text-base">System Settings</span>
               </div>
             </Button>
           </div>
         </div>
 
-        {/* Management Sections with Enhanced UX */}
+                {/* Comprehensive Management Sections */}
         <div className="space-y-8 sm:space-y-12">
-          {/* Restaurants Section */}
+          {/* Order Management Section */}
+          <section id="orders-section" className="scroll-mt-20">
+            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+              <CardContent className="p-4 sm:p-6">
+                <ComprehensiveOrderManagement />
+              </CardContent>
+            </Card>
+          </section>
+
+          {/* Restaurant Management Section */}
           <section id="restaurants-section" className="scroll-mt-20">
             <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-              <CardHeader className="pb-4">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
-                      <Users className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                      <h2 className="text-xl sm:text-2xl font-bold text-choptym-brown">Restaurant Management</h2>
-                      <p className="text-sm sm:text-base text-gray-600">Manage restaurant information, menus, and settings</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button size="sm" variant="outline" className="flex items-center gap-2">
-                      <Plus className="h-4 w-4" />
-                      Add Restaurant
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
               <CardContent className="p-4 sm:p-6">
-                {/* Search and Filters */}
-                <DataSearchFilters
-                  filters={filters}
-                  onFiltersChange={updateFilters}
-                  onClearFilters={clearFilters}
-                  onExport={handleRestaurantExport}
-                  onRefresh={handleRefresh}
-                  showExport={true}
-                  showRefresh={true}
-                  showTownFilter={true}
-                  towns={Array.from(new Set(filteredRestaurants.map(r => r.town)))}
-                  totalItems={filteredRestaurants.length}
-                  filteredItems={filteredRestaurants.length}
-                  searchPlaceholder="Search restaurants by name or town..."
-                />
-
-                {/* Bulk Operations */}
-                <BulkOperations
-                  selectedItems={selectedRestaurants}
-                  totalItems={filteredRestaurants.length}
-                  onBulkActivate={async () => {
-                    await handleBulkStatusUpdate(true);
-                    return { success: true, message: 'Bulk activate completed', affectedCount: selectedRestaurants.length };
-                  }}
-                  onBulkDeactivate={async () => {
-                    await handleBulkStatusUpdate(false);
-                    return { success: true, message: 'Bulk deactivate completed', affectedCount: selectedRestaurants.length };
-                  }}
-                  onBulkDelete={async () => {
-                    await handleBulkDeleteRestaurants();
-                    return { success: true, message: 'Bulk delete completed', affectedCount: selectedRestaurants.length };
-                  }}
-                  onSelectAll={(selected) => {
-                    if (selected) {
-                      setSelectedRestaurants(filteredRestaurants.map(r => r.id));
-                    } else {
-                      setSelectedRestaurants([]);
-                    }
-                  }}
-                  onClearSelection={() => setSelectedRestaurants([])}
-                  itemType="restaurants"
-                  loading={loading}
-                />
-
-                {/* Restaurants List */}
-                <div className="mt-6 space-y-3">
-                  {filteredRestaurants.map((restaurant) => (
-                    <div
-                      key={restaurant.id}
-                      className={`p-4 rounded-lg border transition-all duration-200 hover:shadow-md ${
-                        selectedRestaurants.includes(restaurant.id)
-                          ? 'border-choptym-orange bg-orange-50'
-                          : 'border-gray-200 bg-white'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="checkbox"
-                          checked={selectedRestaurants.includes(restaurant.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedRestaurants(prev => [...prev, restaurant.id]);
-                            } else {
-                              setSelectedRestaurants(prev => prev.filter(id => id !== restaurant.id));
-                            }
-                          }}
-                          className="rounded border-gray-300 text-choptym-orange focus:ring-choptym-orange"
-                        />
-                        <div className="flex-1">
-                          <h3 className="font-medium text-gray-900">{restaurant.name}</h3>
-                          <p className="text-sm text-gray-600">{restaurant.town}</p>
-                        </div>
-                        <Badge variant={restaurant.active ? "default" : "secondary"}>
-                          {restaurant.active ? "Active" : "Inactive"}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <ComprehensiveRestaurantManagement />
               </CardContent>
             </Card>
           </section>
 
-          {/* Dishes Section */}
-          <section id="dishes-section" className="scroll-mt-20">
+          {/* Dynamic Menu Management Section */}
+          <section id="dynamic-menu-section" className="scroll-mt-20">
             <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-              <CardHeader className="pb-4">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center">
-                      <ShoppingBag className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                      <h2 className="text-xl sm:text-2xl font-bold text-choptym-brown">Dish Management</h2>
-                      <p className="text-sm sm:text-base text-gray-600">Manage dish information, categories, and pricing</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button size="sm" variant="outline" className="flex items-center gap-2">
-                      <Plus className="h-4 w-4" />
-                      Add Dish
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
               <CardContent className="p-4 sm:p-6">
-                {/* Search and Filters */}
-                <DataSearchFilters
-                  filters={filters}
-                  onFiltersChange={updateFilters}
-                  onClearFilters={clearFilters}
-                  onExport={handleDishExport}
-                  onRefresh={handleRefresh}
-                  showExport={true}
-                  showRefresh={true}
-                  showCategoryFilter={true}
-                  categories={Array.from(new Set(filteredDishes.map(d => d.category)))}
-                  totalItems={filteredDishes.length}
-                  filteredItems={filteredDishes.length}
-                  searchPlaceholder="Search dishes by name, description, or category..."
-                />
-
-                {/* Dishes List */}
-                <div className="mt-6 space-y-3">
-                  {filteredDishes.map((dish) => (
-                    <div
-                      key={dish.id}
-                      className={`p-4 rounded-lg border transition-all duration-200 hover:shadow-md ${
-                        selectedDishes.includes(dish.id)
-                          ? 'border-choptym-orange bg-orange-50'
-                          : 'border-gray-200 bg-white'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="checkbox"
-                          checked={selectedDishes.includes(dish.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedDishes(prev => [...prev, dish.id]);
-                            } else {
-                              setSelectedDishes(prev => prev.filter(id => id !== dish.id));
-                            }
-                          }}
-                          className="rounded border-gray-300 text-choptym-orange focus:ring-choptym-orange"
-                        />
-                        <div className="flex-1">
-                          <h3 className="font-medium text-gray-900">{dish.name}</h3>
-                          <p className="text-sm text-gray-600">{dish.description}</p>
-                                                     <div className="flex items-center gap-2 mt-1">
-                             <Badge variant="outline" className="text-xs">
-                               {dish.category}
-                             </Badge>
-                             <Badge variant="outline" className="text-xs">
-                               {dish.is_popular ? 'Popular' : 'Standard'}
-                             </Badge>
-                           </div>
-                        </div>
-                        <Badge variant={dish.active ? "default" : "secondary"}>
-                          {dish.active ? "Active" : "Inactive"}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <DynamicMenuManagement />
               </CardContent>
             </Card>
           </section>
 
-          {/* Delivery Zones Section */}
+          {/* System Settings Section */}
           <section id="delivery-zones-section" className="scroll-mt-20">
             <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300">
               <CardHeader className="pb-4">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
-                      <MapPin className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                      <h2 className="text-xl sm:text-2xl font-bold text-choptym-brown">Delivery Zones</h2>
-                      <p className="text-sm sm:text-base text-gray-600">Manage delivery areas and zones</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button size="sm" variant="outline" className="flex items-center gap-2">
-                      <Plus className="h-4 w-4" />
-                      Add Zone
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="p-4 sm:p-6">
-                {/* Search and Filters */}
-                <DataSearchFilters
-                  filters={filters}
-                  onFiltersChange={updateFilters}
-                  onClearFilters={clearFilters}
-                  onRefresh={handleRefresh}
-                  showRefresh={true}
-                  showTownFilter={true}
-                  towns={Array.from(new Set(filteredDeliveryZones.map(z => z.town)))}
-                  totalItems={filteredDeliveryZones.length}
-                  filteredItems={filteredDeliveryZones.length}
-                  searchPlaceholder="Search delivery zones by town or zone name..."
-                />
-
-                {/* Delivery Zones List */}
-                <div className="mt-6 space-y-3">
-                  {filteredDeliveryZones.map((zone) => (
-                    <div
-                      key={zone.id}
-                      className="p-4 rounded-lg border border-gray-200 bg-white transition-all duration-200 hover:shadow-md"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-medium text-gray-900">{zone.zone_name}</h3>
-                          <p className="text-sm text-gray-600">{zone.town}</p>
-                        </div>
-                        <Badge variant={zone.active ? "default" : "secondary"}>
-                          {zone.active ? "Active" : "Inactive"}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </section>
-
-          {/* CSV Import Section */}
-          <section id="csv-import-section" className="scroll-mt-20">
-            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-              <CardHeader className="pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                    <FileText className="h-5 w-5 text-white" />
+                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
+                    <Settings className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-xl sm:text-2xl font-bold text-choptym-brown">CSV Import</h2>
-                    <p className="text-sm sm:text-base text-gray-600">Import restaurant and dish data from CSV files</p>
+                    <h2 className="text-xl sm:text-2xl font-bold text-choptym-brown">System Settings</h2>
+                    <p className="text-sm sm:text-base text-gray-600">Configure system-wide settings and preferences</p>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="p-4 sm:p-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Button variant="outline" className="h-20 flex flex-col items-center gap-2">
-                    <FileText className="h-6 w-6" />
-                    <span>Import Restaurants</span>
-                  </Button>
-                  <Button variant="outline" className="h-20 flex flex-col items-center gap-2">
-                    <FileText className="h-6 w-6" />
-                    <span>Import Dishes</span>
-                  </Button>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <Card className="p-4 hover:shadow-md transition-shadow">
+                    <div className="flex items-center gap-3 mb-3">
+                      <MapPin className="h-5 w-5 text-purple-600" />
+                      <h3 className="font-semibold">Delivery Zones</h3>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-3">Manage delivery areas and fees</p>
+                    <Button size="sm" variant="outline" className="w-full">
+                      Configure Zones
+                    </Button>
+                  </Card>
+
+                  <Card className="p-4 hover:shadow-md transition-shadow">
+                    <div className="flex items-center gap-3 mb-3">
+                      <DollarSign className="h-5 w-5 text-green-600" />
+                      <h3 className="font-semibold">Payment Settings</h3>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-3">Configure payment methods</p>
+                    <Button size="sm" variant="outline" className="w-full">
+                      Manage Payments
+                    </Button>
+                  </Card>
+
+                  <Card className="p-4 hover:shadow-md transition-shadow">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Bell className="h-5 w-5 text-orange-600" />
+                      <h3 className="font-semibold">Notifications</h3>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-3">Configure system notifications</p>
+                    <Button size="sm" variant="outline" className="w-full">
+                      Setup Alerts
+                    </Button>
+                  </Card>
+
+                  <Card className="p-4 hover:shadow-md transition-shadow">
+                    <div className="flex items-center gap-3 mb-3">
+                      <FileText className="h-5 w-5 text-blue-600" />
+                      <h3 className="font-semibold">Data Import/Export</h3>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-3">Bulk data operations</p>
+                    <Button size="sm" variant="outline" className="w-full">
+                      Manage Data
+                    </Button>
+                  </Card>
+
+                  <Card className="p-4 hover:shadow-md transition-shadow">
+                    <div className="flex items-center gap-3 mb-3">
+                      <BarChart3 className="h-5 w-5 text-indigo-600" />
+                      <h3 className="font-semibold">Analytics</h3>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-3">View system analytics</p>
+                    <Button size="sm" variant="outline" className="w-full">
+                      View Reports
+                    </Button>
+                  </Card>
+
+                  <Card className="p-4 hover:shadow-md transition-shadow">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Users className="h-5 w-5 text-pink-600" />
+                      <h3 className="font-semibold">User Management</h3>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-3">Manage admin users</p>
+                    <Button size="sm" variant="outline" className="w-full">
+                      Manage Users
+                    </Button>
+                  </Card>
                 </div>
               </CardContent>
             </Card>
