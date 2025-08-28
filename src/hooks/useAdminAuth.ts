@@ -117,11 +117,11 @@ export const useAdminAuth = () => {
     }
   };
 
-  const createAdmin = async (email: string, password: string) => {
+    const createAdmin = async (email: string, password: string) => {
     try {
       setLoading(true);
       console.log('Creating admin account for:', email);
-      
+
       // First create the auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
@@ -133,41 +133,47 @@ export const useAdminAuth = () => {
 
       if (authError) {
         console.error('Auth signup error:', authError);
-        return { 
-          success: false, 
+        return {
+          success: false,
           error: authError.message
         };
       }
 
       if (authData.user) {
-        // Insert into admin_users table
-        const { error: adminError } = await supabase
-          .from('admin_users')
-          .insert({
-            email,
-            password_hash: 'managed_by_auth', // Auth handles password
-            role: 'admin',
-            active: true
-          });
+        // Create admin record using the database function
+        const { data: adminResult, error: adminError } = await supabase.rpc('create_admin_user', {
+          user_email: email,
+          user_role: 'admin',
+          is_active: true
+        });
 
         if (adminError) {
-          console.error('Admin insert error:', adminError);
-          return { 
-            success: false, 
-            error: 'Failed to create admin record' 
+          console.error('Admin creation RPC error:', adminError);
+          return {
+            success: false,
+            error: `Failed to set up admin privileges: ${adminError.message}`
           };
         }
 
-        return { 
-          success: true, 
-          message: 'Admin account created successfully. Please check your email to confirm.' 
-        };
+        // Check if the RPC returned success
+        if (adminResult && adminResult.success) {
+          return {
+            success: true,
+            message: 'Admin account created successfully! Please check your email to confirm your account, then sign in to access the admin dashboard.'
+          };
+        } else {
+          console.error('Admin creation failed:', adminResult);
+          return {
+            success: false,
+            error: adminResult?.message || 'Failed to create admin record'
+          };
+        }
       }
 
-      return { success: false, error: 'Failed to create user' };
+      return { success: false, error: 'Failed to create user account' };
     } catch (error: any) {
       console.error('Create admin error:', error);
-      return { success: false, error: error.message || 'Failed to create admin' };
+      return { success: false, error: error.message || 'Failed to create admin account' };
     } finally {
       setLoading(false);
     }
