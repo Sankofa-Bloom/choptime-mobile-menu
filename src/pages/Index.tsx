@@ -177,14 +177,6 @@ const Index = () => {
     setShowRestaurantModal(true);
   }, []);
 
-  const handleRestaurantSelect = useCallback((restaurant: Restaurant, price: number) => {
-    if (selectedDish) {
-      addToCart(selectedDish, restaurant, price);
-    }
-    setShowRestaurantModal(false);
-    setSelectedDish(null);
-  }, [selectedDish, addToCart]);
-
   const addToCart = useCallback((dish: Dish, restaurant: Restaurant, price: number) => {
     setCart(prevCart => {
       const existingItem = prevCart.find(item => 
@@ -221,6 +213,14 @@ const Index = () => {
       scrollToCart();
     }, 100);
   }, [toast]);
+
+  const handleRestaurantSelect = useCallback((restaurant: Restaurant, price: number) => {
+    if (selectedDish) {
+      addToCart(selectedDish, restaurant, price);
+    }
+    setShowRestaurantModal(false);
+    setSelectedDish(null);
+  }, [selectedDish, addToCart]);
 
   const addCustomToCart = useCallback((customOrderItem: CustomOrderItem) => {
     setCart(prevCart => {
