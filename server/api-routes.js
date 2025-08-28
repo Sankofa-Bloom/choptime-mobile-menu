@@ -306,7 +306,7 @@ router.post('/get-user-orders', async (req, res) => {
 router.post('/get-user-custom-orders', async (req, res) => {
   try {
     const { user_phone } = req.body;
-    
+
     if (!user_phone) {
       return res.status(400).json({ error: 'User phone is required' });
     }
@@ -316,12 +316,882 @@ router.post('/get-user-custom-orders', async (req, res) => {
       .select('*')
       .eq('user_phone', sanitizeInput(user_phone))
       .order('created_at', { ascending: false });
-    
+
     if (error) throw error;
     res.json(data || []);
   } catch (error) {
     console.error('Error getting user custom orders:', error);
     res.status(500).json({ error: 'Failed to get user custom orders' });
+  }
+});
+
+// =============================================================================
+// DAILY MENUS MANAGEMENT API
+// =============================================================================
+
+// Get all daily menus with optional date filter
+router.get('/daily-menus', async (req, res) => {
+  try {
+    const { date, restaurant_id } = req.query;
+    let query = supabase
+      .from('daily_menus')
+      .select(`
+        *,
+        restaurant:restaurants(name, town),
+        daily_menu_items(
+          *,
+          dish:dishes(name, category, image_url)
+        )
+      `)
+      .eq('is_active', true);
+
+    if (date) {
+      query = query.eq('date', sanitizeInput(date));
+    }
+
+    if (restaurant_id) {
+      query = query.eq('restaurant_id', sanitizeInput(restaurant_id));
+    }
+
+    const { data, error } = await query.order('date', { ascending: false });
+
+    if (error) throw error;
+    res.json(data || []);
+  } catch (error) {
+    console.error('Error fetching daily menus:', error);
+    res.status(500).json({ error: 'Failed to fetch daily menus' });
+  }
+});
+
+// Create new daily menu
+router.post('/daily-menus', async (req, res) => {
+  try {
+    const { restaurant_id, date, is_active } = req.body;
+
+    if (!restaurant_id || !date) {
+      return res.status(400).json({ error: 'Restaurant ID and date are required' });
+    }
+
+    const { data, error } = await supabase
+      .from('daily_menus')
+      .insert([{
+        restaurant_id: sanitizeInput(restaurant_id),
+        date: sanitizeInput(date),
+        is_active: is_active !== undefined ? is_active : true
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.json(data);
+  } catch (error) {
+    console.error('Error creating daily menu:', error);
+    res.status(500).json({ error: 'Failed to create daily menu' });
+  }
+});
+
+// Update daily menu
+router.put('/daily-menus/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+
+    const { data, error } = await supabase
+      .from('daily_menus')
+      .update(updates)
+      .eq('id', sanitizeInput(id))
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.json(data);
+  } catch (error) {
+    console.error('Error updating daily menu:', error);
+    res.status(500).json({ error: 'Failed to update daily menu' });
+  }
+});
+
+// Delete daily menu
+router.delete('/daily-menus/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const { error } = await supabase
+      .from('daily_menus')
+      .delete()
+      .eq('id', sanitizeInput(id));
+
+    if (error) throw error;
+    res.json({ message: 'Daily menu deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting daily menu:', error);
+    res.status(500).json({ error: 'Failed to delete daily menu' });
+  }
+});
+
+// Add item to daily menu
+router.post('/daily-menus/:menuId/items', async (req, res) => {
+  try {
+    const { menuId } = req.params;
+    const { dish_id, price, availability, available_quantity, special_notes } = req.body;
+
+    if (!dish_id || !price) {
+      return res.status(400).json({ error: 'Dish ID and price are required' });
+    }
+
+    const { data, error } = await supabase
+      .from('daily_menu_items')
+      .insert([{
+        daily_menu_id: sanitizeInput(menuId),
+        dish_id: sanitizeInput(dish_id),
+        price: parseInt(price),
+        availability: availability !== undefined ? availability : true,
+        available_quantity: available_quantity ? parseInt(available_quantity) : null,
+        special_notes: sanitizeInput(special_notes || '')
+      }])
+      .select(`
+        *,
+        dish:dishes(name, category)
+      `)
+      .single();
+
+    if (error) throw error;
+    res.json(data);
+  } catch (error) {
+    console.error('Error adding item to daily menu:', error);
+    res.status(500).json({ error: 'Failed to add item to daily menu' });
+  }
+});
+
+// Update daily menu item
+router.put('/daily-menus/items/:itemId', async (req, res) => {
+  try {
+    const { itemId } = req.params;
+    const updates = req.body;
+
+    const { data, error } = await supabase
+      .from('daily_menu_items')
+      .update(updates)
+      .eq('id', sanitizeInput(itemId))
+      .select(`
+        *,
+        dish:dishes(name, category)
+      `)
+      .single();
+
+    if (error) throw error;
+    res.json(data);
+  } catch (error) {
+    console.error('Error updating daily menu item:', error);
+    res.status(500).json({ error: 'Failed to update daily menu item' });
+  }
+});
+
+// Remove item from daily menu
+router.delete('/daily-menus/items/:itemId', async (req, res) => {
+  try {
+    const { itemId } = req.params;
+
+    const { error } = await supabase
+      .from('daily_menu_items')
+      .delete()
+      .eq('id', sanitizeInput(itemId));
+
+    if (error) throw error;
+    res.json({ message: 'Item removed from daily menu successfully' });
+  } catch (error) {
+    console.error('Error removing item from daily menu:', error);
+    res.status(500).json({ error: 'Failed to remove item from daily menu' });
+  }
+});
+
+// =============================================================================
+// DRIVER MANAGEMENT API
+// =============================================================================
+
+// Get all drivers
+router.get('/drivers', async (req, res) => {
+  try {
+    const { available_only } = req.query;
+    let query = supabase
+      .from('drivers')
+      .select('*')
+      .order('name');
+
+    if (available_only === 'true') {
+      query = query.eq('is_available', true).eq('is_active', true);
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+    res.json(data || []);
+  } catch (error) {
+    console.error('Error fetching drivers:', error);
+    res.status(500).json({ error: 'Failed to fetch drivers' });
+  }
+});
+
+// Create new driver
+router.post('/drivers', async (req, res) => {
+  try {
+    const { name, phone, email, license_number, vehicle_type, vehicle_registration } = req.body;
+
+    if (!name || !phone || !vehicle_type) {
+      return res.status(400).json({ error: 'Name, phone, and vehicle type are required' });
+    }
+
+    const { data, error } = await supabase
+      .from('drivers')
+      .insert([{
+        name: sanitizeInput(name),
+        phone: sanitizeInput(phone),
+        email: email ? sanitizeInput(email) : null,
+        license_number: license_number ? sanitizeInput(license_number) : null,
+        vehicle_type: sanitizeInput(vehicle_type),
+        vehicle_registration: vehicle_registration ? sanitizeInput(vehicle_registration) : null
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.json(data);
+  } catch (error) {
+    console.error('Error creating driver:', error);
+    res.status(500).json({ error: 'Failed to create driver' });
+  }
+});
+
+// Update driver
+router.put('/drivers/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+
+    // Sanitize input fields
+    const sanitizedUpdates = { ...updates };
+    if (updates.name) sanitizedUpdates.name = sanitizeInput(updates.name);
+    if (updates.phone) sanitizedUpdates.phone = sanitizeInput(updates.phone);
+    if (updates.email) sanitizedUpdates.email = sanitizeInput(updates.email);
+    if (updates.license_number) sanitizedUpdates.license_number = sanitizeInput(updates.license_number);
+    if (updates.vehicle_registration) sanitizedUpdates.vehicle_registration = sanitizeInput(updates.vehicle_registration);
+
+    const { data, error } = await supabase
+      .from('drivers')
+      .update(sanitizedUpdates)
+      .eq('id', sanitizeInput(id))
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.json(data);
+  } catch (error) {
+    console.error('Error updating driver:', error);
+    res.status(500).json({ error: 'Failed to update driver' });
+  }
+});
+
+// Update driver location
+router.put('/drivers/:id/location', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { latitude, longitude } = req.body;
+
+    if (!latitude || !longitude) {
+      return res.status(400).json({ error: 'Latitude and longitude are required' });
+    }
+
+    const { data, error } = await supabase
+      .from('drivers')
+      .update({
+        current_gps_latitude: parseFloat(latitude),
+        current_gps_longitude: parseFloat(longitude),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', sanitizeInput(id))
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.json(data);
+  } catch (error) {
+    console.error('Error updating driver location:', error);
+    res.status(500).json({ error: 'Failed to update driver location' });
+  }
+});
+
+// Delete driver
+router.delete('/drivers/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const { error } = await supabase
+      .from('drivers')
+      .delete()
+      .eq('id', sanitizeInput(id));
+
+    if (error) throw error;
+    res.json({ message: 'Driver deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting driver:', error);
+    res.status(500).json({ error: 'Failed to delete driver' });
+  }
+});
+
+// =============================================================================
+// ENHANCED RESTAURANT MANAGEMENT API
+// =============================================================================
+
+// Update restaurant with GPS and operating hours
+router.put('/restaurants/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+
+    // Sanitize input fields
+    const sanitizedUpdates = { ...updates };
+    if (updates.name) sanitizedUpdates.name = sanitizeInput(updates.name);
+    if (updates.contact_number) sanitizedUpdates.contact_number = sanitizeInput(updates.contact_number);
+    if (updates.mtn_number) sanitizedUpdates.mtn_number = sanitizeInput(updates.mtn_number);
+    if (updates.orange_number) sanitizedUpdates.orange_number = sanitizeInput(updates.orange_number);
+    if (updates.address) sanitizedUpdates.address = sanitizeInput(updates.address);
+    if (updates.description) sanitizedUpdates.description = sanitizeInput(updates.description);
+    if (updates.cuisine_type) sanitizedUpdates.cuisine_type = sanitizeInput(updates.cuisine_type);
+
+    const { data, error } = await supabase
+      .from('restaurants')
+      .update(sanitizedUpdates)
+      .eq('id', sanitizeInput(id))
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.json(data);
+  } catch (error) {
+    console.error('Error updating restaurant:', error);
+    res.status(500).json({ error: 'Failed to update restaurant' });
+  }
+});
+
+// =============================================================================
+// ENHANCED ORDER MANAGEMENT API
+// =============================================================================
+
+// Update order status with timestamps
+router.put('/orders/:id/status', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, driver_id, driver_name, driver_phone } = req.body;
+
+    if (!status) {
+      return res.status(400).json({ error: 'Status is required' });
+    }
+
+    const updates = {
+      status: sanitizeInput(status),
+      updated_at: new Date().toISOString()
+    };
+
+    // Add timestamp for status change
+    const statusTimestampMap = {
+      'confirmed': 'confirmed_at',
+      'preparing': 'preparing_at',
+      'ready': 'ready_at',
+      'out_for_delivery': 'out_for_delivery_at',
+      'delivered': 'delivered_at'
+    };
+
+    if (statusTimestampMap[status]) {
+      updates[statusTimestampMap[status]] = new Date().toISOString();
+    }
+
+    // Add driver info if provided
+    if (driver_id) updates.driver_id = sanitizeInput(driver_id);
+    if (driver_name) updates.driver_name = sanitizeInput(driver_name);
+    if (driver_phone) updates.driver_phone = sanitizeInput(driver_phone);
+
+    const { data, error } = await supabase
+      .from('orders')
+      .update(updates)
+      .eq('id', sanitizeInput(id))
+      .select(`
+        *,
+        restaurant:restaurants(name)
+      `)
+      .single();
+
+    if (error) throw error;
+    res.json(data);
+  } catch (error) {
+    console.error('Error updating order status:', error);
+    res.status(500).json({ error: 'Failed to update order status' });
+  }
+});
+
+// Assign driver to order
+router.put('/orders/:id/assign-driver', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { driver_id } = req.body;
+
+    if (!driver_id) {
+      return res.status(400).json({ error: 'Driver ID is required' });
+    }
+
+    // Get driver info
+    const { data: driver, error: driverError } = await supabase
+      .from('drivers')
+      .select('name, phone')
+      .eq('id', sanitizeInput(driver_id))
+      .single();
+
+    if (driverError) throw driverError;
+
+    // Update order with driver info
+    const { data, error } = await supabase
+      .from('orders')
+      .update({
+        driver_id: sanitizeInput(driver_id),
+        driver_name: driver.name,
+        driver_phone: driver.phone,
+        status: 'out_for_delivery',
+        out_for_delivery_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', sanitizeInput(id))
+      .select(`
+        *,
+        restaurant:restaurants(name)
+      `)
+      .single();
+
+    if (error) throw error;
+    res.json(data);
+  } catch (error) {
+    console.error('Error assigning driver:', error);
+    res.status(500).json({ error: 'Failed to assign driver' });
+  }
+});
+
+// =============================================================================
+// ANALYTICS API
+// =============================================================================
+
+// Get order analytics
+router.get('/analytics/orders', async (req, res) => {
+  try {
+    const { start_date, end_date } = req.query;
+
+    let query = supabase
+      .from('order_analytics')
+      .select('*')
+      .order('date', { ascending: false });
+
+    if (start_date) {
+      query = query.gte('date', sanitizeInput(start_date));
+    }
+
+    if (end_date) {
+      query = query.lte('date', sanitizeInput(end_date));
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+    res.json(data || []);
+  } catch (error) {
+    console.error('Error fetching order analytics:', error);
+    res.status(500).json({ error: 'Failed to fetch order analytics' });
+  }
+});
+
+// Get restaurant analytics
+router.get('/analytics/restaurants', async (req, res) => {
+  try {
+    const { restaurant_id, start_date, end_date } = req.query;
+
+    let query = supabase
+      .from('restaurant_analytics')
+      .select(`
+        *,
+        restaurant:restaurants(name, town)
+      `)
+      .order('date', { ascending: false });
+
+    if (restaurant_id) {
+      query = query.eq('restaurant_id', sanitizeInput(restaurant_id));
+    }
+
+    if (start_date) {
+      query = query.gte('date', sanitizeInput(start_date));
+    }
+
+    if (end_date) {
+      query = query.lte('date', sanitizeInput(end_date));
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+    res.json(data || []);
+  } catch (error) {
+    console.error('Error fetching restaurant analytics:', error);
+    res.status(500).json({ error: 'Failed to fetch restaurant analytics' });
+  }
+});
+
+// =============================================================================
+// SYSTEM SETTINGS API
+// =============================================================================
+
+// Get all system settings
+router.get('/system-settings', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('system_settings')
+      .select('*')
+      .order('setting_key');
+
+    if (error) throw error;
+    res.json(data || []);
+  } catch (error) {
+    console.error('Error fetching system settings:', error);
+    res.status(500).json({ error: 'Failed to fetch system settings' });
+  }
+});
+
+// Update system setting
+router.put('/system-settings/:key', async (req, res) => {
+  try {
+    const { key } = req.params;
+    const { setting_value, setting_type } = req.body;
+
+    if (!setting_value || !setting_type) {
+      return res.status(400).json({ error: 'Setting value and type are required' });
+    }
+
+    const { data, error } = await supabase
+      .from('system_settings')
+      .update({
+        setting_value: sanitizeInput(setting_value),
+        setting_type: sanitizeInput(setting_type),
+        updated_at: new Date().toISOString()
+      })
+      .eq('setting_key', sanitizeInput(key))
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.json(data);
+  } catch (error) {
+    console.error('Error updating system setting:', error);
+    res.status(500).json({ error: 'Failed to update system setting' });
+  }
+});
+
+// Create new system setting
+router.post('/system-settings', async (req, res) => {
+  try {
+    const { setting_key, setting_value, setting_type, description } = req.body;
+
+    if (!setting_key || !setting_value || !setting_type) {
+      return res.status(400).json({ error: 'Setting key, value, and type are required' });
+    }
+
+    const { data, error } = await supabase
+      .from('system_settings')
+      .insert([{
+        setting_key: sanitizeInput(setting_key),
+        setting_value: sanitizeInput(setting_value),
+        setting_type: sanitizeInput(setting_type),
+        description: description ? sanitizeInput(description) : null
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.json(data);
+  } catch (error) {
+    console.error('Error creating system setting:', error);
+    res.status(500).json({ error: 'Failed to create system setting' });
+  }
+});
+
+// =============================================================================
+// IMAGE MANAGEMENT API
+// =============================================================================
+
+// Get available food images
+router.get('/food-images', async (req, res) => {
+  try {
+    const fs = require('fs');
+    const path = require('path');
+
+    // Sample food images mapping by category
+    const categoryImages = {
+      'Traditional': ['/placeholder.svg', '/choptime-logo.jpeg'],
+      'Soup': ['/placeholder.svg', '/choptime-logo.jpeg'],
+      'Rice': ['/placeholder.svg', '/choptime-logo.jpeg'],
+      'Grilled': ['/placeholder.svg', '/choptime-logo.jpeg'],
+      'Snacks': ['/placeholder.svg', '/choptime-logo.jpeg'],
+      'Drinks': ['/placeholder.svg', '/choptime-logo.jpeg']
+    };
+
+    res.json({
+      categories: categoryImages,
+      available: ['/placeholder.svg', '/choptime-logo.jpeg', '/logo.svg']
+    });
+  } catch (error) {
+    console.error('Error getting food images:', error);
+    res.status(500).json({ error: 'Failed to get food images' });
+  }
+});
+
+// Update dish image
+router.put('/dishes/:id/image', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { image_url } = req.body;
+
+    if (!image_url) {
+      return res.status(400).json({ error: 'Image URL is required' });
+    }
+
+    const { data, error } = await supabase
+      .from('dishes')
+      .update({ image_url: sanitizeInput(image_url) })
+      .eq('id', sanitizeInput(id))
+      .select()
+      .single();
+
+    if (error) throw error;
+    res.json(data);
+  } catch (error) {
+    console.error('Error updating dish image:', error);
+    res.status(500).json({ error: 'Failed to update dish image' });
+  }
+});
+
+// Bulk update dish images by category
+router.put('/dishes/update-images-by-category', async (req, res) => {
+  try {
+    const { category, image_url } = req.body;
+
+    if (!category || !image_url) {
+      return res.status(400).json({ error: 'Category and image URL are required' });
+    }
+
+    const { data, error } = await supabase
+      .from('dishes')
+      .update({ image_url: sanitizeInput(image_url) })
+      .eq('category', sanitizeInput(category))
+      .select();
+
+    if (error) throw error;
+    res.json({
+      message: `Updated ${data.length} dishes in category ${category}`,
+      updated: data
+    });
+  } catch (error) {
+    console.error('Error bulk updating dish images:', error);
+    res.status(500).json({ error: 'Failed to bulk update dish images' });
+  }
+});
+
+// =============================================================================
+// SUPABASE STORAGE API
+// =============================================================================
+
+const multer = require('multer');
+
+// Configure multer for file uploads
+const upload = multer({
+  limits: {
+    fileSize: parseInt(process.env.MAX_FILE_SIZE) || 5242880, // 5MB default
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = (process.env.ALLOWED_IMAGE_TYPES || 'image/jpeg,image/png,image/webp,image/gif').split(',');
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error(`Invalid file type. Allowed types: ${allowedTypes.join(', ')}`));
+    }
+  }
+});
+
+// Reuse the existing Supabase client for storage operations
+const supabaseStorage = supabase;
+
+// Upload image to Supabase Storage
+router.post('/upload-image', upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image file provided' });
+    }
+
+    const { category, entity_type, entity_id } = req.body;
+    const bucket = process.env.SUPABASE_STORAGE_BUCKET || 'choptym-images';
+
+    // Generate unique filename
+    const fileExt = req.file.originalname.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+
+    // Create folder structure: category/entity_type/entity_id/
+    const folderPath = category && entity_type && entity_id
+      ? `${category}/${entity_type}/${entity_id}/`
+      : 'general/';
+
+    const filePath = folderPath + fileName;
+
+    // Upload to Supabase Storage
+    const { data, error } = await supabaseStorage.storage
+      .from(bucket)
+      .upload(filePath, req.file.buffer, {
+        contentType: req.file.mimetype,
+        cacheControl: '3600'
+      });
+
+    if (error) {
+      console.error('Storage upload error:', error);
+      return res.status(500).json({ error: 'Failed to upload image' });
+    }
+
+    // Get public URL
+    const { data: urlData } = supabaseStorage.storage
+      .from(bucket)
+      .getPublicUrl(filePath);
+
+    res.json({
+      success: true,
+      image_url: urlData.publicUrl,
+      file_path: filePath,
+      file_name: fileName,
+      file_size: req.file.size,
+      mime_type: req.file.mimetype
+    });
+
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    res.status(500).json({ error: 'Failed to upload image', details: error.message });
+  }
+});
+
+// Get public URL for an image
+router.get('/image-url/:filePath(*)', async (req, res) => {
+  try {
+    const filePath = req.params.filePath;
+    const bucket = process.env.SUPABASE_STORAGE_BUCKET || 'choptym-images';
+
+    const { data } = supabaseStorage.storage
+      .from(bucket)
+      .getPublicUrl(filePath);
+
+    if (data?.publicUrl) {
+      res.json({ image_url: data.publicUrl });
+    } else {
+      res.status(404).json({ error: 'Image not found' });
+    }
+  } catch (error) {
+    console.error('Error getting image URL:', error);
+    res.status(500).json({ error: 'Failed to get image URL' });
+  }
+});
+
+// Delete image from Supabase Storage
+router.delete('/delete-image/:filePath(*)', async (req, res) => {
+  try {
+    const filePath = req.params.filePath;
+    const bucket = process.env.SUPABASE_STORAGE_BUCKET || 'choptym-images';
+
+    const { error } = await supabaseStorage.storage
+      .from(bucket)
+      .remove([filePath]);
+
+    if (error) {
+      console.error('Storage delete error:', error);
+      return res.status(500).json({ error: 'Failed to delete image' });
+    }
+
+    res.json({ success: true, message: 'Image deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting image:', error);
+    res.status(500).json({ error: 'Failed to delete image' });
+  }
+});
+
+// List images in a folder
+router.get('/list-images/:category?/:entityType?/:entityId?', async (req, res) => {
+  try {
+    const { category, entityType, entityId } = req.params;
+    const bucket = process.env.SUPABASE_STORAGE_BUCKET || 'choptym-images';
+
+    // Build prefix based on parameters
+    let prefix = '';
+    if (category) prefix += category + '/';
+    if (entityType) prefix += entityType + '/';
+    if (entityId) prefix += entityId + '/';
+
+    const { data, error } = await supabaseStorage.storage
+      .from(bucket)
+      .list(prefix, {
+        limit: 100,
+        offset: 0,
+        sortBy: { column: 'created_at', order: 'desc' }
+      });
+
+    if (error) {
+      console.error('Storage list error:', error);
+      return res.status(500).json({ error: 'Failed to list images' });
+    }
+
+    // Get public URLs for all files
+    const filesWithUrls = data?.map(file => {
+      const { data: urlData } = supabaseStorage.storage
+        .from(bucket)
+        .getPublicUrl(prefix + file.name);
+
+      return {
+        ...file,
+        public_url: urlData?.publicUrl
+      };
+    }) || [];
+
+    res.json({
+      files: filesWithUrls,
+      count: filesWithUrls.length
+    });
+  } catch (error) {
+    console.error('Error listing images:', error);
+    res.status(500).json({ error: 'Failed to list images' });
+  }
+});
+
+// Create storage bucket (for initialization)
+router.post('/create-storage-bucket', async (req, res) => {
+  try {
+    const bucket = process.env.SUPABASE_STORAGE_BUCKET || 'choptym-images';
+
+    const { data, error } = await supabaseStorage.storage.createBucket(bucket, {
+      public: true,
+      allowedMimeTypes: (process.env.ALLOWED_IMAGE_TYPES || 'image/jpeg,image/png,image/webp,image/gif').split(','),
+      fileSizeLimit: parseInt(process.env.MAX_FILE_SIZE) || 5242880
+    });
+
+    if (error && !error.message.includes('already exists')) {
+      console.error('Storage bucket creation error:', error);
+      return res.status(500).json({ error: 'Failed to create storage bucket' });
+    }
+
+    res.json({
+      success: true,
+      message: error?.message?.includes('already exists')
+        ? 'Storage bucket already exists'
+        : 'Storage bucket created successfully',
+      bucket: bucket
+    });
+  } catch (error) {
+    console.error('Error creating storage bucket:', error);
+    res.status(500).json({ error: 'Failed to create storage bucket' });
   }
 });
 

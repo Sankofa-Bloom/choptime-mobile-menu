@@ -8,12 +8,7 @@ COMMENT ON COLUMN custom_orders.payment_reference IS 'Swychr payment transaction
 COMMENT ON COLUMN custom_orders.payment_method IS 'Payment method used: swychr (primary)';
 COMMENT ON COLUMN custom_orders.payment_status IS 'Payment status: pending, confirmed, completed, failed, cancelled';
 
--- Add customer_phone column if it doesn't exist (handles case where momo_phone never existed)
-ALTER TABLE orders 
-ADD COLUMN IF NOT EXISTS customer_phone VARCHAR(20);
-
-ALTER TABLE custom_orders 
-ADD COLUMN IF NOT EXISTS customer_phone VARCHAR(20);
+-- customer_phone column already exists from payment records migration
 
 -- If momo_phone exists, rename it to customer_phone, otherwise skip
 DO $$

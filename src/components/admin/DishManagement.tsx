@@ -9,11 +9,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Edit, Trash2, Utensils } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Plus, Edit, Trash2, Utensils, Upload, Image as ImageIcon } from 'lucide-react';
 import { useAdminData } from '@/hooks/useAdminData';
+import { useChopTymData } from '@/hooks/useChopTymData';
 import { useToast } from '@/hooks/use-toast';
 import { DishFormData } from '@/types/admin';
-import { supabase } from '@/integrations/supabase/client';
+import ImageUpload from './ImageUpload';
+import ImageGallery from './ImageGallery';
 
 const DISH_CATEGORIES: Array<'Traditional' | 'Soup' | 'Rice' | 'Grilled' | 'Snacks' | 'Drinks'> = [
   'Traditional', 'Soup', 'Rice', 'Grilled', 'Snacks', 'Drinks'
@@ -21,9 +24,13 @@ const DISH_CATEGORIES: Array<'Traditional' | 'Soup' | 'Rice' | 'Grilled' | 'Snac
 
 const DishManagement = () => {
   const { dishes, createDish, updateDish, deleteDish, loading } = useAdminData();
+  const { uploadImage } = useChopTymData();
   const { toast } = useToast();
   const [editingDish, setEditingDish] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState('dishes');
+
   const [formData, setFormData] = useState<DishFormData>({
     name: '',
     description: '',
@@ -36,8 +43,6 @@ const DishManagement = () => {
     serves: '1-2 people',
     active: true
   });
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
 
   const resetForm = () => {
     setFormData({
@@ -52,42 +57,24 @@ const DishManagement = () => {
       serves: '1-2 people',
       active: true
     });
-    setImageFile(null);
+    setSelectedImage(null);
     setEditingDish(null);
-  };
-
-  const uploadFile = async (file: File, bucket: string, path: string): Promise<string | null> => {
-    try {
-      const { data, error } = await supabase.storage
-        .from(bucket)
-        .upload(path, file, { upsert: true });
-      if (error) throw error;
-      const { data: { publicUrl } } = supabase.storage
-        .from(bucket)
-        .getPublicUrl(data.path);
-      return publicUrl;
-    } catch (error) {
-      console.error('Upload error:', error);
-      return null;
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setUploading(true);
     try {
-      const updatedFormData = { ...formData };
-      // Upload image file if provided
-      if (imageFile) {
-        const imagePath = `dishes/${Date.now()}-${imageFile.name}`;
-        const imageUrl = await uploadFile(imageFile, 'restaurant-images', imagePath);
-        if (imageUrl) {
-          updatedFormData.image_url = imageUrl;
-        }
+      let updatedFormData = { ...formData };
+
+      // If an image was selected from the gallery, use it
+      if (selectedImage) {
+        updatedFormData.image_url = selectedImage.public_url;
       }
+
       const result = editingDish
         ? await updateDish(editingDish.id, updatedFormData)
         : await createDish(updatedFormData);
+
       if (result.success) {
         toast({
           title: "Success",
@@ -98,19 +85,34 @@ const DishManagement = () => {
       } else {
         toast({
           title: "Error",
-          description: result.error,
-          variant: "destructive"
+          description: result.message || `Failed to ${editingDish ? 'update' : 'create'} dish`,
+          variant: "destructive",
         });
       }
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to process request",
-        variant: "destructive"
+        description: `Failed to ${editingDish ? 'update' : 'create'} dish`,
+        variant: "destructive",
       });
-    } finally {
-      setUploading(false);
     }
+  };
+
+  const handleImageUploaded = (imageData: any) => {
+    setFormData(prev => ({ ...prev, image_url: imageData.image_url }));
+    toast({
+      title: "Image uploaded",
+      description: "Image has been uploaded and set for this dish",
+    });
+  };
+
+  const handleImageSelect = (image: any) => {
+    setSelectedImage(image);
+    setFormData(prev => ({ ...prev, image_url: image.public_url }));
+    toast({
+      title: "Image selected",
+      description: "Image has been selected from gallery",
+    });
   };
 
   const handleEdit = (dish: any) => {
@@ -160,16 +162,33 @@ const DishManagement = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-choptym-brown">Dish Management</h2>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button 
-              onClick={resetForm}
-              className="choptym-gradient hover:opacity-90 text-white"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Dish
-            </Button>
-          </DialogTrigger>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="dishes" className="flex items-center gap-2">
+            <Utensils className="w-4 h-4" />
+            Manage Dishes
+          </TabsTrigger>
+          <TabsTrigger value="images" className="flex items-center gap-2">
+            <ImageIcon className="w-4 h-4" />
+            Manage Images
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="dishes" className="space-y-4">
+          <div className="flex justify-between items-center">
+            <p className="text-muted-foreground">Manage your restaurant dishes</p>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  onClick={resetForm}
+                  className="choptym-gradient hover:opacity-90 text-white"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Dish
+                </Button>
+              </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>
@@ -215,22 +234,56 @@ const DishManagement = () => {
                 />
               </div>
 
-              <div>
-                <Label htmlFor="image_file">Dish Image</Label>
-                <Input
-                  id="image_file"
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-                />
+              <div className="space-y-4">
+                <div>
+                  <Label>Dish Image</Label>
+                  <Tabs defaultValue="upload" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger value="upload">Upload New</TabsTrigger>
+                      <TabsTrigger value="gallery">Select from Gallery</TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="upload" className="space-y-2">
+                      <ImageUpload
+                        onImageUploaded={handleImageUploaded}
+                        category="dishes"
+                        entityType="dish"
+                        entityId={editingDish?.id || 'new'}
+                        className="w-full"
+                      />
+                    </TabsContent>
+
+                    <TabsContent value="gallery" className="space-y-2">
+                      <ImageGallery
+                        category="dishes"
+                        entityType="dish"
+                        onImageSelect={handleImageSelect}
+                        selectable={true}
+                        showControls={true}
+                        className="max-h-96 overflow-y-auto"
+                      />
+                    </TabsContent>
+                  </Tabs>
+                </div>
+
                 {formData.image_url && (
-                  <div className="mt-2">
-                    <img src={formData.image_url} alt="Current" className="w-20 h-20 object-cover rounded" />
-                  </div>
-                )}
-                {imageFile && (
-                  <div className="mt-2">
-                    <span className="text-xs text-gray-500">Selected: {imageFile.name}</span>
+                  <div>
+                    <Label>Current Image</Label>
+                    <div className="mt-2 relative">
+                      <img
+                        src={formData.image_url}
+                        alt="Current dish"
+                        className="w-24 h-24 object-cover rounded border"
+                      />
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="absolute -top-2 -right-2 w-6 h-6 p-0 rounded-full"
+                        onClick={() => setFormData(prev => ({ ...prev, image_url: '' }))}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -291,12 +344,11 @@ const DishManagement = () => {
                 >
                   Cancel
                 </Button>
-                <Button 
+                <Button
                   type="submit"
-                  disabled={uploading}
                   className="choptym-gradient hover:opacity-90 text-white"
                 >
-                  {uploading ? 'Processing...' : editingDish ? 'Update' : 'Create'} Dish
+                  {editingDish ? 'Update' : 'Create'} Dish
                 </Button>
               </div>
             </form>
@@ -384,6 +436,37 @@ const DishManagement = () => {
           </Table>
         </CardContent>
       </Card>
+        </TabsContent>
+
+        <TabsContent value="images" className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Upload New Images</h3>
+              <ImageUpload
+                onImageUploaded={(data) => {
+                  toast({
+                    title: "Image uploaded",
+                    description: "Image has been uploaded to Supabase Storage",
+                  });
+                }}
+                category="dishes"
+                entityType="dish"
+                className="w-full"
+              />
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Image Gallery</h3>
+              <ImageGallery
+                category="dishes"
+                entityType="dish"
+                showControls={true}
+                className="max-h-96 overflow-y-auto"
+              />
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

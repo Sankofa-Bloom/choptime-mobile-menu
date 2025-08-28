@@ -70,14 +70,23 @@ const MenuSection: React.FC<MenuSectionProps> = ({
             return (
               <Card key={dish.id} className="overflow-hidden choptym-shadow hover:shadow-lg transition-all duration-300 animate-slide-up" style={{ animationDelay: `${(index + 1) * 100}ms` }}>
                 <div className="relative">
-                  <img 
-                    src={dish.image_url && !dish.image_url.includes('fbcdn.net') ? dish.image_url : '/placeholder.svg'} 
+                  <img
+                    src={dish.image_url && !dish.image_url.includes('fbcdn.net') ? dish.image_url : '/placeholder.svg'}
                     alt={dish.name}
-                    className="w-full h-48 object-cover"
+                    className="w-full h-48 object-cover transition-transform duration-300 hover:scale-105"
+                    loading="lazy"
                     onError={(e) => {
                       // Fallback to local placeholder if image fails to load
                       const target = e.target as HTMLImageElement;
-                      target.src = '/placeholder.svg';
+                      if (target.src !== '/placeholder.svg') {
+                        target.src = '/placeholder.svg';
+                      }
+                    }}
+                    onLoad={(e) => {
+                      // Add a subtle animation when image loads successfully
+                      const target = e.target as HTMLImageElement;
+                      target.style.opacity = '0';
+                      target.style.animation = 'fadeIn 0.3s ease-in-out forwards';
                     }}
                   />
                   <Badge className="absolute top-2 left-2 bg-choptym-orange text-white">

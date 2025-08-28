@@ -1,12 +1,13 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import type { Session } from '@supabase/supabase-js';
 import { AdminUser } from '@/types/admin';
 
 export const useAdminAuth = () => {
   const [admin, setAdmin] = useState<AdminUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
     // Get initial session
@@ -35,14 +36,14 @@ export const useAdminAuth = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const verifyAdminStatus = async (email: string) => {
+  const verifyAdminStatus = async (email: string): Promise<boolean> => {
     try {
       setLoading(true);
 
       if (!email) {
         setAdmin(null);
         setLoading(false);
-        return;
+        return false;
       }
 
       // Use RPC function to verify admin status (bypasses RLS issues)
@@ -65,13 +66,18 @@ export const useAdminAuth = () => {
           if (directError) {
             console.error('Direct admin verification error:', directError);
             setAdmin(null);
-            // Don't auto-signout on verification errors to avoid loops
+            setLoading(false);
+            return false;
           } else if (adminData) {
             console.log('Admin verified successfully (fallback):', adminData);
             setAdmin(adminData);
+            setLoading(false);
+            return true;
           } else {
             console.log('No admin record found for:', email);
             setAdmin(null);
+            setLoading(false);
+            return false;
           }
         } catch (fallbackError) {
           console.error('Fallback admin verification failed:', fallbackError);
@@ -88,13 +94,17 @@ export const useAdminAuth = () => {
         };
         console.log('Admin verified successfully (RPC):', adminData);
         setAdmin(adminData);
+        setLoading(false);
+        return true;
       } else {
         console.log('User is not an admin:', email);
         setAdmin(null);
+        setLoading(false);
         // Only sign out if we got a definitive "not admin" response
         if (adminResult && !adminResult.is_admin) {
           await supabase.auth.signOut();
         }
+        return false;
       }
     } catch (error) {
       console.error('Error verifying admin status:', error);
@@ -119,32 +129,33 @@ export const useAdminAuth = () => {
       });
 
       if (error) {
-        return { 
-          success: false, 
-          error: error.message 
+        return {
+          success: false,
+          error: error.message
         };
       }
 
       if (data.user) {
-        // Verify admin status after successful auth
-        await verifyAdminStatus(data.user.email);
-        
-        if (admin) {
+        // Verify admin status after successful auth and wait for result
+        const isAdminVerified = await verifyAdminStatus(data.user.email);
+
+        if (isAdminVerified) {
           return { success: true };
         } else {
           // Sign out if not an admin
           await supabase.auth.signOut();
-          return { 
-            success: false, 
-            error: 'Access denied. This account is not authorized as an admin.' 
+          return {
+            success: false,
+            error: 'Access denied. This account is not authorized as an admin.'
           };
         }
       }
 
       return { success: false, error: 'Login failed' };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Login error:', error);
-      return { success: false, error: error.message || 'Login failed' };
+      const errorMessage = error instanceof Error ? error.message : 'Login failed';
+      return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
     }
@@ -204,9 +215,10 @@ export const useAdminAuth = () => {
       }
 
       return { success: false, error: 'Failed to create user account' };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Create admin error:', error);
-      return { success: false, error: error.message || 'Failed to create admin account' };
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create admin account';
+      return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
     }
@@ -249,9 +261,10 @@ export const useAdminAuth = () => {
         success: true, 
         message: 'Password reset email sent. Please check your inbox.' 
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Reset password error:', error);
-      return { success: false, error: error.message || 'Password reset failed' };
+      const errorMessage = error instanceof Error ? error.message : 'Password reset failed';
+      return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
     }

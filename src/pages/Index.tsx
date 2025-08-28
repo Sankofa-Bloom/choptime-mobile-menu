@@ -61,18 +61,19 @@ const Index = () => {
   const [showCart, setShowCart] = useState(false);
 
 
-  const { 
-    dishes, 
-    restaurants, 
-    restaurantMenus, 
-    loading, 
+  const {
+    dishes,
+    restaurants,
+    restaurantMenus,
+    loading,
     error,
     getDeliveryFeeForTown,
-    generateOrderReference, 
-    saveOrder, 
+    generateOrderReference,
+    saveOrder,
     saveCustomOrder,
     saveUserTown,
-    getUserTown
+    getUserTown,
+    refetchForTown
   } = useChopTymData(selectedTown);
 
   const { toast } = useToast();
@@ -97,12 +98,14 @@ const Index = () => {
       const savedTown = localStorage.getItem('choptym-town');
       if (savedTown && (savedTown === 'Buea' || savedTown === 'Limbe')) {
         setSelectedTown(savedTown);
+        // Refetch data for the saved town
+        refetchForTown(savedTown);
       } else {
         setShowTownSelector(true);
       }
     };
     loadUserPreferences();
-  }, []);
+  }, [refetchForTown]);
 
   // Handle payment success state and cart preservation
   useEffect(() => {
@@ -135,14 +138,16 @@ const Index = () => {
       setCart(location.state.cart);
       if (location.state.selectedTown) {
         setSelectedTown(location.state.selectedTown);
+        // Refetch data for the restored town
+        refetchForTown(location.state.selectedTown);
       }
-      
+
       // Clear location state to prevent restoring again on refresh
       navigate('/', { replace: true });
     }
-  }, [location.state, toast, navigate]);
+  }, [location.state, toast, navigate, refetchForTown]);
 
-  // Update delivery fee when town or address changes
+  // Update delivery fee when town changes
   useEffect(() => {
     // Update delivery fee when town changes (simple lookup, no API calls)
     if (selectedTown) {
@@ -163,7 +168,9 @@ const Index = () => {
     localStorage.setItem('choptym-town', town);
     setCart([]); // Clear cart when changing towns
     setShowTownSelector(false);
-  }, []);
+    // Refetch town-specific data (restaurants and menus)
+    refetchForTown(town);
+  }, [refetchForTown]);
 
   const handleDishSelect = useCallback((dish: Dish) => {
     setSelectedDish(dish);
