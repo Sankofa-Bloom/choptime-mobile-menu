@@ -44,7 +44,7 @@ export const useChopTymData = (selectedTown?: string) => {
   const [error, setError] = useState<string | null>(null);
   
   // Enhanced error logging
-  const logError = (source: string, err: any) => {
+  const logError = (source: string, err: unknown) => {
     console.error(`🚨 ERROR in ${source}:`, err);
     console.error('🚨 Error details:', {
       message: err?.message,
@@ -154,7 +154,7 @@ export const useChopTymData = (selectedTown?: string) => {
       const data = response?.data || response || [];
       
       // Convert zones to delivery fees format for backward compatibility
-      const fees = data?.reduce((acc: DeliveryFee[], zone: any) => {
+      const fees = data?.reduce((acc: DeliveryFee[], zone: { id: string; town: string; fee: number; created_at?: string; updated_at?: string }) => {
         const existingFee = acc.find(f => f.town === zone.town);
         if (!existingFee) {
           acc.push({
@@ -372,7 +372,7 @@ export const useChopTymData = (selectedTown?: string) => {
       }
     },
 
-    updateDailyMenu: async (menuId: string, updates: any) => {
+    updateDailyMenu: async (menuId: string, updates: Partial<DailyMenu>) => {
       try {
         const data = await apiCall(`daily-menus/${menuId}`, {
           method: 'PUT',
@@ -416,7 +416,7 @@ export const useChopTymData = (selectedTown?: string) => {
       }
     },
 
-    updateDailyMenuItem: async (itemId: string, updates: any) => {
+    updateDailyMenuItem: async (itemId: string, updates: Partial<DailyMenuItem>) => {
       try {
         const data = await apiCall(`daily-menus/items/${itemId}`, {
           method: 'PUT',
@@ -473,7 +473,7 @@ export const useChopTymData = (selectedTown?: string) => {
       }
     },
 
-    updateDriver: async (driverId: string, updates: any) => {
+    updateDriver: async (driverId: string, updates: Partial<Driver>) => {
       try {
         const data = await apiCall(`drivers/${driverId}`, {
           method: 'PUT',
@@ -512,7 +512,7 @@ export const useChopTymData = (selectedTown?: string) => {
     },
 
     // Enhanced Restaurant Management
-    updateRestaurant: async (restaurantId: string, updates: any) => {
+    updateRestaurant: async (restaurantId: string, updates: Partial<Restaurant>) => {
       try {
         const data = await apiCall(`restaurants/${restaurantId}`, {
           method: 'PUT',

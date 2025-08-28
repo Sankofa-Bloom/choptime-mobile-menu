@@ -347,7 +347,7 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({
     if (!enableSound || isMuted) return;
     
     // Create a simple notification sound
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const audioContext = new (window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)();
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
     

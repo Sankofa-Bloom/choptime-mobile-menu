@@ -483,7 +483,7 @@ export const useAdminData = () => {
   /**
    * Export data to CSV format
    */
-  const exportToCSV = useCallback((data: any[], filename: string) => {
+  const exportToCSV = useCallback((data: Record<string, unknown>[], filename: string) => {
     try {
       if (data.length === 0) {
         throw new Error('No data to export');
@@ -527,7 +527,7 @@ export const useAdminData = () => {
   /**
    * Export data to JSON format
    */
-  const exportToJSON = useCallback((data: any[], filename: string) => {
+  const exportToJSON = useCallback((data: Record<string, unknown>[], filename: string) => {
     try {
       if (data.length === 0) {
         throw new Error('No data to export');
