@@ -114,6 +114,8 @@ export const useAdminAuth = () => {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
+      }, {
+        redirectTo: `${window.location.origin}/dash/chp-ctrl`
       });
 
       if (error) {
