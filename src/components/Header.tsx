@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ShoppingCart, MapPin, Download } from 'lucide-react';
 import AnimatedLogo from './AnimatedLogo';
+import { OrderItem, CustomOrderItem } from '@/types/restaurant';
 
 interface HeaderProps {
   selectedTown: string;
-  cart: any[];
+  cart: (OrderItem | CustomOrderItem)[];
   cartItemCount?: number;
   onTownChange: () => void;
   onCartClick: () => void;

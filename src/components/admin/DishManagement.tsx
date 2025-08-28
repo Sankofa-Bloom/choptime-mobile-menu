@@ -15,8 +15,21 @@ import { useAdminData } from '@/hooks/useAdminData';
 import { useChopTymData } from '@/hooks/useChopTymData';
 import { useToast } from '@/hooks/use-toast';
 import { DishFormData } from '@/types/admin';
+import { Dish } from '@/types/restaurant';
 import ImageUpload from './ImageUpload';
 import ImageGallery from './ImageGallery';
+
+interface ImageFile {
+  name: string;
+  id: string;
+  updated_at: string;
+  created_at: string;
+  metadata: {
+    size: number;
+    mimetype: string;
+  };
+  public_url: string;
+}
 
 const DISH_CATEGORIES: Array<'Traditional' | 'Soup' | 'Rice' | 'Grilled' | 'Snacks' | 'Drinks'> = [
   'Traditional', 'Soup', 'Rice', 'Grilled', 'Snacks', 'Drinks'
@@ -26,9 +39,9 @@ const DishManagement = () => {
   const { dishes, createDish, updateDish, deleteDish, loading } = useAdminData();
   const { uploadImage } = useChopTymData();
   const { toast } = useToast();
-  const [editingDish, setEditingDish] = useState<any>(null);
+  const [editingDish, setEditingDish] = useState<Dish | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<any>(null);
+  const [selectedImage, setSelectedImage] = useState<ImageFile | null>(null);
   const [activeTab, setActiveTab] = useState('dishes');
 
   const [formData, setFormData] = useState<DishFormData>({
@@ -64,7 +77,7 @@ const DishManagement = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      let updatedFormData = { ...formData };
+      const updatedFormData = { ...formData };
 
       // If an image was selected from the gallery, use it
       if (selectedImage) {
@@ -98,7 +111,7 @@ const DishManagement = () => {
     }
   };
 
-  const handleImageUploaded = (imageData: any) => {
+  const handleImageUploaded = (imageData: { image_url: string }) => {
     setFormData(prev => ({ ...prev, image_url: imageData.image_url }));
     toast({
       title: "Image uploaded",
@@ -106,7 +119,7 @@ const DishManagement = () => {
     });
   };
 
-  const handleImageSelect = (image: any) => {
+  const handleImageSelect = (image: ImageFile) => {
     setSelectedImage(image);
     setFormData(prev => ({ ...prev, image_url: image.public_url }));
     toast({
@@ -115,7 +128,7 @@ const DishManagement = () => {
     });
   };
 
-  const handleEdit = (dish: any) => {
+  const handleEdit = (dish: Dish) => {
     setEditingDish(dish);
     setFormData({
       name: dish.name,
