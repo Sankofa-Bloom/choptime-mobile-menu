@@ -9,6 +9,7 @@ import ThankYou from '@/pages/ThankYou';
 import PaymentSuccess from '@/pages/PaymentSuccess';
 import WhatsAppButton from '@/components/WhatsAppButton';
 import { SplashScreen } from '@/components/SplashScreen';
+import ProtectedRoute from '@/components/admin/ProtectedRoute';
 
 // App component debug logging
 console.log('🚀 APP COMPONENT: Loading App.tsx');
@@ -46,8 +47,18 @@ function App() {
       <Routes>
         <Route path="/" element={<Index />} />
 
+        {/* Admin Routes */}
         <Route path="/dash/login" element={<AdminLogin />} />
-        <Route path="/dash/chp-ctrl" element={<AdminDashboard />} />
+        <Route 
+          path="/dash/chp-ctrl" 
+          element={
+            <ProtectedRoute>
+              <AdminDashboard />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Public Routes */}
         <Route path="/thank-you" element={<ThankYou />} />
         <Route path="/payment-success" element={<PaymentSuccess />} />
         <Route path="*" element={<NotFound />} />

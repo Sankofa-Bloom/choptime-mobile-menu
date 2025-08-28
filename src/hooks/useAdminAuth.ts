@@ -6,34 +6,46 @@ import { AdminUser } from '@/types/admin';
 export const useAdminAuth = () => {
   const [admin, setAdmin] = useState<AdminUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [session, setSession] = useState<any>(null);
 
   useEffect(() => {
-    checkAdmin();
-  }, []);
-
-  const checkAdmin = async () => {
-    try {
-      setLoading(true);
-      // Check if admin is stored in localStorage (simple session management)
-      const storedAdmin = localStorage.getItem('choptym_admin');
-      if (storedAdmin) {
-        try {
-          const adminData = JSON.parse(storedAdmin);
-          setAdmin(adminData);
-        } catch (error) {
-          console.error('Error parsing stored admin data:', error);
-          localStorage.removeItem('choptym_admin');
-        }
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session) {
+        verifyAdminStatus(session.user.email);
+      } else {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Error checking admin status:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setSession(session);
+      if (session) {
+        await verifyAdminStatus(session.user.email);
+      } else {
+        setAdmin(null);
+        setLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const verifyAdminStatus = async (email: string) => {
     try {
+      setLoading(true);
+      
+      if (!email) {
+        setAdmin(null);
+        setLoading(false);
+        return;
+      }
+
+      // Verify admin status in admin_users table
       const { data: adminData, error } = await supabase
         .from('admin_users')
         .select('*')
@@ -41,20 +53,67 @@ export const useAdminAuth = () => {
         .eq('active', true)
         .single();
 
-      console.log('Admin verification result:', { adminData, error });
-
-      if (!error && adminData) {
+      if (error) {
+        console.error('Admin verification error:', error);
+        setAdmin(null);
+        // Sign out if admin verification fails
+        await supabase.auth.signOut();
+      } else if (adminData) {
         setAdmin(adminData);
       } else {
         setAdmin(null);
-        // Don't sign out automatically - let user handle it
-        if (error?.code !== 'PGRST116') {
-          console.error('Admin verification error:', error);
-        }
+        // Sign out if user is not an admin
+        await supabase.auth.signOut();
       }
     } catch (error) {
       console.error('Error verifying admin status:', error);
       setAdmin(null);
+      await supabase.auth.signOut();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loginWithEmail = async (email: string, password: string) => {
+    try {
+      setLoading(true);
+      setAdmin(null);
+
+      // Sign in with Supabase Auth
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        return { 
+          success: false, 
+          error: error.message 
+        };
+      }
+
+      if (data.user) {
+        // Verify admin status after successful auth
+        await verifyAdminStatus(data.user.email);
+        
+        if (admin) {
+          return { success: true };
+        } else {
+          // Sign out if not an admin
+          await supabase.auth.signOut();
+          return { 
+            success: false, 
+            error: 'Access denied. This account is not authorized as an admin.' 
+          };
+        }
+      }
+
+      return { success: false, error: 'Login failed' };
+    } catch (error: any) {
+      console.error('Login error:', error);
+      return { success: false, error: error.message || 'Login failed' };
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -159,56 +218,45 @@ export const useAdminAuth = () => {
     }
   };
 
-  const loginWithPin = async (pin: string) => {
+  const logoutAdmin = async () => {
     try {
       setLoading(true);
-      console.log('Attempting admin login with PIN');
-      
-      // Check if PIN matches
-      if (pin !== '1035') {
-        return { 
-          success: false, 
-          error: 'Invalid PIN' 
-        };
-      }
-
-      // Create admin data for session
-      const adminData = {
-        id: 'admin-pin-user',
-                  email: 'support@choptym.com',
-        role: 'admin',
-        active: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-
-      // Set admin data and store in localStorage for session management
-      setAdmin(adminData);
-              localStorage.setItem('choptym_admin', JSON.stringify(adminData));
-      return { success: true };
-      
-    } catch (error: any) {
-      console.error('Login error:', error);
-      return { success: false, error: error.message || 'Login failed' };
+      await supabase.auth.signOut();
+      setAdmin(null);
+      setSession(null);
+    } catch (error) {
+      console.error('Logout error:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const logoutAdmin = async () => {
+  const refreshSession = async () => {
     try {
-      localStorage.removeItem('choptym_admin');
-      setAdmin(null);
+      const { data, error } = await supabase.auth.refreshSession();
+      if (error) {
+        console.error('Session refresh error:', error);
+        await logoutAdmin();
+      } else if (data.session) {
+        setSession(data.session);
+        await verifyAdminStatus(data.session.user.email);
+      }
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('Session refresh failed:', error);
+      await logoutAdmin();
     }
   };
 
   return {
     admin,
+    session,
     loading,
-    loginWithPin,
+    loginWithEmail,
     logoutAdmin,
-    isAdmin: !!admin
+    createAdmin,
+    resetPassword,
+    refreshSession,
+    isAdmin: !!admin,
+    isAuthenticated: !!session
   };
 };
