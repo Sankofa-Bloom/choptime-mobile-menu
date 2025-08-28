@@ -13,7 +13,7 @@ export const checkPWAInstallability = () => {
     manifestLink: document.querySelector('link[rel="manifest"]')?.getAttribute('href'),
     installedState: {
       standalone: window.matchMedia('(display-mode: standalone)').matches,
-      webView: (navigator as any).standalone === true,
+      webView: (navigator as { standalone?: boolean }).standalone === true,
       localStorage: localStorage.getItem('pwa-prompt-dismissed')
     }
   };
@@ -77,7 +77,7 @@ export const debugPWAInstallPrompt = () => {
 
 // Add to window for easy debugging in console
 if (typeof window !== 'undefined') {
-  (window as any).pwaDebug = {
+  (window as Window & { pwaDebug?: typeof debugPWAInstallPrompt }).pwaDebug = {
     checkPWAInstallability,
     testManifestFetch,
     debugPWAInstallPrompt

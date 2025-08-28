@@ -53,7 +53,7 @@ export interface EmailConfig {
 }
 
 export const sendEmailViaEmailJS = async (
-  templateParams: any,
+  templateParams: Record<string, unknown>,
   config: EmailConfig = EMAILJS_CONFIG
 ): Promise<boolean> => {
   try {
@@ -113,7 +113,7 @@ export const sendEmailViaEmailJS = async (
     
     console.log('Email sent successfully:', response);
     return true;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error sending email via EmailJS:', error);
     
     // Provide specific error messages
@@ -166,7 +166,7 @@ export const isValidEmail = (email: string): boolean => {
 };
 
 // Email template helper
-export const createEmailTemplate = (template: string, data: any): string => {
+export const createEmailTemplate = (template: string, data: Record<string, unknown>): string => {
   return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
     return data[key] || match;
   });

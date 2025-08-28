@@ -1,6 +1,8 @@
 // Swychr Payment Service
 // Simple service for handling Swychr payment API calls
 
+import { Order, CustomOrder } from '@/types/restaurant';
+
 export interface SwychrPaymentRequest {
   country_code: string;
   name: string;
@@ -165,7 +167,7 @@ class SwychrService {
   /**
    * Store payment record in database for tracking
    */
-  async storePaymentRecord(orderData: any, transactionId: string): Promise<boolean> {
+  async storePaymentRecord(orderData: Order | CustomOrder, transactionId: string): Promise<boolean> {
     try {
       console.log('Swychr: Storing payment record', { transactionId });
 

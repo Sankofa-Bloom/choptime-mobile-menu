@@ -134,7 +134,7 @@ export class GenericEmailService {
       reply_to: 'support@choptym.com'
     };
 
-    return this.sendEmail(mappedParams as any);
+    return this.sendEmail(mappedParams);
   }
 
   /**
@@ -293,7 +293,7 @@ export class GenericEmailService {
       action_buttons: actionButtons
     };
 
-    return this.sendEmail(paramsWithActions as any);
+    return this.sendEmail(paramsWithActions);
   }
 
 }
