@@ -13,35 +13,14 @@ const PaymentSuccess: React.FC = () => {
   const [orderReference, setOrderReference] = useState<string>('');
   const [emailsSent, setEmailsSent] = useState(false);
 
-  useEffect(() => {
-    // Get order reference from URL parameters or localStorage
-    const urlParams = new URLSearchParams(location.search);
-    const reference = urlParams.get('reference') || localStorage.getItem('lastOrderReference');
-    
-    if (reference) {
-      setOrderReference(reference);
-      localStorage.removeItem('lastOrderReference'); // Clean up
-      
-      // Send confirmation emails
-      sendConfirmationEmails(reference);
-      
-      // Show success toast
-      toast({
-        title: "Payment Successful! 🎉",
-        description: `Your order (${reference}) has been confirmed. We'll notify you when it's ready for delivery.`,
-        variant: "default",
-      });
-    }
-  }, [location, toast, sendConfirmationEmails]);
-
   const sendConfirmationEmails = async (reference: string) => {
     if (emailsSent) return; // Prevent duplicate emails
-    
+
     try {
       // Get order details from localStorage or try to fetch from database
       const orderData = localStorage.getItem(`order_${reference}`);
       let parsedOrderData = null;
-      
+
       if (orderData) {
         try {
           parsedOrderData = JSON.parse(orderData);
@@ -78,7 +57,7 @@ const PaymentSuccess: React.FC = () => {
         });
 
         setEmailsSent(true);
-        
+
         console.log('Email sending results:', {
           customerEmail: customerEmailSent,
           adminEmail: adminEmailSent
@@ -118,7 +97,7 @@ const PaymentSuccess: React.FC = () => {
           totalAmount: '0 FCFA',
           deliveryAddress: 'Delivery Address'
         });
-        
+
         if (fallbackEmailSent) {
           setEmailsSent(true);
           toast({
@@ -132,11 +111,32 @@ const PaymentSuccess: React.FC = () => {
       console.error('Error sending confirmation emails:', error);
       toast({
         title: "Email Error",
-        description: "Failed to send confirmation emails. Please contact support.",
+        description: "There was an issue sending confirmation emails.",
         variant: "destructive",
       });
     }
   };
+
+  useEffect(() => {
+    // Get order reference from URL parameters or localStorage
+    const urlParams = new URLSearchParams(location.search);
+    const reference = urlParams.get('reference') || localStorage.getItem('lastOrderReference');
+    
+    if (reference) {
+      setOrderReference(reference);
+      localStorage.removeItem('lastOrderReference'); // Clean up
+      
+      // Send confirmation emails
+      sendConfirmationEmails(reference);
+      
+      // Show success toast
+      toast({
+        title: "Payment Successful! 🎉",
+        description: `Your order (${reference}) has been confirmed. We'll notify you when it's ready for delivery.`,
+        variant: "default",
+      });
+    }
+  }, [location, toast, sendConfirmationEmails]);
 
   const handleGoHome = () => {
     navigate('/');
