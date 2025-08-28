@@ -24,7 +24,7 @@ export const usePWAInstall = () => {
       }
       
       // Check if running in webview (installed on iOS)
-      if ((window.navigator as any).standalone === true) {
+      if ((window.navigator as { standalone?: boolean }).standalone === true) {
         setIsInstalled(true);
         return true;
       }

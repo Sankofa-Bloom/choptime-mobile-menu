@@ -93,7 +93,7 @@ const OrderManagement = () => {
   }).sort((a, b) => new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime());
 
   const handleStatusChange = async (
-    order: any,
+    order: { id: string; type: 'regular' | 'custom' },
     newStatus: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled'
   ) => {
     try {

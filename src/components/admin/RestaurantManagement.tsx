@@ -13,11 +13,12 @@ import { useAdminData } from '@/hooks/useAdminData';
 import { useToast } from '@/hooks/use-toast';
 import { RestaurantFormData } from '@/types/admin';
 import { supabase } from '@/integrations/supabase/client';
+import { Restaurant } from '@/types/restaurant';
 
 const RestaurantManagement = () => {
   const { restaurants, createRestaurant, updateRestaurant, deleteRestaurant, loading } = useAdminData();
   const { toast } = useToast();
-  const [editingRestaurant, setEditingRestaurant] = useState<any>(null);
+  const [editingRestaurant, setEditingRestaurant] = useState<Restaurant | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState<RestaurantFormData>({
     name: '',
@@ -114,7 +115,7 @@ const RestaurantManagement = () => {
     }
   };
 
-  const handleEdit = (restaurant: any) => {
+  const handleEdit = (restaurant: Restaurant) => {
     setEditingRestaurant(restaurant);
     setFormData({
       name: restaurant.name,
