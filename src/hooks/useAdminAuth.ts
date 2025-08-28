@@ -38,37 +38,68 @@ export const useAdminAuth = () => {
   const verifyAdminStatus = async (email: string) => {
     try {
       setLoading(true);
-      
+
       if (!email) {
         setAdmin(null);
         setLoading(false);
         return;
       }
 
-      // Verify admin status in admin_users table
-      const { data: adminData, error } = await supabase
-        .from('admin_users')
-        .select('*')
-        .eq('email', email)
-        .eq('active', true)
-        .single();
+      // Use RPC function to verify admin status (bypasses RLS issues)
+      const { data: adminResult, error: rpcError } = await supabase.rpc('verify_admin_status', {
+        check_email: email
+      });
 
-      if (error) {
-        console.error('Admin verification error:', error);
-        setAdmin(null);
-        // Sign out if admin verification fails
-        await supabase.auth.signOut();
-      } else if (adminData) {
+      if (rpcError) {
+        console.error('Admin verification RPC error:', rpcError);
+
+        // Fallback: Try direct query if RPC fails
+        try {
+          const { data: adminData, error: directError } = await supabase
+            .from('admin_users')
+            .select('*')
+            .eq('email', email)
+            .eq('active', true)
+            .single();
+
+          if (directError) {
+            console.error('Direct admin verification error:', directError);
+            setAdmin(null);
+            // Don't auto-signout on verification errors to avoid loops
+          } else if (adminData) {
+            console.log('Admin verified successfully (fallback):', adminData);
+            setAdmin(adminData);
+          } else {
+            console.log('No admin record found for:', email);
+            setAdmin(null);
+          }
+        } catch (fallbackError) {
+          console.error('Fallback admin verification failed:', fallbackError);
+          setAdmin(null);
+        }
+      } else if (adminResult && adminResult.is_admin) {
+        // Create admin object from RPC result
+        const adminData = {
+          id: adminResult.admin_id,
+          email: email,
+          role: adminResult.role || 'admin',
+          active: true,
+          created_at: adminResult.created_at
+        };
+        console.log('Admin verified successfully (RPC):', adminData);
         setAdmin(adminData);
       } else {
+        console.log('User is not an admin:', email);
         setAdmin(null);
-        // Sign out if user is not an admin
-        await supabase.auth.signOut();
+        // Only sign out if we got a definitive "not admin" response
+        if (adminResult && !adminResult.is_admin) {
+          await supabase.auth.signOut();
+        }
       }
     } catch (error) {
       console.error('Error verifying admin status:', error);
       setAdmin(null);
-      await supabase.auth.signOut();
+      // Don't auto-signout on errors to avoid auth loops
     } finally {
       setLoading(false);
     }
