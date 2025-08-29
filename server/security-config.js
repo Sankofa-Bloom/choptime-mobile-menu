@@ -62,9 +62,9 @@ const helmetConfig = {
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      imgSrc: ["'self'", "data:", "https:"],
+      imgSrc: ["'self'", "data:", "https:", "http:"], // Allow HTTP for development Supabase
       scriptSrc: ["'self'"],
-      connectSrc: ["'self'", "https://*.supabase.co", "https://api.fapshi.com", "https://api.campay.net"],
+      connectSrc: ["'self'", "https://*.supabase.co", "https://api.fapshi.com", "https://api.campay.net", "https://api.mapbox.com"],
       frameSrc: ["'none'"],
       objectSrc: ["'none'"],
       upgradeInsecureRequests: []

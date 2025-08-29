@@ -75,7 +75,59 @@ workbox-*.js
 # Supabase
 .supabase/
 
-# Documentation files (except README.md and deployment guides)
+# Documentation files (except main README and deployment guides)
 *.md
 !README.md
-!NETLIFY_DEPLOYMENT.md
+!docs/
+
+# Security and sensitive files
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
+secrets.json
+config/secrets.*
+*.secret
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+
+# Backup files
+*.bak
+*.backup
+*.orig
+*.old
+
+# Debug and temporary files
+debug-*
+test-*
+temp/
+*.debug
+*.tmp
+
+# Runtime files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+.fseventsd
+.DocumentRevisions-V100
+.fseventsd
+.TemporaryItems
+
+# Python cache (if any)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Java cache (if any)
+*.class
+*.jar
+
+# PHP cache (if any)
+.phpunit.result.cache

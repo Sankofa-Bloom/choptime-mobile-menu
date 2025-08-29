@@ -9,23 +9,32 @@ interface ProtectedRouteProps {
   redirectTo?: string;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
-  children, 
-  requireAuth = true, 
-  redirectTo = '/dash/login' 
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  children,
+  requireAuth = true,
+  redirectTo = '/dash/login'
 }) => {
-  const { admin, loading, isAuthenticated } = useAdminAuth();
+  const { admin, loading, isInitializing, isAuthenticated } = useAdminAuth();
   const location = useLocation();
 
-  // Show loading spinner while checking authentication
-  if (loading) {
+  // Show loading spinner only during initial authentication check
+  if (isInitializing) {
     return (
-      <ChopTymLoader 
+      <ChopTymLoader
         size="lg"
         message="Verifying access..."
         subMessage="Checking admin permissions"
         fullScreen={true}
       />
+    );
+  }
+
+  // If still loading but not initializing, show a minimal loading state
+  if (loading && !isInitializing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-choptym-beige via-orange-50 to-yellow-50">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+      </div>
     );
   }
 

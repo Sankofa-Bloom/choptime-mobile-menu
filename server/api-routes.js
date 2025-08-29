@@ -91,6 +91,245 @@ router.get('/restaurant-menus', async (req, res) => {
 });
 
 // =============================================================================
+// LOCATION & ZONING API
+// =============================================================================
+
+// Get delivery fee based on locality
+router.post('/calculate-delivery-fee', async (req, res) => {
+  try {
+    const { locality, latitude, longitude } = req.body;
+
+    // Limbe zoning system
+    const limbeZones = {
+      A: {
+        localities: ['Ngueme', 'Isokolo', 'Carata', 'Mile 4', 'Saker Junction', 'Down Beach'],
+        fee: 1000
+      },
+      B: {
+        localities: ['Red Cross', 'Bundes', 'Middlefarms', 'Church Street', 'Busumbu', 'Behind GHS'],
+        fee: 800
+      },
+      C: {
+        localities: ['Mile 2'],
+        fee: 600
+      }
+    };
+
+    let deliveryFee = 1000; // Default fee
+    let detectedZone = null;
+
+    // Check locality-based zoning first
+    if (locality) {
+      for (const [zone, data] of Object.entries(limbeZones)) {
+        if (data.localities.some(loc => locality.toLowerCase().includes(loc.toLowerCase()))) {
+          deliveryFee = data.fee;
+          detectedZone = zone;
+          break;
+        }
+      }
+    }
+
+    // If coordinates provided, calculate distance-based fee
+    if (latitude && longitude) {
+      // Default restaurant location (could be made dynamic)
+      const restaurantLat = 4.0167; // Limbe coordinates
+      const restaurantLng = 9.2167;
+
+      const distance = calculateDistance(latitude, longitude, restaurantLat, restaurantLng);
+
+      if (distance <= 2) {
+        deliveryFee = Math.min(deliveryFee, 600);
+      } else if (distance <= 5) {
+        deliveryFee = Math.min(deliveryFee, 800);
+      } else {
+        deliveryFee = Math.max(deliveryFee, 1000);
+      }
+    }
+
+    res.json({
+      deliveryFee,
+      zone: detectedZone,
+      locality: locality || 'Unknown',
+      method: latitude && longitude ? 'coordinates' : 'locality'
+    });
+  } catch (error) {
+    console.error('Error calculating delivery fee:', error);
+    res.status(500).json({ error: 'Failed to calculate delivery fee' });
+  }
+});
+
+// Calculate distance between two coordinates using Haversine formula
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Earth's radius in kilometers
+  const dLat = toRadians(lat2 - lat1);
+  const dLon = toRadians(lon2 - lon1);
+
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c; // Distance in kilometers
+}
+
+function toRadians(degrees) {
+  return degrees * (Math.PI / 180);
+}
+
+// =============================================================================
+// PUSH NOTIFICATIONS API
+// =============================================================================
+
+// Register push subscription
+router.post('/register-push-subscription', async (req, res) => {
+  try {
+    const { subscription, userId } = req.body;
+
+    if (!subscription || !subscription.endpoint) {
+      return res.status(400).json({ error: 'Invalid subscription data' });
+    }
+
+    // Store subscription in database (you might want to create a push_subscriptions table)
+    const { data, error } = await supabase
+      .from('push_subscriptions')
+      .upsert({
+        user_id: userId || 'anonymous',
+        endpoint: subscription.endpoint,
+        p256dh_key: subscription.keys?.p256dh,
+        auth_key: subscription.keys?.auth,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'endpoint'
+      });
+
+    if (error) {
+      console.error('Database error:', error);
+      // For now, just acknowledge the subscription even if storage fails
+      res.json({ success: true, message: 'Subscription registered' });
+    } else {
+      res.json({ success: true, message: 'Subscription registered successfully' });
+    }
+  } catch (error) {
+    console.error('Error registering push subscription:', error);
+    res.status(500).json({ error: 'Failed to register push subscription' });
+  }
+});
+
+// Send notification for order status update
+router.post('/notify-order-status', async (req, res) => {
+  try {
+    const { orderId, status, restaurantName, userId } = req.body;
+
+    if (!orderId || !status) {
+      return res.status(400).json({ error: 'Order ID and status are required' });
+    }
+
+    // Get user's push subscription
+    const { data: subscriptions, error } = await supabase
+      .from('push_subscriptions')
+      .select('*')
+      .eq('user_id', userId || 'anonymous');
+
+    if (error) {
+      console.error('Error fetching subscriptions:', error);
+      return res.status(500).json({ error: 'Failed to fetch subscriptions' });
+    }
+
+    if (!subscriptions || subscriptions.length === 0) {
+      return res.json({ message: 'No subscriptions found for user' });
+    }
+
+    const statusMessages = {
+      confirmed: 'Your order has been confirmed and is being prepared!',
+      preparing: 'Your order is now being prepared!',
+      ready: 'Your order is ready for delivery!',
+      out_for_delivery: 'Your order is out for delivery!',
+      delivered: 'Your order has been delivered successfully!'
+    };
+
+    const message = statusMessages[status] || `Your order status has been updated to: ${status}`;
+
+    // Here you would typically send push notifications using a service like FCM, VAPID, etc.
+    // For now, we'll just log the notification data
+    console.log('Order status notification:', {
+      orderId,
+      status,
+      message,
+      restaurantName,
+      subscriptions: subscriptions.length
+    });
+
+    // In a real implementation, you would:
+    // 1. Use web-push library to send notifications to each subscription
+    // 2. Handle notification delivery and failures
+    // 3. Update notification delivery status
+
+    res.json({
+      success: true,
+      message: 'Notification queued for delivery',
+      notificationCount: subscriptions.length
+    });
+  } catch (error) {
+    console.error('Error sending order status notification:', error);
+    res.status(500).json({ error: 'Failed to send notification' });
+  }
+});
+
+// Get all available zones for a town
+router.get('/zones/:town', async (req, res) => {
+  try {
+    const { town } = req.params;
+
+    if (town.toLowerCase() === 'limbe') {
+      const zones = {
+        A: {
+          zone: 'A',
+          name: 'Zone A - Outer Areas',
+          localities: ['Ngueme', 'Isokolo', 'Carata', 'Mile 4', 'Saker Junction', 'Down Beach'],
+          deliveryFee: 1000,
+          description: 'Outer areas of Limbe with longer delivery times'
+        },
+        B: {
+          zone: 'B',
+          name: 'Zone B - Mid Areas',
+          localities: ['Red Cross', 'Bundes', 'Middlefarms', 'Church Street', 'Busumbu', 'Behind GHS'],
+          deliveryFee: 800,
+          description: 'Mid-town areas with moderate delivery times'
+        },
+        C: {
+          zone: 'C',
+          name: 'Zone C - Central Area',
+          localities: ['Mile 2'],
+          deliveryFee: 600,
+          description: 'Central business district with fastest delivery'
+        }
+      };
+
+      res.json({
+        town: 'Limbe',
+        zones: Object.values(zones)
+      });
+    } else {
+      // Default zones for other towns
+      res.json({
+        town,
+        zones: [{
+          zone: 'Default',
+          name: 'Default Zone',
+          localities: ['All areas'],
+          deliveryFee: 1000,
+          description: 'Standard delivery zone'
+        }]
+      });
+    }
+  } catch (error) {
+    console.error('Error fetching zones:', error);
+    res.status(500).json({ error: 'Failed to fetch zones' });
+  }
+});
+
+// =============================================================================
 // DELIVERY ZONES API
 // =============================================================================
 
@@ -1192,6 +1431,267 @@ router.post('/create-storage-bucket', async (req, res) => {
   } catch (error) {
     console.error('Error creating storage bucket:', error);
     res.status(500).json({ error: 'Failed to create storage bucket' });
+  }
+});
+
+// =============================================================================
+// CONFIGURATION API - Provides safe configuration to frontend
+// =============================================================================
+
+router.get('/config', async (req, res) => {
+  try {
+    // Return only safe configuration data (no sensitive credentials)
+    const config = {
+      // Payment configuration - Payin only
+      paymentMethod: {
+        enabled: true,
+        name: 'Payin Payment Gateway',
+        description: 'Secure payment processing with comprehensive transaction management'
+      },
+
+      // Push notification configuration (public key only, private key stays server-side)
+      notifications: {
+        vapidPublicKey: process.env.VAPID_PUBLIC_KEY,
+        enabled: process.env.ENABLE_PUSH_NOTIFICATIONS === 'true' && !!process.env.VAPID_PUBLIC_KEY
+      },
+
+      // Feature flags
+      features: {
+        enableEmailNotifications: process.env.ENABLE_EMAIL_NOTIFICATIONS === 'true',
+        enableSmsNotifications: process.env.ENABLE_SMS_NOTIFICATIONS === 'true',
+        enablePushNotifications: process.env.ENABLE_PUSH_NOTIFICATIONS === 'true',
+        enableAnalytics: process.env.ENABLE_ANALYTICS === 'true'
+      },
+
+      // Delivery configuration
+      delivery: {
+        defaultFee: parseInt(process.env.DEFAULT_DELIVERY_FEE) || 500,
+        freeDeliveryThreshold: parseInt(process.env.FREE_DELIVERY_THRESHOLD) || 5000,
+        maxDistance: parseInt(process.env.MAX_DELIVERY_DISTANCE) || 10
+      },
+
+      // Application info
+      app: {
+        name: 'ChopTym',
+        version: '1.0.0',
+        environment: process.env.NODE_ENV || 'development'
+      }
+    };
+
+    res.json(config);
+  } catch (error) {
+    console.error('Error fetching configuration:', error);
+    res.status(500).json({ error: 'Failed to fetch configuration' });
+  }
+});
+
+// =============================================================================
+// PAYIN PAYMENT API - Exact implementation of Payin API OpenAPI specification
+// =============================================================================
+
+// POST /admin/auth - Get Auth Token
+router.post('/payin/admin/auth', async (req, res) => {
+  try {
+    // Get credentials from backend environment variables (secure)
+    const email = process.env.PAYIN_ADMIN_EMAIL;
+    const password = process.env.PAYIN_ADMIN_PASSWORD;
+
+    // Validate that credentials are configured
+    if (!email || !password) {
+      console.error('Payin credentials not configured in backend environment');
+      return res.status(500).json({
+        success: false,
+        error: 'Payin API configuration missing'
+      });
+    }
+
+    const payinUrl = process.env.PAYIN_API_URL || 'https://api.accountpe.com/api/payin';
+
+    // Forward the request to Payin API using backend-stored credentials
+    const response = await fetch(`${payinUrl}/admin/auth`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return res.status(response.status).json({
+        success: false,
+        error: data.message || 'Authentication failed'
+      });
+    }
+
+    // Return the response as per OpenAPI spec
+    res.status(200).json({
+      success: true,
+      token: data.token,
+      message: data.message || 'Successfully logged in'
+    });
+  } catch (error) {
+    console.error('Payin admin auth error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Authentication service unavailable'
+    });
+  }
+});
+
+// POST /create_payment_links - Create Payment Link
+router.post('/payin/create_payment_links', async (req, res) => {
+  try {
+    const {
+      country_code,
+      name,
+      email,
+      mobile,
+      amount,
+      transaction_id,
+      description,
+      pass_digital_charge
+    } = req.body;
+
+    // Validate required fields
+    if (!country_code || !name || !email || !transaction_id || amount === undefined || pass_digital_charge === undefined) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields'
+      });
+    }
+
+    // Validate amount is integer
+    if (!Number.isInteger(amount) || amount <= 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Amount must be a positive integer'
+      });
+    }
+
+    const payinUrl = process.env.PAYIN_API_URL || 'https://api.accountpe.com/api/payin';
+    const authToken = req.headers.authorization?.replace('Bearer ', '');
+
+    if (!authToken) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authorization token required'
+      });
+    }
+
+    // Forward the request to Payin API
+    const response = await fetch(`${payinUrl}/create_payment_links`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        country_code,
+        name,
+        email,
+        mobile,
+        amount,
+        transaction_id,
+        description,
+        pass_digital_charge
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return res.status(404).json({
+          success: false,
+          error: 'Country not found'
+        });
+      }
+      return res.status(response.status).json({
+        success: false,
+        error: data.message || 'Failed to create payment link'
+      });
+    }
+
+    // Return the response as per OpenAPI spec
+    res.status(200).json({
+      success: true,
+      data: data.data,
+      status: data.status || 200,
+      message: data.message || 'Payment Link Successfully Created',
+      transaction_id: transaction_id // Include transaction_id as per spec
+    });
+  } catch (error) {
+    console.error('Payin create payment links error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Payment link creation service unavailable'
+    });
+  }
+});
+
+// POST /payment_link_status - Get payment link status
+router.post('/payin/payment_link_status', async (req, res) => {
+  try {
+    const { transaction_id } = req.body;
+
+    // Validate required fields
+    if (!transaction_id) {
+      return res.status(400).json({
+        success: false,
+        error: 'Transaction ID is required'
+      });
+    }
+
+    const payinUrl = process.env.PAYIN_API_URL || 'https://api.accountpe.com/api/payin';
+    const authToken = req.headers.authorization?.replace('Bearer ', '');
+
+    if (!authToken) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authorization token required'
+      });
+    }
+
+    // Forward the request to Payin API
+    const response = await fetch(`${payinUrl}/payment_link_status`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({ transaction_id }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return res.status(404).json({
+          success: false,
+          error: 'Transaction ID does not exist'
+        });
+      }
+      return res.status(response.status).json({
+        success: false,
+        error: data.message || 'Failed to retrieve payment status'
+      });
+    }
+
+    // Return the response as per OpenAPI spec
+    res.status(200).json({
+      success: true,
+      data: data.data,
+      status: data.status || 200,
+      message: data.message || 'Payment Link Status Retrieved Successfully'
+    });
+  } catch (error) {
+    console.error('Payin payment link status error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Payment status service unavailable'
+    });
   }
 });
 

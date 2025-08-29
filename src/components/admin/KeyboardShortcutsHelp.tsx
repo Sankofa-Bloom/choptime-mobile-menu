@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -85,15 +85,28 @@ const KeyboardShortcutsHelp: React.FC<KeyboardShortcutsHelpProps> = ({
    */
   const getShortcutDisplay = (shortcut: KeyboardShortcut): string => {
     const parts: string[] = [];
-    
+
     if (shortcut.ctrl) parts.push('Ctrl');
     if (shortcut.shift) parts.push('Shift');
     if (shortcut.alt) parts.push('Alt');
     if (shortcut.meta) parts.push('⌘');
-    
+
     parts.push(shortcut.key.toUpperCase());
-    
+
     return parts.join(' + ');
+  };
+
+  /**
+   * Generate unique key for a shortcut
+   */
+  const getShortcutKey = (shortcut: KeyboardShortcut): string => {
+    const modifiers = [];
+    if (shortcut.ctrl) modifiers.push('ctrl');
+    if (shortcut.shift) modifiers.push('shift');
+    if (shortcut.alt) modifiers.push('alt');
+    if (shortcut.meta) modifiers.push('meta');
+
+    return `${shortcut.key}-${modifiers.join('-')}`;
   };
 
   /**
@@ -117,8 +130,8 @@ const KeyboardShortcutsHelp: React.FC<KeyboardShortcutsHelpProps> = ({
   const handleShortcutSave = () => {
     if (!editingShortcut || !newShortcut.key || !newShortcut.description) return;
     
-    const updatedShortcuts = customShortcuts.map(s => 
-      s.id === editingShortcut.id 
+    const updatedShortcuts = customShortcuts.map(s =>
+      getShortcutKey(s) === getShortcutKey(editingShortcut!)
         ? { ...s, ...newShortcut }
         : s
     );
@@ -133,8 +146,8 @@ const KeyboardShortcutsHelp: React.FC<KeyboardShortcutsHelpProps> = ({
   /**
    * Handle shortcut delete
    */
-  const handleShortcutDelete = (shortcutId: string) => {
-    const updatedShortcuts = customShortcuts.filter(s => s.id !== shortcutId);
+  const handleShortcutDelete = (shortcutKey: string) => {
+    const updatedShortcuts = customShortcuts.filter(s => getShortcutKey(s) !== shortcutKey);
     setCustomShortcuts(updatedShortcuts);
     onShortcutsChange?.(updatedShortcuts);
   };
@@ -175,11 +188,11 @@ const KeyboardShortcutsHelp: React.FC<KeyboardShortcutsHelpProps> = ({
    * Render shortcut item
    */
   const renderShortcutItem = (shortcut: KeyboardShortcut, isCustomizing: boolean = false) => {
-    const isEditing = editingShortcut?.id === shortcut.id;
+    const isEditing = editingShortcut && getShortcutKey(editingShortcut) === getShortcutKey(shortcut);
     
     if (isEditing) {
       return (
-        <div key={shortcut.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border">
+        <div key={getShortcutKey(shortcut)} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border">
           <div className="flex-1 space-y-2">
             <Input
               placeholder="Key (e.g., n, f, Delete)"
@@ -242,7 +255,7 @@ const KeyboardShortcutsHelp: React.FC<KeyboardShortcutsHelpProps> = ({
     }
     
     return (
-      <div key={shortcut.id} className="flex items-center justify-between p-3 bg-white rounded-lg border hover:bg-gray-50">
+      <div key={getShortcutKey(shortcut)} className="flex items-center justify-between p-3 bg-white rounded-lg border hover:bg-gray-50">
         <div className="flex items-center gap-4">
           <Badge variant="outline" className="font-mono text-sm">
             {getShortcutDisplay(shortcut)}
@@ -262,7 +275,7 @@ const KeyboardShortcutsHelp: React.FC<KeyboardShortcutsHelpProps> = ({
             <Button
               size="sm"
               variant="outline"
-              onClick={() => handleShortcutDelete(shortcut.id!)}
+              onClick={() => handleShortcutDelete(getShortcutKey(shortcut))}
               className="text-red-600 hover:text-red-700"
             >
               <Trash2 className="h-4 w-4" />
@@ -276,13 +289,17 @@ const KeyboardShortcutsHelp: React.FC<KeyboardShortcutsHelpProps> = ({
   /**
    * Render shortcut group
    */
-  const renderShortcutGroup = (group: ShortcutGroup) => (
-    <div key={group.name} className="space-y-3">
+  const renderShortcutGroup = (group: ShortcutGroup, key: string) => (
+    <div key={key} className="space-y-3">
       <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
         {group.name}
       </h3>
       <div className="space-y-2">
-        {group.shortcuts.map(shortcut => renderShortcutItem(shortcut, isCustomizing))}
+        {group.shortcuts.map(shortcut => (
+          <div key={getShortcutKey(shortcut)}>
+            {renderShortcutItem(shortcut, isCustomizing)}
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -313,6 +330,9 @@ const KeyboardShortcutsHelp: React.FC<KeyboardShortcutsHelpProps> = ({
               {shortcuts.length} shortcuts
             </Badge>
           </DialogTitle>
+          <DialogDescription>
+            View and customize keyboard shortcuts for efficient navigation and actions.
+          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-6">
@@ -369,7 +389,9 @@ const KeyboardShortcutsHelp: React.FC<KeyboardShortcutsHelpProps> = ({
           
           {/* Shortcuts List */}
           <div className="space-y-6">
-            {groupedShortcuts.map(renderShortcutGroup)}
+            {groupedShortcuts.map(group =>
+              renderShortcutGroup(group, group.name)
+            )}
           </div>
           
           {/* Help Text */}

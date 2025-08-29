@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import ChopTymLoader from '@/components/ui/ChopTymLoader';
 import { Order, CustomOrder } from '@/types/restaurant';
 import { toast } from '@/components/ui/use-toast';
+import notificationService from '@/utils/notificationService';
 
 const OrderManagement = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -103,6 +104,38 @@ const OrderManagement = () => {
         .update({ status: newStatus })
         .eq('id', order.id);
       if (error) throw error;
+
+      // Send push notification to customer
+      try {
+        const restaurantName = order.restaurant_name || 'ChopTym';
+        await notificationService.notifyOrderStatusUpdate(
+          order.id,
+          newStatus,
+          restaurantName
+        );
+      } catch (notificationError) {
+        console.error('Failed to send notification:', notificationError);
+        // Don't fail the status update if notification fails
+      }
+
+      // Also send notification via backend API
+      try {
+        await fetch('/api/notify-order-status', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            orderId: order.id,
+            status: newStatus,
+            restaurantName: order.restaurant_name || 'ChopTym',
+            userId: order.user_email || 'anonymous' // Use email as user ID if available
+          })
+        });
+      } catch (apiError) {
+        console.error('Failed to send backend notification:', apiError);
+      }
+
       toast({
         title: 'Status Updated',
         description: `Order status updated to ${newStatus}.`,

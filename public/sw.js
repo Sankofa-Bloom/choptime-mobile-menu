@@ -65,16 +65,66 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Push notification support (future feature)
+// Push notification support
 self.addEventListener('push', (event) => {
+  let data = {};
+
+  if (event.data) {
+    try {
+      data = event.data.json();
+    } catch (e) {
+      data = { body: event.data.text() };
+    }
+  }
+
   const options = {
-            body: event.data ? event.data.text() : 'Your ChopTym order is ready!',
-    icon: '/logo.png',
-    badge: '/logo.png',
-          tag: 'choptym-notification'
+    body: data.body || 'Your ChopTym order status has been updated!',
+    icon: data.icon || '/logo-192.png',
+    badge: data.badge || '/logo-192.png',
+    tag: data.tag || 'choptym-notification',
+    data: data.data || {},
+    requireInteraction: data.requireInteraction !== false,
+    silent: data.silent || false,
+    actions: data.actions || [
+      {
+        action: 'view',
+        title: 'View Order'
+      }
+    ],
+    vibrate: [200, 100, 200]
   };
 
   event.waitUntil(
-    self.registration.showNotification('ChopTym', options)
+    self.registration.showNotification(data.title || 'ChopTym', options)
   );
+});
+
+// Handle notification clicks
+self.addEventListener('notificationclick', (event) => {
+  console.log('Notification clicked:', event);
+
+  event.notification.close();
+
+  if (event.action === 'view') {
+    // Open the app and navigate to orders page
+    event.waitUntil(
+      clients.openWindow('/?tab=orders')
+    );
+  } else {
+    // Default action - open the app
+    event.waitUntil(
+      clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+        if (clientList.length > 0) {
+          const client = clientList[0];
+          return client.focus();
+        }
+        return clients.openWindow('/');
+      })
+    );
+  }
+});
+
+// Handle notification close
+self.addEventListener('notificationclose', (event) => {
+  console.log('Notification closed:', event);
 });

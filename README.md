@@ -1,241 +1,328 @@
-# ChopTym - Authentic Cameroonian Cuisine Delivery
+# 🚀 ChopTym - Cameroonian Food Delivery PWA
 
-A modern, production-ready food delivery application specializing in authentic Cameroonian cuisine. Built with React, TypeScript, and Supabase.
+> **Version 1.0.0** - Production Ready
 
-## 🚀 Features
+Authentic Cameroonian cuisine delivered fresh to your doorstep. A modern, secure, and scalable food delivery Progressive Web App (PWA) built with React, TypeScript, and Supabase.
 
-- **Modern UI/UX** - Beautiful, responsive design with African-inspired patterns
-- **Real-time Ordering** - Live order tracking and status updates
-- **Secure Payments** - Integrated Swychr payment gateway
-- **Email Notifications** - Automated order confirmations and admin alerts
-- **PWA Support** - Installable as a mobile app
-- **Multi-town Delivery** - Support for Buea and Limbe
-- **Admin Dashboard** - Complete order management system
-- **Performance Optimized** - Fast loading with code splitting and caching
+[![Node.js](https://img.shields.io/badge/Node.js-20+-green.svg)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/React-18+-blue.svg)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5+-blue.svg)](https://www.typescriptlang.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-2+-green.svg)](https://supabase.com/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://docker.com/)
 
-## 🛠️ Tech Stack
+## ✨ Features
 
-- **Frontend**: React 18, TypeScript, Vite
-- **UI Components**: Radix UI, Tailwind CSS
-- **Backend**: Node.js, Express
-- **Database**: Supabase (PostgreSQL)
-- **Payments**: Swychr API
-- **Email**: Nodemailer with Gmail SMTP
-- **Deployment**: Netlify ready
+- 🍲 **Authentic Cameroonian Cuisine** - Traditional dishes from local restaurants
+- 📱 **Progressive Web App** - Installable, offline-capable mobile experience
+- 🚀 **Real-time Updates** - Live order tracking and notifications
+- 💳 **Multiple Payment Options** - Campay, Fapshi, and cash payments
+- 🛡️ **Enterprise Security** - Production-grade security and authentication
+- 📊 **Admin Dashboard** - Comprehensive restaurant and order management
+- 🌍 **Multi-town Support** - Service coverage across Cameroon
+- 🔄 **Real-time Delivery Tracking** - GPS-based delivery updates
 
-## 📦 Installation
+## 🏗️ Architecture
+
+```
+choptym-mobile-menu/
+├── src/                    # Frontend React Application
+│   ├── components/         # Reusable UI Components
+│   ├── pages/             # Page Components
+│   ├── hooks/             # Custom React Hooks
+│   ├── utils/             # Utility Functions
+│   └── types/             # TypeScript Type Definitions
+├── server/                # Backend API Server
+│   ├── src/
+│   │   ├── routes/        # API Route Modules
+│   │   ├── middleware/    # Express Middleware
+│   │   ├── config/        # Configuration Files
+│   │   ├── utils/         # Server Utilities
+│   │   └── validators/    # Input Validation
+│   └── logs/              # Application Logs
+├── config/                # Application Configuration
+├── scripts/               # Build and Deployment Scripts
+├── docs/                  # Documentation
+└── public/                # Static Assets
+```
+
+## 🚀 Quick Start
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 20+
 - npm or yarn
 - Supabase account
-- Swychr payment account
-- Gmail account (for email notifications)
+- Payment processor accounts (optional)
 
-### Setup
+### Installation
 
 1. **Clone the repository**
    ```bash
    git clone https://github.com/Sankofa-Bloom/choptym-mobile-menu.git
-cd choptym-mobile-menu
+   cd choptym-mobile-menu
    ```
 
 2. **Install dependencies**
    ```bash
+   # Frontend
    npm install
-   cd server && npm install
-   cd ..
+
+   # Backend
+   cd server && npm install && cd ..
    ```
 
-3. **Environment Configuration**
+3. **Environment setup**
    ```bash
-   # Quick setup for development (recommended)
-   ./setup-env.sh development
-   
-   # Or setup for production
-   ./setup-env.sh production
-   
-   # Manual setup (alternative)
-   cp .env.development .env
-   cp server/.env.development server/.env
+   # Copy environment files
+   cp config/production.env.example .env
+   cd server && cp ../config/production.env.example .env && cd ..
    ```
 
-4. **Database Setup**
-   ```bash
-   # Push database migrations
-   npx supabase db push
+4. **Configure environment variables**
+   Edit `.env` and `server/.env` with your production values
+
+5. **Database setup**
+   Run the SQL script in your Supabase dashboard:
+   ```sql
+   -- Execute: final-delivery-fee-fix.sql
+   -- This creates the required database tables
    ```
 
-5. **Start Development**
+6. **Start development server**
    ```bash
-   # Start frontend and backend
    npm run dev:full
-   
-   # Or start separately
-   npm run dev          # Frontend only
-   npm run server       # Backend only
-   
-   # Environment switching
-   ./setup-env.sh development  # Switch to development
-   ./setup-env.sh production   # Switch to production
    ```
 
-## 🔧 Configuration
+## 📱 Usage
 
-### Environment Variables
+### For Customers
 
-#### Frontend (.env)
-```env
-# Supabase
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+1. **Browse Menu**: Explore authentic Cameroonian dishes
+2. **Add to Cart**: Select items from multiple restaurants
+3. **Choose Location**: Set delivery address with GPS
+4. **Secure Payment**: Pay with mobile money or card
+5. **Track Delivery**: Real-time GPS tracking
+6. **Install PWA**: Add to home screen for app-like experience
 
-# Payment
-VITE_DEFAULT_PAYMENT_METHOD=swychr
+### For Restaurants
 
-# Admin
-VITE_ADMIN_EMAIL=admin@yourdomain.com
-VITE_ADMIN_PHONE=+1234567890
+1. **Register**: Create restaurant profile
+2. **Manage Menu**: Add/update dishes with photos
+3. **Receive Orders**: Real-time order notifications
+4. **Track Revenue**: Comprehensive sales analytics
+5. **Manage Delivery**: Coordinate with delivery drivers
+
+### For Admins
+
+1. **Dashboard Access**: Secure admin login
+2. **Manage Restaurants**: Approve and monitor restaurants
+3. **Order Oversight**: Track all orders and payments
+4. **Analytics**: Revenue and performance metrics
+5. **Settings**: Configure delivery fees and zones
+
+## 🔧 Development
+
+### Available Scripts
+
+```bash
+# Development
+npm run dev              # Start frontend dev server
+npm run dev:full         # Start both frontend and backend
+npm run server           # Start backend only
+
+# Building
+npm run build            # Build for development
+npm run build:prod       # Build for production
+npm run build:staging    # Build for staging
+
+# Testing
+npm run test            # Run tests
+npm run test:coverage   # Run tests with coverage
+npm run type-check      # TypeScript type checking
+
+# Linting & Quality
+npm run lint            # Run ESLint
+npm run lint:fix        # Fix linting issues
+npm run security:audit  # Security audit
+
+# Deployment
+npm run deploy          # Production deployment
+npm run docker:build    # Build Docker image
+npm run docker:up       # Start with Docker Compose
 ```
 
-#### Backend (server/.env)
-```env
-# SMTP Configuration
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your_email@gmail.com
-SMTP_PASS=your_app_password
+### Project Structure
 
-# Admin
-ADMIN_EMAIL=admin@yourdomain.com
-ADMIN_PHONE=+1234567890
-
-# Swychr API
-SWYCHR_EMAIL=your_swychr_email@example.com
-SWYCHR_PASSWORD=your_swychr_password
 ```
+src/
+├── components/          # Reusable UI components
+│   ├── ui/             # Base UI components (shadcn/ui)
+│   ├── admin/          # Admin dashboard components
+│   └── common/         # Shared components
+├── pages/              # Page components
+├── hooks/              # Custom React hooks
+├── utils/              # Utility functions
+├── types/              # TypeScript definitions
+└── integrations/       # External service integrations
 
-### Payment Setup
-
-1. **Swychr Configuration**
-   - Sign up at [Swychr/AccountPe](https://www.accountpe.com/)
-   - Get your API credentials (email/password)
-   - Contact support to enable API access
-   - Test in sandbox mode first
-
-2. **Gmail SMTP Setup**
-   - Enable 2-Factor Authentication
-   - Generate App Password
-   - Use App Password in SMTP configuration
+server/src/
+├── routes/             # API route modules
+├── middleware/         # Express middleware
+├── config/             # Server configuration
+├── utils/              # Server utilities
+└── validators/         # Input validation
+```
 
 ## 🚀 Deployment
 
-### Netlify (Recommended)
+### Production Deployment
 
-1. **Deploy via Git**
-   - Go to [netlify.com](https://netlify.com)
-   - Connect GitHub repository: `Sankofa-Bloom/choptime-mobile-menu`
-   - Auto-deploys from main branch
+1. **Automated Deployment**
+   ```bash
+   ./scripts/deploy-production.sh
+   ```
 
-2. **Environment Variables**
-   - Add all environment variables in Netlify dashboard
-   - Set `NODE_ENV=production`
+2. **Manual Deployment**
+   ```bash
+   # Build for production
+   npm run build:prod
 
-3. **Build Settings**
-   - Build Command: `npm run build:prod`
-   - Output Directory: `dist`
-   - Install Command: `npm install`
+   # Start production server
+   npm run serve
+   ```
 
-### Netlify
+3. **Docker Deployment**
+   ```bash
+   # Build and run with Docker
+   docker-compose up -d
+   ```
 
-1. **Deploy Settings**
-   - Build Command: `npm run build:prod`
-   - Publish Directory: `dist`
-   - Node Version: `18`
+### Environment Configuration
 
-2. **Environment Variables**
-   - Add all environment variables in Netlify dashboard
+Production environment variables are documented in `config/production.env.example`
 
-### Server Deployment
+### Deployment Checklist
 
-The backend server can be deployed to:
-- Railway
-- Heroku
-- DigitalOcean
-- AWS EC2
+- [ ] Environment variables configured
+- [ ] SSL certificates installed
+- [ ] Database backups configured
+- [ ] Monitoring and logging set up
+- [ ] CDN configured for static assets
+- [ ] Security headers enabled
+- [ ] Performance optimizations applied
 
-## 📱 PWA Features
+## 🛡️ Security
 
-- **Installable** - Add to home screen
-- **Offline Support** - Basic offline functionality
-- **Push Notifications** - Order updates
-- **App-like Experience** - Native feel
+### Features
 
-## 🔒 Security
+- **Content Security Policy (CSP)** - Prevents XSS attacks
+- **Rate Limiting** - Protects against brute force attacks
+- **Input Validation** - Sanitizes all user inputs
+- **HTTPS Only** - Forces secure connections
+- **Secure Headers** - Comprehensive security headers
+- **Authentication** - Secure user authentication
+- **Authorization** - Role-based access control
 
-- **Environment Variables** - No sensitive data in code
-- **CORS Configuration** - Proper cross-origin settings
-- **Input Validation** - Zod schema validation
-- **SQL Injection Protection** - Supabase ORM
-- **XSS Protection** - React built-in protection
+### Security Configuration
+
+Security settings are configured in `config/security.js`:
+
+```javascript
+// Example security configuration
+const securityConfig = {
+  csp: { /* Content Security Policy */ },
+  headers: { /* Security headers */ },
+  rateLimit: { /* Rate limiting */ },
+  validation: { /* Input validation */ },
+  auth: { /* Authentication settings */ }
+};
+```
 
 ## 📊 Performance
 
-- **Code Splitting** - Automatic chunk optimization
-- **Lazy Loading** - Component-level lazy loading
-- **Image Optimization** - WebP format support
-- **Caching** - Service worker caching
-- **Bundle Analysis** - `npm run analyze`
+### Optimizations
 
-## 🧪 Testing
+- **Code Splitting** - Lazy loading of routes and components
+- **Bundle Optimization** - Tree shaking and minification
+- **Image Optimization** - WebP format with fallbacks
+- **Caching** - Aggressive caching strategies
+- **Compression** - Gzip and Brotli compression
+- **CDN** - Static asset delivery via CDN
 
-```bash
-# Type checking
-npm run type-check
+### Monitoring
 
-# Linting
-npm run lint
-npm run lint:fix
+- **Real-time Metrics** - Response times and error rates
+- **Performance Budgets** - Automated performance checks
+- **Bundle Analysis** - Detailed bundle size reports
+- **Lighthouse Scores** - Automated performance audits
 
-# Build testing
-npm run test:build
+## 🔧 API Documentation
+
+### Base URL
+```
+https://api.choptym.com
 ```
 
-## 📈 Monitoring
+### Authentication
+Most endpoints require authentication via Bearer token:
+```
+Authorization: Bearer <token>
+```
 
-- **Error Tracking** - Sentry integration ready
-- **Analytics** - Google Analytics ready
-- **Performance** - Core Web Vitals monitoring
-- **Uptime** - Health check endpoints
+### Key Endpoints
+
+#### Dishes
+- `GET /api/dishes` - Get all dishes
+- `GET /api/dishes/:id` - Get dish by ID
+- `POST /api/dishes` - Create dish (Admin)
+- `PUT /api/dishes/:id` - Update dish (Admin)
+
+#### Restaurants
+- `GET /api/restaurants` - Get all restaurants
+- `GET /api/restaurant-menus` - Get restaurant menus
+- `POST /api/restaurants` - Create restaurant (Admin)
+
+#### Orders
+- `POST /api/orders` - Create order
+- `GET /api/orders/:id` - Get order by ID
+- `PUT /api/orders/:id/status` - Update order status
+
+#### Payments
+- `POST /api/payments/create-link` - Create payment link
+- `GET /api/payments/status/:id` - Check payment status
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### Development Guidelines
+
+- Follow the existing code style
+- Write tests for new features
+- Update documentation
+- Ensure security best practices
+- Test across different devices/browsers
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🆘 Support
+## 📞 Support
 
 - **Email**: support@choptym.com
-- **Phone**: +237670416449
-- **Documentation**: [Wiki](https://github.com/Sankofa-Bloom/choptym-mobile-menu/wiki)
+- **Issues**: [GitHub Issues](https://github.com/Sankofa-Bloom/choptym-mobile-menu/issues)
+- **Documentation**: [Full Documentation](./docs/)
 
-## 🎯 Roadmap
+## 🙏 Acknowledgments
 
-- [ ] Multi-language support
-- [ ] Advanced analytics dashboard
-- [ ] Mobile app (React Native)
-- [ ] AI-powered recommendations
-- [ ] Loyalty program
-- [ ] Real-time chat support
+- Built with ❤️ for the Cameroonian community
+- Special thanks to all contributors and supporters
+- Powered by modern web technologies and Cameroonian innovation
 
 ---
 
-**Built with ❤️ for authentic Cameroonian cuisine delivery**
+**ChopTym** - Bringing authentic Cameroonian flavors to your doorstep! 🇨🇲

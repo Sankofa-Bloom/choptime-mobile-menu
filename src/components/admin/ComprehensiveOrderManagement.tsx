@@ -93,6 +93,64 @@ const ComprehensiveOrderManagement: React.FC = () => {
   // =============================================================================
 
   /**
+   * Apply filters to orders
+   */
+  const applyFilters = useCallback((ordersToFilter: Order[]) => {
+    let filtered = [...ordersToFilter];
+
+    // Search filter
+    if (filters.search) {
+      filtered = filtered.filter(order =>
+        order.user_name?.toLowerCase().includes(filters.search.toLowerCase()) ||
+        order.user_phone?.includes(filters.search) ||
+        order.dish_name?.toLowerCase().includes(filters.search.toLowerCase()) ||
+        order.restaurant_name?.toLowerCase().includes(filters.search.toLowerCase()) ||
+        order.order_reference?.toLowerCase().includes(filters.search.toLowerCase())
+      );
+    }
+
+    // Status filter
+    if (filters.status && filters.status !== 'all') {
+      filtered = filtered.filter(order => order.status === filters.status);
+    }
+
+    // Payment status filter
+    if (filters.payment_status && filters.payment_status !== 'all') {
+      filtered = filtered.filter(order => order.payment_status === filters.payment_status);
+    }
+
+    // Restaurant filter
+    if (filters.restaurant_id && filters.restaurant_id !== 'all') {
+      filtered = filtered.filter(order => order.restaurant_id === filters.restaurant_id);
+    }
+
+    // Date range filter
+    if (filters.date_from) {
+      filtered = filtered.filter(order =>
+        order.created_at && order.created_at >= filters.date_from!
+      );
+    }
+    if (filters.date_to) {
+      filtered = filtered.filter(order =>
+        order.created_at && order.created_at <= filters.date_to! + 'T23:59:59'
+      );
+    }
+
+    // Sorting
+    filtered.sort((a, b) => {
+      const aValue = a[filters.sortBy as keyof Order] || '';
+      const bValue = b[filters.sortBy as keyof Order] || '';
+
+      if (filters.sortOrder === 'desc') {
+        return String(bValue).localeCompare(String(aValue));
+      }
+      return String(aValue).localeCompare(String(bValue));
+    });
+
+    setFilteredOrders(filtered);
+  }, [filters]);
+
+  /**
    * Fetch all orders with real-time updates
    */
   const fetchOrders = useCallback(async () => {
@@ -127,63 +185,7 @@ const ComprehensiveOrderManagement: React.FC = () => {
     }
   }, [addNotification, applyFilters]);
 
-  /**
-   * Apply filters to orders
-   */
-  const applyFilters = useCallback((ordersToFilter: Order[]) => {
-    let filtered = [...ordersToFilter];
 
-    // Search filter
-    if (filters.search) {
-      filtered = filtered.filter(order => 
-        order.user_name?.toLowerCase().includes(filters.search.toLowerCase()) ||
-        order.user_phone?.includes(filters.search) ||
-        order.dish_name?.toLowerCase().includes(filters.search.toLowerCase()) ||
-        order.restaurant_name?.toLowerCase().includes(filters.search.toLowerCase()) ||
-        order.order_reference?.toLowerCase().includes(filters.search.toLowerCase())
-      );
-    }
-
-    // Status filter
-    if (filters.status && filters.status !== 'all') {
-      filtered = filtered.filter(order => order.status === filters.status);
-    }
-
-    // Payment status filter
-    if (filters.payment_status && filters.payment_status !== 'all') {
-      filtered = filtered.filter(order => order.payment_status === filters.payment_status);
-    }
-
-    // Restaurant filter
-    if (filters.restaurant_id && filters.restaurant_id !== 'all') {
-      filtered = filtered.filter(order => order.restaurant_id === filters.restaurant_id);
-    }
-
-    // Date range filter
-    if (filters.date_from) {
-      filtered = filtered.filter(order => 
-        order.created_at && order.created_at >= filters.date_from!
-      );
-    }
-    if (filters.date_to) {
-      filtered = filtered.filter(order => 
-        order.created_at && order.created_at <= filters.date_to! + 'T23:59:59'
-      );
-    }
-
-    // Sorting
-    filtered.sort((a, b) => {
-      const aValue = a[filters.sortBy as keyof Order] || '';
-      const bValue = b[filters.sortBy as keyof Order] || '';
-      
-      if (filters.sortOrder === 'desc') {
-        return String(bValue).localeCompare(String(aValue));
-      }
-      return String(aValue).localeCompare(String(bValue));
-    });
-
-    setFilteredOrders(filtered);
-  }, [filters]);
 
   // =============================================================================
   // ORDER MANAGEMENT FUNCTIONS

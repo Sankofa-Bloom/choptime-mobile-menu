@@ -62,6 +62,77 @@ export const useAdminData = () => {
   // =============================================================================
 
   /**
+   * Fetch restaurants with error handling
+   */
+  const fetchRestaurants = useCallback(async () => {
+    try {
+    const { data, error } = await supabase
+      .from('restaurants')
+      .select('*')
+      .order('name');
+
+      if (error) throw error;
+      setRestaurants(data || []);
+    } catch (err) {
+      console.error('Restaurant fetch error:', err);
+      throw err;
+    }
+  }, []);
+
+  /**
+   * Fetch dishes with error handling
+   */
+  const fetchDishes = useCallback(async () => {
+    try {
+    const { data, error } = await supabase
+      .from('dishes')
+      .select('*')
+      .order('name');
+
+      if (error) throw error;
+      setDishes(data || []);
+    } catch (err) {
+      console.error('Dish fetch error:', err);
+      throw err;
+    }
+  }, []);
+
+  /**
+   * Fetch delivery zones with error handling
+   */
+  const fetchDeliveryZones = useCallback(async () => {
+    try {
+    const { data, error } = await supabase
+      .from('delivery_zones')
+      .select('*')
+      .order('town', { ascending: true });
+
+      if (error) throw error;
+      setDeliveryZones(data || []);
+    } catch (err) {
+      console.error('Delivery zone fetch error:', err);
+      throw err;
+    }
+  }, []);
+
+  /**
+   * Fetch admin statistics with error handling
+   */
+  const fetchStats = useCallback(async () => {
+    try {
+    const { data, error } = await supabase.rpc('get_order_stats');
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+      setStats(data[0]);
+      }
+    } catch (err) {
+      console.error('Stats fetch error:', err);
+      throw err;
+    }
+  }, []);
+
+  /**
    * Fetch all data with error handling and loading states
    */
   const fetchData = useCallback(async () => {
@@ -83,77 +154,6 @@ export const useAdminData = () => {
     setLoading(false);
     }
   }, [fetchRestaurants, fetchDishes, fetchDeliveryZones, fetchStats]);
-
-  /**
-   * Fetch restaurants with error handling
-   */
-  const fetchRestaurants = useCallback(async () => {
-    try {
-    const { data, error } = await supabase
-      .from('restaurants')
-      .select('*')
-      .order('name');
-    
-      if (error) throw error;
-      setRestaurants(data || []);
-    } catch (err) {
-      console.error('Restaurant fetch error:', err);
-      throw err;
-    }
-  }, []);
-
-  /**
-   * Fetch dishes with error handling
-   */
-  const fetchDishes = useCallback(async () => {
-    try {
-    const { data, error } = await supabase
-      .from('dishes')
-      .select('*')
-      .order('name');
-    
-      if (error) throw error;
-      setDishes(data || []);
-    } catch (err) {
-      console.error('Dish fetch error:', err);
-      throw err;
-    }
-  }, []);
-
-  /**
-   * Fetch delivery zones with error handling
-   */
-  const fetchDeliveryZones = useCallback(async () => {
-    try {
-    const { data, error } = await supabase
-      .from('delivery_zones')
-      .select('*')
-      .order('town', { ascending: true });
-    
-      if (error) throw error;
-      setDeliveryZones(data || []);
-    } catch (err) {
-      console.error('Delivery zone fetch error:', err);
-      throw err;
-    }
-  }, []);
-
-  /**
-   * Fetch admin statistics with error handling
-   */
-  const fetchStats = useCallback(async () => {
-    try {
-    const { data, error } = await supabase.rpc('get_order_stats');
-      if (error) throw error;
-      
-      if (data && data.length > 0) {
-      setStats(data[0]);
-      }
-    } catch (err) {
-      console.error('Stats fetch error:', err);
-      throw err;
-    }
-  }, []);
 
   // =============================================================================
   // FILTERED AND SEARCHED DATA

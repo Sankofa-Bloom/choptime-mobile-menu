@@ -4,43 +4,33 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  ChefHat, 
-  TrendingUp, 
-  Users, 
-  MapPin, 
-  LogOut, 
-  ShoppingBag, 
-  FileText, 
-  Settings, 
-  BarChart3, 
-  Calendar, 
-  DollarSign, 
-  Clock, 
-  Star, 
-  AlertCircle,
+import {
+  ChefHat,
+  LogOut,
   Keyboard,
+  RefreshCw,
+  Menu,
+  X,
+  AlertCircle,
+  Star,
+  Settings,
+  MapPin,
+  DollarSign,
+  FileText,
   Bell,
-  Zap,
-  ArrowUp,
-  ArrowDown,
-  Plus,
-  Search,
-  Filter,
-  Download,
-  RefreshCw
+  BarChart3
 } from 'lucide-react';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { useAdminData } from '@/hooks/useAdminData';
 import { useKeyboardShortcuts, DEFAULT_ADMIN_SHORTCUTS } from '@/hooks/useKeyboardShortcuts';
 import { NotificationProvider, useNotifications } from '@/components/admin/NotificationSystem';
 import KeyboardShortcutsHelp from '@/components/admin/KeyboardShortcutsHelp';
-import DataSearchFilters from '@/components/admin/DataSearchFilters';
-import BulkOperations from '@/components/admin/BulkOperations';
 import ChopTymLoader from '@/components/ui/ChopTymLoader';
 import ComprehensiveOrderManagement from '@/components/admin/ComprehensiveOrderManagement';
 import ComprehensiveRestaurantManagement from '@/components/admin/ComprehensiveRestaurantManagement';
 import DynamicMenuManagement from '@/components/admin/DynamicMenuManagement';
+import AdminSidebar from '@/components/admin/AdminSidebar';
+import AdminDashboardOverview from '@/components/admin/AdminDashboardOverview';
 
 // =============================================================================
 // ADMIN DASHBOARD COMPONENT
@@ -50,16 +40,19 @@ const AdminDashboardContent: React.FC = () => {
   // =============================================================================
   // STATE MANAGEMENT
   // =============================================================================
-  
+
   const { admin, logoutAdmin } = useAdminAuth();
-  const { 
-    stats, 
-    loading, 
+  const {
+    stats,
+    loading,
     error,
     refetch
   } = useAdminData();
 
   const { addNotification } = useNotifications();
+
+  const [activeSection, setActiveSection] = useState<string>('dashboard');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // =============================================================================
   // KEYBOARD SHORTCUTS
@@ -140,6 +133,206 @@ const AdminDashboardContent: React.FC = () => {
     });
   };
 
+  /**
+   * Handle section navigation
+   */
+  const handleSectionChange = (sectionId: string) => {
+    setActiveSection(sectionId);
+    setSidebarOpen(false); // Close mobile sidebar when navigating
+  };
+
+  /**
+   * Render content based on active section
+   */
+  const renderContent = () => {
+    switch (activeSection) {
+      case 'dashboard':
+        return (
+          <AdminDashboardOverview
+            stats={stats}
+            onNavigateToSection={handleSectionChange}
+            error={error}
+          />
+        );
+
+      case 'orders':
+        return <ComprehensiveOrderManagement />;
+
+      case 'restaurants':
+        return <ComprehensiveRestaurantManagement />;
+
+      case 'menus':
+        return <DynamicMenuManagement />;
+
+      case 'settings':
+        return (
+          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
+                  <Settings className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">System Settings</h2>
+                  <p className="text-sm text-gray-600">Configure system-wide settings and preferences</p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <Card className="p-4 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-3 mb-3">
+                    <MapPin className="h-5 w-5 text-purple-600" />
+                    <h3 className="font-semibold">Delivery Zones</h3>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">Manage delivery areas and fees</p>
+                  <Button size="sm" variant="outline" className="w-full">
+                    Configure Zones
+                  </Button>
+                </Card>
+
+                <Card className="p-4 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-3 mb-3">
+                    <DollarSign className="h-5 w-5 text-green-600" />
+                    <h3 className="font-semibold">Payment Settings</h3>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">Configure payment methods</p>
+                  <Button size="sm" variant="outline" className="w-full">
+                    Manage Payments
+                  </Button>
+                </Card>
+
+                <Card className="p-4 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Bell className="h-5 w-5 text-orange-600" />
+                    <h3 className="font-semibold">Notifications</h3>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">Configure system notifications</p>
+                  <Button size="sm" variant="outline" className="w-full">
+                    Setup Alerts
+                  </Button>
+                </Card>
+
+                <Card className="p-4 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-3 mb-3">
+                    <FileText className="h-5 w-5 text-blue-600" />
+                    <h3 className="font-semibold">Data Import/Export</h3>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">Bulk data operations</p>
+                  <Button size="sm" variant="outline" className="w-full">
+                    Manage Data
+                  </Button>
+                </Card>
+
+                <Card className="p-4 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-3 mb-3">
+                    <BarChart3 className="h-5 w-5 text-indigo-600" />
+                    <h3 className="font-semibold">Analytics</h3>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">View system analytics</p>
+                  <Button size="sm" variant="outline" className="w-full">
+                    View Reports
+                  </Button>
+                </Card>
+
+                <Card className="p-4 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Users className="h-5 w-5 text-pink-600" />
+                    <h3 className="font-semibold">User Management</h3>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">Manage admin users</p>
+                  <Button size="sm" variant="outline" className="w-full">
+                    Manage Users
+                  </Button>
+                </Card>
+              </div>
+            </CardContent>
+          </Card>
+        );
+
+      case 'analytics':
+        return (
+          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                  <BarChart3 className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Analytics & Reports</h2>
+                  <p className="text-sm text-gray-600">View detailed analytics and generate reports</p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="text-center py-12">
+                <BarChart3 className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Analytics Coming Soon</h3>
+                <p className="text-gray-600">Detailed analytics and reporting features are under development.</p>
+              </div>
+            </CardContent>
+          </Card>
+        );
+
+      case 'data':
+        return (
+          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+                  <FileText className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Data Management</h2>
+                  <p className="text-sm text-gray-600">Import, export, and manage your data</p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="text-center py-12">
+                <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Data Management Coming Soon</h3>
+                <p className="text-gray-600">Bulk data operations and management features are under development.</p>
+              </div>
+            </CardContent>
+          </Card>
+        );
+
+      case 'notifications':
+        return (
+          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center">
+                  <Bell className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Notification Settings</h2>
+                  <p className="text-sm text-gray-600">Configure system notifications and alerts</p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="text-center py-12">
+                <Bell className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Notification Settings Coming Soon</h3>
+                <p className="text-gray-600">Advanced notification configuration features are under development.</p>
+              </div>
+            </CardContent>
+          </Card>
+        );
+
+      default:
+        return (
+          <AdminDashboardOverview
+            stats={stats}
+            onNavigateToSection={handleSectionChange}
+            error={error}
+          />
+        );
+    }
+  };
+
   // =============================================================================
   // RENDER CONDITIONS
   // =============================================================================
@@ -173,295 +366,103 @@ const AdminDashboardContent: React.FC = () => {
   // =============================================================================
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-choptym-beige via-orange-50 to-yellow-50">
-      {/* Enhanced Sticky Header */}
-      <div className="bg-white/90 backdrop-blur-xl shadow-xl border-b border-orange-100/50 sticky top-0 z-50 transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-3 sm:gap-4">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-choptym-orange to-orange-600 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
-                <ChefHat className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+    <div className="min-h-screen bg-gradient-to-br from-choptym-beige via-orange-50 to-yellow-50 flex">
+      {/* Sidebar */}
+      <AdminSidebar
+        activeSection={activeSection}
+        onSectionChange={handleSectionChange}
+        stats={stats}
+        className="hidden lg:flex"
+      />
+
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div className="lg:hidden fixed inset-0 z-40 flex">
+          <div className="fixed inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
+          <div className="relative flex w-full max-w-xs">
+            <AdminSidebar
+              activeSection={activeSection}
+              onSectionChange={handleSectionChange}
+              stats={stats}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Enhanced Sticky Header */}
+        <div className="bg-white/90 backdrop-blur-xl shadow-xl border-b border-orange-100/50 sticky top-0 z-30 transition-all duration-300">
+          <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                {/* Mobile menu button */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSidebarOpen(!sidebarOpen)}
+                  className="lg:hidden p-2"
+                >
+                  <Menu className="h-5 w-5" />
+                </Button>
+
+                <div className="w-10 h-10 bg-gradient-to-br from-choptym-orange to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <ChefHat className="h-5 w-5 text-white" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-choptym-brown to-orange-700 bg-clip-text text-transparent leading-tight">
+                    ChopTym Admin
+                  </h1>
+                  <p className="text-sm text-gray-600 flex items-center gap-2 mt-1">
+                    <Star className="h-3 w-3 text-yellow-500" />
+                    <span className="truncate">Welcome back, {admin.email}</span>
+                  </p>
+                </div>
               </div>
-              <div className="min-w-0 flex-1">
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-choptym-brown to-orange-700 bg-clip-text text-transparent leading-tight">
-                  ChopTym Admin
-                </h1>
-                <p className="text-sm sm:text-base text-gray-600 flex items-center gap-2 mt-1">
-                  <Star className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 flex-shrink-0" />
-                  <span className="truncate">Welcome back, {admin.email}</span>
-                </p>
+
+              <div className="flex items-center gap-2">
+                {/* UX Enhancement Buttons */}
+                <KeyboardShortcutsHelp
+                  shortcuts={shortcuts}
+                  showCustomize={true}
+                  trigger={
+                    <Button variant="outline" size="sm" className="flex items-center gap-2">
+                      <Keyboard className="h-4 w-4" />
+                      <span className="hidden sm:inline">Shortcuts</span>
+                    </Button>
+                  }
+                />
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRefresh}
+                  className="flex items-center gap-2"
+                  disabled={loading}
+                >
+                  <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                  <span className="hidden sm:inline">Refresh</span>
+                </Button>
+
+                <Button
+                  onClick={logoutAdmin}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2 hover:bg-red-50 hover:border-red-200 hover:text-red-700 transition-all duration-200"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span className="hidden sm:inline">Logout</span>
+                </Button>
               </div>
-            </div>
-            
-            <div className="flex items-center gap-2 sm:gap-3">
-              {/* UX Enhancement Buttons */}
-              <KeyboardShortcutsHelp 
-                shortcuts={shortcuts}
-                showCustomize={true}
-                trigger={
-                  <Button variant="outline" size="sm" className="flex items-center gap-2">
-                    <Keyboard className="h-4 w-4" />
-                    <span className="hidden sm:inline">Shortcuts</span>
-                  </Button>
-                }
-              />
-              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRefresh}
-                className="flex items-center gap-2"
-                disabled={loading}
-              >
-                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                <span className="hidden sm:inline">Refresh</span>
-              </Button>
-              
-            <Button
-              onClick={logoutAdmin}
-              variant="outline"
-                size="sm"
-                className="flex items-center gap-2 hover:bg-red-50 hover:border-red-200 hover:text-red-700 transition-all duration-200 self-start sm:self-auto w-full sm:w-auto justify-center"
-            >
-              <LogOut className="h-4 w-4" />
-                <span className="hidden sm:inline">Logout</span>
-                <span className="sm:hidden">Exit</span>
-            </Button>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Dashboard Content with Improved Spacing */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
-        {/* Error Display */}
-        {error && (
-          <Alert variant="destructive" className="mb-6 border-red-200 bg-red-50">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
-        {/* Stats Cards with Better Responsive Grid */}
-        {stats && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-12">
-            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                <CardTitle className="text-sm font-medium text-blue-700">Total Orders</CardTitle>
-                <div className="w-9 h-9 sm:w-10 sm:h-10 bg-blue-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-                  <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="text-2xl sm:text-3xl font-bold text-blue-800">{stats.total_orders}</div>
-                <p className="text-xs text-blue-600 mt-1">All time orders</p>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                <CardTitle className="text-sm font-medium text-green-700">Total Revenue</CardTitle>
-                <div className="w-9 h-9 sm:w-10 sm:h-10 bg-green-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-                  <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="text-2xl sm:text-3xl font-bold text-green-800">₵{stats.total_revenue}</div>
-                <p className="text-xs text-green-600 mt-1">All time revenue</p>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                <CardTitle className="text-sm font-medium text-purple-700">Pending Orders</CardTitle>
-                <div className="w-9 h-9 sm:w-10 sm:h-10 bg-purple-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-                  <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="text-2xl sm:text-3xl font-bold text-purple-800">{stats.pending_orders}</div>
-                <p className="text-xs text-purple-600 mt-1">Awaiting processing</p>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                <CardTitle className="text-sm font-medium text-orange-700">Avg Order Value</CardTitle>
-                <div className="w-9 h-9 sm:w-10 sm:h-10 bg-orange-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-                  <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="text-2xl sm:text-3xl font-bold text-orange-800">₵{stats.avg_order_value}</div>
-                <p className="text-xs text-orange-600 mt-1">Per order average</p>
-              </CardContent>
-            </Card>
+        {/* Main Content Area */}
+        <div className="flex-1 overflow-auto">
+          <div className="p-4 sm:p-6 lg:p-8">
+            {renderContent()}
           </div>
-        )}
-
-        {/* Quick Actions with Enhanced UX */}
-        <div className="mb-8 sm:mb-12">
-          <h2 className="text-xl sm:text-2xl font-bold text-choptym-brown mb-4 sm:mb-6 flex items-center gap-3">
-            <Zap className="h-5 w-5 sm:h-6 sm:w-6 text-choptym-orange" />
-            Quick Actions
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            <Button
-              onClick={() => document.getElementById('orders-section')?.scrollIntoView({ behavior: 'smooth' })}
-              className="h-16 sm:h-20 bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium transition-all duration-200 group hover:scale-105"
-            >
-              <div className="flex flex-col items-center gap-2">
-                <ShoppingBag className="h-6 w-6 sm:h-8 sm:w-8 group-hover:scale-110 transition-transform duration-200" />
-                <span className="text-sm sm:text-base">Order Management</span>
-              </div>
-            </Button>
-
-            <Button
-              onClick={() => document.getElementById('restaurants-section')?.scrollIntoView({ behavior: 'smooth' })}
-              className="h-16 sm:h-20 bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium transition-all duration-200 group hover:scale-105"
-            >
-              <div className="flex flex-col items-center gap-2">
-                <Users className="h-6 w-6 sm:h-8 sm:w-8 group-hover:scale-110 transition-transform duration-200" />
-                <span className="text-sm sm:text-base">Restaurant Partners</span>
-              </div>
-            </Button>
-
-            <Button
-              onClick={() => document.getElementById('dynamic-menu-section')?.scrollIntoView({ behavior: 'smooth' })}
-              className="h-16 sm:h-20 bg-gradient-to-br from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium transition-all duration-200 group hover:scale-105"
-            >
-              <div className="flex flex-col items-center gap-2">
-                <Calendar className="h-6 w-6 sm:h-8 sm:w-8 group-hover:scale-110 transition-transform duration-200" />
-                <span className="text-sm sm:text-base">Daily Menus</span>
-              </div>
-            </Button>
-
-            <Button
-              onClick={() => document.getElementById('delivery-zones-section')?.scrollIntoView({ behavior: 'smooth' })}
-              className="h-16 sm:h-20 bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-medium transition-all duration-200 group hover:scale-105"
-            >
-              <div className="flex flex-col items-center gap-2">
-                <MapPin className="h-6 w-6 sm:h-8 sm:w-8 group-hover:scale-110 transition-transform duration-200" />
-                <span className="text-sm sm:text-base">System Settings</span>
-              </div>
-            </Button>
-          </div>
-        </div>
-
-                {/* Comprehensive Management Sections */}
-        <div className="space-y-8 sm:space-y-12">
-          {/* Order Management Section */}
-          <section id="orders-section" className="scroll-mt-20">
-            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-              <CardContent className="p-4 sm:p-6">
-                <ComprehensiveOrderManagement />
-              </CardContent>
-            </Card>
-          </section>
-
-          {/* Restaurant Management Section */}
-          <section id="restaurants-section" className="scroll-mt-20">
-            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-              <CardContent className="p-4 sm:p-6">
-                <ComprehensiveRestaurantManagement />
-              </CardContent>
-            </Card>
-          </section>
-
-          {/* Dynamic Menu Management Section */}
-          <section id="dynamic-menu-section" className="scroll-mt-20">
-            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-              <CardContent className="p-4 sm:p-6">
-                <DynamicMenuManagement />
-              </CardContent>
-            </Card>
-          </section>
-
-          {/* System Settings Section */}
-          <section id="delivery-zones-section" className="scroll-mt-20">
-            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-              <CardHeader className="pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
-                    <Settings className="h-5 w-5 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl sm:text-2xl font-bold text-choptym-brown">System Settings</h2>
-                    <p className="text-sm sm:text-base text-gray-600">Configure system-wide settings and preferences</p>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="p-4 sm:p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <Card className="p-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-center gap-3 mb-3">
-                      <MapPin className="h-5 w-5 text-purple-600" />
-                      <h3 className="font-semibold">Delivery Zones</h3>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-3">Manage delivery areas and fees</p>
-                    <Button size="sm" variant="outline" className="w-full">
-                      Configure Zones
-                    </Button>
-                  </Card>
-
-                  <Card className="p-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-center gap-3 mb-3">
-                      <DollarSign className="h-5 w-5 text-green-600" />
-                      <h3 className="font-semibold">Payment Settings</h3>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-3">Configure payment methods</p>
-                    <Button size="sm" variant="outline" className="w-full">
-                      Manage Payments
-                    </Button>
-                  </Card>
-
-                  <Card className="p-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-center gap-3 mb-3">
-                      <Bell className="h-5 w-5 text-orange-600" />
-                      <h3 className="font-semibold">Notifications</h3>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-3">Configure system notifications</p>
-                    <Button size="sm" variant="outline" className="w-full">
-                      Setup Alerts
-                    </Button>
-                  </Card>
-
-                  <Card className="p-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-center gap-3 mb-3">
-                      <FileText className="h-5 w-5 text-blue-600" />
-                      <h3 className="font-semibold">Data Import/Export</h3>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-3">Bulk data operations</p>
-                    <Button size="sm" variant="outline" className="w-full">
-                      Manage Data
-                    </Button>
-                  </Card>
-
-                  <Card className="p-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-center gap-3 mb-3">
-                      <BarChart3 className="h-5 w-5 text-indigo-600" />
-                      <h3 className="font-semibold">Analytics</h3>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-3">View system analytics</p>
-                    <Button size="sm" variant="outline" className="w-full">
-                      View Reports
-                    </Button>
-                  </Card>
-
-                  <Card className="p-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-center gap-3 mb-3">
-                      <Users className="h-5 w-5 text-pink-600" />
-                      <h3 className="font-semibold">User Management</h3>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-3">Manage admin users</p>
-                    <Button size="sm" variant="outline" className="w-full">
-                      Manage Users
-                    </Button>
-                  </Card>
-                </div>
-              </CardContent>
-            </Card>
-          </section>
         </div>
       </div>
     </div>

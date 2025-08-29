@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -59,7 +59,7 @@ const DynamicMenuManagement: React.FC = () => {
   const [dishes, setDishes] = useState<Dish[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [selectedRestaurant, setSelectedRestaurant] = useState<string>('');
+  const [selectedRestaurant, setSelectedRestaurant] = useState<string>('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingMenu, setEditingMenu] = useState<DailyMenu | null>(null);
@@ -76,6 +76,34 @@ const DynamicMenuManagement: React.FC = () => {
   // =============================================================================
   // DATA FETCHING
   // =============================================================================
+
+  const fetchDailyMenus = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('daily_menus')
+        .select(`
+          *,
+          restaurants(name, town),
+          daily_menu_items(
+            *,
+            dishes(name, category, description)
+          )
+        `)
+        .gte('date', selectedDate)
+        .order('date', { ascending: false });
+
+      if (error) throw error;
+      setDailyMenus(data || []);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch daily menus';
+      addNotification({
+        type: 'error',
+        title: 'Error',
+        message: errorMessage,
+        duration: 5000
+      });
+    }
+  }, [selectedDate, addNotification]);
 
   const fetchData = useCallback(async () => {
     try {
@@ -114,34 +142,6 @@ const DynamicMenuManagement: React.FC = () => {
       setLoading(false);
     }
   }, [addNotification, fetchDailyMenus]);
-
-  const fetchDailyMenus = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from('daily_menus')
-        .select(`
-          *,
-          restaurants(name, town),
-          daily_menu_items(
-            *,
-            dishes(name, category, description)
-          )
-        `)
-        .gte('date', selectedDate)
-        .order('date', { ascending: false });
-
-      if (error) throw error;
-      setDailyMenus(data || []);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch daily menus';
-      addNotification({
-        type: 'error',
-        title: 'Error',
-        message: errorMessage,
-        duration: 5000
-      });
-    }
-  }, [selectedDate, addNotification]);
 
   // =============================================================================
   // CRUD OPERATIONS
@@ -273,24 +273,35 @@ const DynamicMenuManagement: React.FC = () => {
 
   const deleteDailyMenu = async (menuId: string) => {
     try {
+      console.log('🗑️ Deleting daily menu with ID:', menuId);
       setLoading(true);
 
       // Delete menu items first
+      console.log('🗑️ Deleting menu items for menu:', menuId);
       const { error: itemsError } = await supabase
         .from('daily_menu_items')
         .delete()
         .eq('daily_menu_id', menuId);
 
-      if (itemsError) throw itemsError;
+      if (itemsError) {
+        console.error('❌ Delete menu items error:', itemsError);
+        throw itemsError;
+      }
+      console.log('✅ Menu items deleted successfully');
 
       // Delete menu
+      console.log('🗑️ Deleting daily menu:', menuId);
       const { error } = await supabase
         .from('daily_menus')
         .delete()
         .eq('id', menuId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Delete daily menu error:', error);
+        throw error;
+      }
 
+      console.log('✅ Daily menu deleted successfully');
       addNotification({
         type: 'success',
         title: 'Success',
@@ -301,6 +312,7 @@ const DynamicMenuManagement: React.FC = () => {
       await fetchDailyMenus();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete daily menu';
+      console.error('💥 Delete daily menu failed:', errorMessage);
       addNotification({
         type: 'error',
         title: 'Error',
@@ -456,7 +468,7 @@ const DynamicMenuManagement: React.FC = () => {
   // =============================================================================
 
   const filteredMenus = dailyMenus.filter(menu => {
-    if (selectedRestaurant && menu.restaurant_id !== selectedRestaurant) {
+    if (selectedRestaurant !== 'all' && menu.restaurant_id !== selectedRestaurant) {
       return false;
     }
     return true;
@@ -516,6 +528,8 @@ const DynamicMenuManagement: React.FC = () => {
               size="sm"
               variant="outline"
               onClick={() => openEditModal(menu)}
+              disabled={loading}
+              className="disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Edit className="h-3 w-3" />
             </Button>
@@ -523,7 +537,8 @@ const DynamicMenuManagement: React.FC = () => {
               size="sm"
               variant="outline"
               onClick={() => deleteDailyMenu(menu.id)}
-              className="text-red-600 hover:text-red-700"
+              disabled={loading}
+              className="text-red-600 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Trash2 className="h-3 w-3" />
             </Button>
@@ -531,7 +546,9 @@ const DynamicMenuManagement: React.FC = () => {
               size="sm"
               variant="outline"
               onClick={() => copyMenuFromPreviousDay(menu.restaurant_id, new Date(new Date(menu.date).getTime() + 86400000).toISOString().split('T')[0])}
+              disabled={loading}
               title="Copy to next day"
+              className="disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Copy className="h-3 w-3" />
             </Button>
@@ -661,7 +678,7 @@ const DynamicMenuManagement: React.FC = () => {
                   <SelectValue placeholder="All restaurants" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Restaurants</SelectItem>
+                  <SelectItem value="all">All Restaurants</SelectItem>
                   {restaurants.map(restaurant => (
                     <SelectItem key={restaurant.id} value={restaurant.id}>
                       {restaurant.name}

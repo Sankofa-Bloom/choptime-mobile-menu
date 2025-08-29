@@ -4,6 +4,7 @@ import { Restaurant, Dish, OrderItem, CustomOrderItem, Order, CustomOrder } from
 import { useChopTymData } from '@/hooks/useChopTymData';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { debugPWAInstallPrompt } from '@/utils/pwaDebug';
+import { useDeliveryFeeSettings } from '@/hooks/useDeliveryFeeSettings';
 
 import Header from '@/components/Header';
 import HeroSection from '@/components/HeroSection';
@@ -44,6 +45,9 @@ const Index = () => {
 
   // PWA installation hook
   const { showInstallPrompt, installPWA, dismissPrompt } = usePWAInstall();
+
+  // Delivery fee settings hook
+  const { isDeliveryFeeEnabled } = useDeliveryFeeSettings();
 
   // PWA Debug initialization (development only)
   useEffect(() => {
@@ -89,18 +93,23 @@ const Index = () => {
 
   // Memoized calculations for better performance
   const subtotal = useMemo(() => calculateSubtotal(), [calculateSubtotal]);
-  const total = useMemo(() => subtotal + orderDetails.deliveryFee, [subtotal, orderDetails.deliveryFee]);
+  const total = useMemo(() => subtotal + (isDeliveryFeeEnabled ? orderDetails.deliveryFee : 0), [subtotal, orderDetails.deliveryFee, isDeliveryFeeEnabled]);
   const cartItemCount = useMemo(() => cart.reduce((sum, item) => sum + item.quantity, 0), [cart]);
 
   // Load user's town preference on mount
   useEffect(() => {
     const loadUserPreferences = async () => {
+      console.log('🏠 Loading user preferences...');
       const savedTown = localStorage.getItem('choptym-town');
+      console.log('🏠 Saved town:', savedTown);
+
       if (savedTown && (savedTown === 'Buea' || savedTown === 'Limbe')) {
+        console.log('🏠 Setting saved town:', savedTown);
         setSelectedTown(savedTown);
-        // Refetch data for the saved town
+        // React Query handles caching and deduping automatically
         refetchForTown(savedTown);
       } else {
+        console.log('🏠 No valid town found, showing town selector');
         setShowTownSelector(true);
       }
     };
@@ -138,7 +147,7 @@ const Index = () => {
       setCart(location.state.cart);
       if (location.state.selectedTown) {
         setSelectedTown(location.state.selectedTown);
-        // Refetch data for the restored town
+        // React Query handles caching and deduping automatically
         refetchForTown(location.state.selectedTown);
       }
 
@@ -151,10 +160,15 @@ const Index = () => {
   useEffect(() => {
     // Update delivery fee when town changes (simple lookup, no API calls)
     if (selectedTown) {
-      const fee = getDeliveryFeeForTown(selectedTown);
-      setOrderDetails(prev => ({ ...prev, deliveryFee: fee }));
+      if (isDeliveryFeeEnabled) {
+        const fee = getDeliveryFeeForTown(selectedTown);
+        setOrderDetails(prev => ({ ...prev, deliveryFee: fee }));
+      } else {
+        // Set delivery fee to 0 when disabled
+        setOrderDetails(prev => ({ ...prev, deliveryFee: 0 }));
+      }
     }
-  }, [selectedTown, getDeliveryFeeForTown]);
+  }, [selectedTown, getDeliveryFeeForTown, isDeliveryFeeEnabled]);
 
   const scrollToCart = () => {
     const cartSection = document.getElementById('cart-section');
@@ -164,11 +178,13 @@ const Index = () => {
   };
 
   const handleTownChange = useCallback((town: string) => {
+    console.log('🏙️ Town selected:', town);
     setSelectedTown(town);
     localStorage.setItem('choptym-town', town);
     setCart([]); // Clear cart when changing towns
     setShowTownSelector(false);
-    // Refetch town-specific data (restaurants and menus)
+    console.log('🏙️ Town selector hidden, refetching data for:', town);
+    // React Query handles caching and deduping automatically
     refetchForTown(town);
   }, [refetchForTown]);
 
@@ -272,8 +288,8 @@ const Index = () => {
   }, []);
 
   const calculateTotal = useCallback(() => {
-    return calculateSubtotal() + orderDetails.deliveryFee;
-  }, [calculateSubtotal, orderDetails.deliveryFee]);
+    return calculateSubtotal() + (isDeliveryFeeEnabled ? orderDetails.deliveryFee : 0);
+  }, [calculateSubtotal, orderDetails.deliveryFee, isDeliveryFeeEnabled]);
 
   const getAvailableRestaurantsForDish = useCallback((dishId: string): Restaurant[] => {
     return restaurants.filter(restaurant => 
@@ -311,9 +327,21 @@ const Index = () => {
 
   
 
-  if (loading) {
+  // Debug current state
+  console.log('🏠 Index component state:', {
+    selectedTown,
+    loading,
+    showTownSelector,
+    error: error ? 'Yes' : 'No',
+    dishesCount: dishes?.length || 0,
+    restaurantsCount: restaurants?.length || 0
+  });
+
+  // Show loading only for initial data load, not for every API call
+  if (loading && !selectedTown) {
+    console.log('🏠 Showing loading screen (no town selected yet)');
     return (
-      <ChopTymLoader 
+      <ChopTymLoader
         size="lg"
         message="Loading delicious options..."
         subMessage="Please wait while we prepare your menu"
@@ -363,7 +391,7 @@ const Index = () => {
       />
       
       <main className="relative z-10">
-        <HeroSection selectedTown={selectedTown} deliveryFee={orderDetails.deliveryFee} />
+                        <HeroSection selectedTown={selectedTown} deliveryFee={orderDetails.deliveryFee} isDeliveryFeeEnabled={isDeliveryFeeEnabled} />
         
         <MenuSection 
           dishes={dishes}

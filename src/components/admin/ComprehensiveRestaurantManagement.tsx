@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -90,16 +90,27 @@ const ComprehensiveRestaurantManagement: React.FC = () => {
 
   const fetchRestaurants = useCallback(async () => {
     try {
+      console.log('🔄 Fetching restaurants from database...');
       setLoading(true);
-      const { data, error } = await supabase
+
+      const { data, error, count } = await supabase
         .from('restaurants')
-        .select('*')
+        .select('*', { count: 'exact' })
         .order('name');
 
+      console.log('📊 Fetch restaurants result:', {
+        count: data?.length || 0,
+        totalCount: count,
+        error: error?.message || null
+      });
+
       if (error) throw error;
+
       setRestaurants(data || []);
+      console.log('✅ Restaurants loaded successfully:', data?.length || 0, 'restaurants');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch restaurants';
+      console.error('❌ Fetch restaurants failed:', errorMessage);
       addNotification({
         type: 'error',
         title: 'Error',
@@ -187,14 +198,129 @@ const ComprehensiveRestaurantManagement: React.FC = () => {
 
   const deleteRestaurant = async (id: string) => {
     try {
+      console.log('🗑️ Starting restaurant deletion process for ID:', id);
       setLoading(true);
-      const { error } = await supabase
+
+      // First, let's verify the restaurant exists before deletion
+      const { data: restaurantBefore, error: fetchError } = await supabase
         .from('restaurants')
-        .delete()
+        .select('id, name')
+        .eq('id', id)
+        .single();
+
+      if (fetchError) {
+        console.error('❌ Error fetching restaurant before deletion:', fetchError);
+      } else {
+        console.log('📋 Restaurant found before deletion:', restaurantBefore);
+      }
+
+      // Check for related orders that might prevent deletion
+      const { data: relatedOrders, error: ordersError } = await supabase
+        .from('orders')
+        .select('id, status, created_at')
+        .eq('restaurant_id', id);
+
+      if (ordersError) {
+        console.error('❌ Error checking related orders:', ordersError);
+      } else {
+        console.log('📋 Found related orders:', relatedOrders?.length || 0);
+        if (relatedOrders && relatedOrders.length > 0) {
+          console.log('⚠️ Related orders found - will be deleted:', relatedOrders);
+
+          // Delete related orders first to avoid foreign key constraint errors
+          console.log('🗑️ Deleting related orders...');
+          const { error: deleteOrdersError } = await supabase
+            .from('orders')
+            .delete()
+            .eq('restaurant_id', id);
+
+          if (deleteOrdersError) {
+            console.error('❌ Error deleting related orders:', deleteOrdersError);
+          } else {
+            console.log('✅ Related orders deleted successfully');
+          }
+        }
+      }
+
+      // Perform the restaurant deletion
+      console.log('🔄 Executing restaurant delete query...');
+
+      // First, check if we're authenticated
+      const { data: authData } = await supabase.auth.getSession();
+      console.log('🔐 Authentication status:', authData.session ? 'Authenticated' : 'Not authenticated');
+
+      if (authData.session?.user) {
+        console.log('👤 Authenticated as:', authData.session.user.email);
+      } else {
+        console.log('⚠️ CRITICAL: Not authenticated - RLS policy will block deletion!');
+        console.log('🔄 Attempting to refresh authentication...');
+
+        // Try to refresh the session
+        const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+
+        if (refreshError) {
+          console.error('❌ Failed to refresh session:', refreshError);
+          throw new Error('Authentication required for restaurant deletion. Please refresh the page and try again.');
+        }
+
+        if (refreshData.session?.user) {
+          console.log('✅ Session refreshed successfully');
+        } else {
+          throw new Error('Unable to authenticate. Please log in again.');
+        }
+      }
+
+      const deleteResult = await supabase
+        .from('restaurants')
+        .delete({ count: 'exact' })
         .eq('id', id);
 
-      if (error) throw error;
+      console.log('📊 Restaurant delete operation result:', JSON.stringify(deleteResult, null, 2));
+      console.log('📊 Delete result details:', {
+        error: deleteResult.error,
+        count: deleteResult.count,
+        data: deleteResult.data,
+        status: deleteResult.status,
+        statusText: deleteResult.statusText
+      });
 
+      const { error, count } = deleteResult;
+
+      if (error) {
+        console.error('❌ Delete restaurant error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        throw error;
+      }
+
+      // Check if deletion actually worked (count should be 1)
+      if (count === 0) {
+        console.error('❌ CRITICAL: Delete returned count=0 - likely an RLS policy issue!');
+        console.error('🔍 Possible causes:');
+        console.error('   - User not authenticated');
+        console.error('   - User not in admin_users table');
+        console.error('   - RLS policy blocking the operation');
+        throw new Error('Restaurant deletion blocked by security policy (RLS). Check authentication and admin permissions.');
+      }
+
+      // Verify the deletion was successful
+      const { data: restaurantAfter, error: verifyError } = await supabase
+        .from('restaurants')
+        .select('id, name')
+        .eq('id', id)
+        .single();
+
+      if (restaurantAfter) {
+        console.error('⚠️ WARNING: Restaurant still exists after deletion!', restaurantAfter);
+        throw new Error('Restaurant was not actually deleted from database');
+      } else {
+        console.log('✅ Restaurant successfully deleted from database');
+      }
+
+      console.log('🔄 Refreshing restaurant list...');
       addNotification({
         type: 'success',
         title: 'Success',
@@ -203,8 +329,18 @@ const ComprehensiveRestaurantManagement: React.FC = () => {
       });
 
       await fetchRestaurants();
+
+      // Final verification - check if restaurant is gone from local state
+      const stillExists = restaurants.some(r => r.id === id);
+      if (stillExists) {
+        console.error('⚠️ WARNING: Restaurant still exists in local state after refresh!');
+      } else {
+        console.log('✅ Restaurant successfully removed from UI');
+      }
+
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete restaurant';
+      console.error('💥 Delete restaurant failed:', errorMessage);
       addNotification({
         type: 'error',
         title: 'Error',
@@ -690,6 +826,8 @@ const ComprehensiveRestaurantManagement: React.FC = () => {
               size="sm"
               variant="outline"
               onClick={() => openEditModal(restaurant)}
+              disabled={loading}
+              className="disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Edit className="h-3 w-3" />
             </Button>
@@ -697,7 +835,8 @@ const ComprehensiveRestaurantManagement: React.FC = () => {
               size="sm"
               variant="outline"
               onClick={() => deleteRestaurant(restaurant.id)}
-              className="text-red-600 hover:text-red-700"
+              disabled={loading}
+              className="text-red-600 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Trash2 className="h-3 w-3" />
             </Button>

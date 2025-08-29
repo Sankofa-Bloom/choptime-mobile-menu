@@ -5,9 +5,10 @@ import { Clock, Star, MapPin } from 'lucide-react';
 interface HeroSectionProps {
   selectedTown: string;
   deliveryFee: number;
+  isDeliveryFeeEnabled: boolean;
 }
 
-const HeroSection: React.FC<HeroSectionProps> = ({ selectedTown, deliveryFee }) => {
+const HeroSection: React.FC<HeroSectionProps> = ({ selectedTown, deliveryFee, isDeliveryFeeEnabled }) => {
   const formatPrice = (price: number) => {
     return `${price.toLocaleString()} FCFA`;
   };
@@ -36,7 +37,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ selectedTown, deliveryFee }) 
           {selectedTown && (
             <div className="flex items-center gap-1">
               <MapPin className="w-4 h-4" />
-              <span>{selectedTown} • Delivery: {formatPrice(deliveryFee)}</span>
+              <span>{selectedTown} • Delivery: {isDeliveryFeeEnabled ? formatPrice(deliveryFee) : 'FREE'}</span>
             </div>
           )}
         </div>

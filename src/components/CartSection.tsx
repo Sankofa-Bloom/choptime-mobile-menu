@@ -1,20 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Minus, Plus, ShoppingCart, MessageCircle, CreditCard, CheckCircle, XCircle, Clock, AlertCircle, ExternalLink } from 'lucide-react';
+import { Minus, Plus, ShoppingCart, MessageCircle, CreditCard, CheckCircle, XCircle, Clock, AlertCircle, ExternalLink, MapPin, Navigation, Bell, BellOff } from 'lucide-react';
 import { OrderItem, CustomOrderItem } from '@/types/restaurant';
 import { useToast } from '@/hooks/use-toast';
-import SwychrService from '@/utils/swychrService';
+import PayinService from '@/utils/payinService';
 import ChopTymLoader from '@/components/ui/ChopTymLoader';
+import locationService, { LocationData } from '@/utils/locationService';
+import notificationService from '@/utils/notificationService';
+import { useDeliveryFeeSettings } from '@/hooks/useDeliveryFeeSettings';
 
 interface OrderDetails {
   customerName: string;
   phone: string;
   deliveryAddress: string;
+  locality: string;
   additionalMessage: string;
   paymentMethod: string;
   total: number;
@@ -50,11 +54,15 @@ const CartSection: React.FC<CartSectionProps> = ({
   const [paymentLink, setPaymentLink] = useState('');
   const [statusCheckInterval, setStatusCheckInterval] = useState<NodeJS.Timeout | null>(null);
   const [timeRemaining, setTimeRemaining] = useState(600); // 10 minutes
+  const [currentLocation, setCurrentLocation] = useState<LocationData | null>(null);
+  const [locationPermission, setLocationPermission] = useState<'granted' | 'denied' | 'prompt'>('prompt');
+  const [notificationPermission, setNotificationPermission] = useState<'granted' | 'denied' | 'default'>('default');
   const { toast } = useToast();
+  const { isDeliveryFeeEnabled, loading: deliveryFeeSettingsLoading } = useDeliveryFeeSettings();
 
-  const swychrService = new SwychrService();
+  const payinService = new PayinService();
 
-  const handlePaymentTimeout = () => {
+  const handlePaymentTimeout = useCallback(() => {
     setPaymentStatus('failed');
     if (statusCheckInterval) {
       clearInterval(statusCheckInterval);
@@ -64,7 +72,7 @@ const CartSection: React.FC<CartSectionProps> = ({
       description: "Payment took too long to complete. Please try again.",
       variant: "destructive"
     });
-  };
+  }, [statusCheckInterval, toast]);
 
   useEffect(() => {
     return () => {
@@ -97,11 +105,152 @@ const CartSection: React.FC<CartSectionProps> = ({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleInputChange = (field: keyof OrderDetails, value: string | number) => {
+  const handleInputChange = async (field: keyof OrderDetails, value: string | number) => {
     onOrderDetailsChange({
       ...orderDetails,
       [field]: value
     });
+
+    // Update delivery fee when locality changes
+    if (field === 'locality') {
+      await updateDeliveryFee(value as string);
+    }
+  };
+
+  const updateDeliveryFee = async (locality: string) => {
+    if (!locality.trim()) return;
+
+    // Check if delivery fees are globally disabled
+    if (!isDeliveryFeeEnabled) {
+      onOrderDetailsChange({
+        ...orderDetails,
+        locality,
+        deliveryFee: 0
+      });
+      toast({
+        title: "Delivery Fee Disabled",
+        description: "Delivery fees are currently disabled by the restaurant.",
+      });
+      return;
+    }
+
+    try {
+      // First check local zone matching
+      const zone = locationService.getZoneByLocality(locality);
+
+      // Call backend API for delivery fee calculation
+      const response = await fetch('/api/calculate-delivery-fee', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          locality,
+          latitude: currentLocation?.coordinates?.latitude,
+          longitude: currentLocation?.coordinates?.longitude
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const updatedDetails = {
+          ...orderDetails,
+          locality,
+          deliveryFee: data.deliveryFee
+        };
+        onOrderDetailsChange(updatedDetails);
+
+        if (data.zone) {
+          toast({
+            title: "Zone Detected",
+            description: `Zone ${data.zone} - ${data.deliveryFee} FCFA delivery fee applied`,
+          });
+        }
+        return;
+      }
+    } catch (error) {
+      console.error('Backend delivery fee calculation failed:', error);
+    }
+
+    // Fallback to local zone calculation
+    if (zone) {
+      const updatedDetails = {
+        ...orderDetails,
+        locality,
+        deliveryFee: zone.deliveryFee
+      };
+      onOrderDetailsChange(updatedDetails);
+      return;
+    }
+
+    // Final fallback to default delivery fee
+    const updatedDetails = {
+      ...orderDetails,
+      locality,
+      deliveryFee: 1000 // Default fee
+    };
+    onOrderDetailsChange(updatedDetails);
+  };
+
+  const requestLocation = async () => {
+    try {
+      const locationData = await locationService.requestLocation();
+      if (locationData) {
+        setCurrentLocation(locationData);
+        setLocationPermission('granted');
+
+        // Auto-fill locality if detected
+        if (locationData.zone) {
+          const locality = locationData.zone.localities[0] || locationData.zone.name;
+          updateDeliveryFee(locality);
+        }
+
+        toast({
+          title: "Location Detected",
+          description: `Location: ${locationData.address || 'Unknown'}`,
+        });
+      }
+    } catch (error) {
+      console.error('Location request failed:', error);
+      setLocationPermission('denied');
+
+      toast({
+        title: "Location Access Denied",
+        description: "Please enter your locality manually for delivery fee calculation.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const requestNotificationPermission = async () => {
+    try {
+      await notificationService.initialize();
+      const permission = await notificationService.requestPermission();
+      setNotificationPermission(permission);
+
+      if (permission === 'granted') {
+        // Subscribe to push notifications
+        await notificationService.subscribeToPush();
+
+        toast({
+          title: "Notifications Enabled",
+          description: "You'll receive updates about your order status.",
+        });
+      } else {
+        toast({
+          title: "Notifications Disabled",
+          description: "You won't receive order status notifications.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Notification permission request failed:', error);
+      toast({
+        title: "Notification Setup Failed",
+        description: "There was an issue setting up notifications.",
+        variant: "destructive"
+      });
+    }
   };
 
   const validateOrderDetails = (): boolean => {
@@ -156,13 +305,21 @@ const CartSection: React.FC<CartSectionProps> = ({
 
     try {
       setPaymentStatus('creating_link');
-      
+
       const orderReference = generateOrderReference();
-      const txId = swychrService.generateTransactionId(orderReference);
+      const txId = payinService.generateTransactionId(orderReference);
+
       setTransactionId(txId);
 
-      const formattedPhone = swychrService.formatPhoneNumber(`237${orderDetails.phone}`);
-      
+      // Authenticate with Payin API through backend proxy
+      const authResponse = await payinService.authenticate();
+
+      if (!authResponse.success) {
+        throw new Error('Authentication failed: ' + authResponse.error);
+      }
+
+      const formattedPhone = payinService.formatPhoneNumber(`237${orderDetails.phone}`);
+
       const orderData = {
         cart: cart,
         subtotal: calculateSubtotal(),
@@ -188,17 +345,17 @@ const CartSection: React.FC<CartSectionProps> = ({
       };
 
       // Store payment record (non-blocking)
-      swychrService.storePaymentRecord(orderData, txId).catch(error => {
+      payinService.storePaymentRecord(orderData, txId).catch(error => {
         console.warn('Payment record storage failed (non-critical):', error);
       });
 
-      const response = await swychrService.createPaymentLink(paymentData);
+      const response = await payinService.createPaymentLink(paymentData);
 
       if (response.success && response.data?.payment_link) {
         setPaymentLink(response.data.payment_link);
-        
+
         toast({
-          title: "🚀 Instant Payment Ready!",
+          title: "🚀 Payin Payment Ready!",
           description: "Opening secure payment window...",
         });
 
@@ -208,15 +365,15 @@ const CartSection: React.FC<CartSectionProps> = ({
           setPaymentStatus('pending');
           setTimeRemaining(600);
           startStatusPolling(txId);
-        }, 500); // Reduced delay from 2000ms to 500ms
-        
+        }, 500);
+
       } else {
         throw new Error(response.error || 'Failed to create payment link');
       }
     } catch (error) {
       console.error('Payment initialization error:', error);
       setPaymentStatus('failed');
-      
+
       toast({
         title: "Payment Error",
         description: error instanceof Error ? error.message : "Please check your details and try again.",
@@ -229,31 +386,31 @@ const CartSection: React.FC<CartSectionProps> = ({
     const interval = setInterval(async () => {
       try {
         setPaymentStatus('checking');
-        const statusResponse = await swychrService.checkPaymentStatus(txId);
-        
+        const statusResponse = await payinService.checkPaymentStatus(txId);
+
         if (statusResponse.success && statusResponse.data) {
           const status = statusResponse.data.status?.toLowerCase();
-          
+
           if (status === 'completed' || status === 'successful' || status === 'success') {
             setPaymentStatus('success');
             clearInterval(interval);
             setStatusCheckInterval(null);
-            
+
             toast({
               title: "Payment Successful! 🎉",
-              description: "Your order has been confirmed and will be processed shortly.",
+              description: "Your Payin payment has been confirmed and will be processed shortly.",
             });
 
             // Call onOrderComplete after a short delay to show success message
             setTimeout(() => {
               onOrderComplete?.();
             }, 3000);
-            
+
           } else if (status === 'failed' || status === 'cancelled' || status === 'error') {
             setPaymentStatus('failed');
             clearInterval(interval);
             setStatusCheckInterval(null);
-            
+
             toast({
               title: "Payment Failed",
               description: `Payment ${status}. Please try again.`,
@@ -267,7 +424,7 @@ const CartSection: React.FC<CartSectionProps> = ({
         console.error('Status check error:', error);
       }
     }, 5000);
-    
+
     setStatusCheckInterval(interval);
   };
 
@@ -350,7 +507,9 @@ const CartSection: React.FC<CartSectionProps> = ({
                     </div>
                     <div className="flex justify-between">
                       <span>Delivery ({selectedTown}):</span>
-                      <span>{formatPrice(orderDetails.deliveryFee)}</span>
+                      <span className={isDeliveryFeeEnabled ? '' : 'line-through text-gray-400'}>
+                        {isDeliveryFeeEnabled ? formatPrice(orderDetails.deliveryFee) : 'FREE'}
+                      </span>
                     </div>
                     <div className="flex justify-between font-bold text-lg">
                       <span>Total:</span>
@@ -410,15 +569,109 @@ const CartSection: React.FC<CartSectionProps> = ({
                     />
                   </div>
 
-                  {/* Simplified Payment Info */}
-                  <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-4">
+                  <div>
+                    <Label htmlFor="locality">Locality/Neighborhood *</Label>
+                    <div className="flex gap-2">
+                      <Select
+                        value={orderDetails.locality}
+                        onValueChange={(value) => handleInputChange('locality', value)}
+                      >
+                        <SelectTrigger className="flex-1">
+                          <SelectValue placeholder="Select your locality/neighborhood" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {/* Zone A - Outer Areas */}
+                          <div className="px-2 py-1 text-xs font-medium text-gray-500 uppercase tracking-wide">
+                            Zone A - Outer Areas (1000 FCFA)
+                          </div>
+                          {[
+                            'Carata', 'Down Beach', 'Isokolo', 'Mile 4',
+                            'Ngueme', 'Saker Junction'
+                          ].sort().map((locality) => (
+                            <SelectItem key={locality} value={locality}>
+                              {locality}
+                            </SelectItem>
+                          ))}
+
+                          {/* Zone B - Mid Areas */}
+                          <div className="px-2 py-1 text-xs font-medium text-gray-500 uppercase tracking-wide mt-2">
+                            Zone B - Mid Areas (800 FCFA)
+                          </div>
+                          {[
+                            'Behind GHS', 'Bundes', 'Busumbu', 'Church Street',
+                            'Middlefarms', 'Red Cross'
+                          ].sort().map((locality) => (
+                            <SelectItem key={locality} value={locality}>
+                              {locality}
+                            </SelectItem>
+                          ))}
+
+                          {/* Zone C - Central Area */}
+                          <div className="px-2 py-1 text-xs font-medium text-gray-500 uppercase tracking-wide mt-2">
+                            Zone C - Central Area (600 FCFA)
+                          </div>
+                          {[
+                            'Mile 2'
+                          ].sort().map((locality) => (
+                            <SelectItem key={locality} value={locality}>
+                              {locality}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={requestLocation}
+                        disabled={locationPermission === 'denied'}
+                        className="flex items-center gap-2"
+                      >
+                        <Navigation className="w-4 h-4" />
+                        {locationPermission === 'granted' ? 'Located' : 'Use Location'}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {isDeliveryFeeEnabled
+                        ? "Select your specific neighborhood for accurate delivery fee calculation, or use location detection"
+                        : "Select your neighborhood for delivery - delivery fees are currently disabled"
+                      }
+                    </p>
+                    {currentLocation?.zone && (
+                      <div className={`mt-2 p-2 border rounded-md ${
+                        isDeliveryFeeEnabled
+                          ? 'bg-green-50 border-green-200'
+                          : 'bg-blue-50 border-blue-200'
+                      }`}>
+                        <div className={`flex items-center gap-2 ${
+                          isDeliveryFeeEnabled ? 'text-green-700' : 'text-blue-700'
+                        }`}>
+                          <MapPin className="w-4 h-4" />
+                          <span className="text-sm">
+                            {isDeliveryFeeEnabled
+                              ? `Zone ${currentLocation.zone.zone} detected • ${currentLocation.zone.deliveryFee} FCFA delivery fee`
+                              : `Zone ${currentLocation.zone.zone} detected • Delivery fees are currently disabled`
+                            }
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Payment Information */}
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                     <div className="flex items-center space-x-3 mb-2">
                       <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                      <span className="font-medium text-gray-900">Instant Secure Payment</span>
+                      <span className="font-medium text-gray-900">Secure Payin Payment</span>
                     </div>
-                    <p className="text-xs text-gray-600">
-                      🔒 Pay with Mobile Money, Card, or Bank Transfer • Powered by Swychr
+                    <p className="text-xs text-gray-600 mb-2">
+                      🔒 Pay with Mobile Money, Card, or Bank Transfer • Powered by Payin
                     </p>
+                    <div className="text-xs text-gray-500">
+                      <p>• MTN MoMo, Orange Money, and other mobile payment methods</p>
+                      <p>• Visa, Mastercard, and other debit/credit cards</p>
+                      <p>• Bank transfers and other secure payment options</p>
+                    </div>
                   </div>
 
                   <div>
@@ -434,6 +687,41 @@ const CartSection: React.FC<CartSectionProps> = ({
                     <p className="text-xs text-gray-500 mt-1">
                       Required for payment notifications and order updates
                     </p>
+                  </div>
+
+                  {/* Notification Permissions */}
+                  <div className="space-y-3">
+                    <Label>Order Notifications</Label>
+                    <div className="space-y-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={requestNotificationPermission}
+                        disabled={notificationPermission === 'granted' || notificationPermission === 'denied'}
+                        className="w-full flex items-center justify-center gap-2"
+                      >
+                        {notificationPermission === 'granted' ? (
+                          <>
+                            <Bell className="w-4 h-4 text-green-600" />
+                            Notifications Enabled
+                          </>
+                        ) : notificationPermission === 'denied' ? (
+                          <>
+                            <BellOff className="w-4 h-4 text-red-600" />
+                            Notifications Blocked
+                          </>
+                        ) : (
+                          <>
+                            <Bell className="w-4 h-4" />
+                            Enable Order Notifications
+                          </>
+                        )}
+                      </Button>
+                      <p className="text-xs text-gray-500">
+                        Get instant updates about your order status via push notifications
+                      </p>
+                    </div>
                   </div>
 
                   <div>
