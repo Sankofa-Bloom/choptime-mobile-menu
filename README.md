@@ -77,15 +77,41 @@ choptym-mobile-menu/
    ```
 
 3. **Set Environment Variables**
-   Copy variables from `.env.netlify` to Netlify dashboard:
+   Copy ALL variables from `.env.netlify` to Netlify dashboard:
 
    **Site Settings > Environment Variables**
    ```
+   # Frontend Variables (VITE_* prefix)
    VITE_SUPABASE_URL=https://your-project.supabase.co
    VITE_SUPABASE_ANON_KEY=your-anon-key
+   VITE_API_BASE_URL=
+   VITE_ADMIN_EMAIL=your-admin-email
+   VITE_ADMIN_PHONE=your-admin-phone
+   VITE_APP_NAME=ChopTym
+   VITE_APP_VERSION=1.1.8
+   VITE_APP_ENVIRONMENT=production
+   VITE_ENABLE_PWA=true
+   VITE_ENABLE_OFFLINE_MODE=true
+
+   # Backend Variables
+   NODE_ENV=production
+   PORT=3001
+   HOST=0.0.0.0
+   JWT_SECRET=your-jwt-secret
+   RATE_LIMIT_WINDOW_MS=900000
+   RATE_LIMIT_MAX_REQUESTS=1000
+   CORS_ORIGIN=https://your-site.netlify.app
+   CORS_CREDENTIALS=true
+   MAX_REQUEST_SIZE=10mb
    SUPABASE_URL=https://your-project.supabase.co
    SUPABASE_ANON_KEY=your-anon-key
-   NODE_ENV=production
+   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+   ADMIN_PIN=1035
+   ADMIN_SESSION_TIMEOUT=3600000
+   DEFAULT_DELIVERY_FEE=500
+   FREE_DELIVERY_THRESHOLD=5000
+   MAX_DELIVERY_DISTANCE=10
+   DEBUG_MODE=false
    ```
 
 4. **Deploy**
@@ -124,8 +150,14 @@ choptym-mobile-menu/
 4. **Configure environment variables**
    Edit `.env.local` with your values:
    ```bash
+   # Frontend variables
    VITE_SUPABASE_URL=https://your-project.supabase.co
    VITE_SUPABASE_ANON_KEY=your-anon-key
+
+   # Backend variables
+   SUPABASE_URL=https://your-project.supabase.co
+   SUPABASE_ANON_KEY=your-anon-key
+   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
    ```
 
 5. **Start development server**
