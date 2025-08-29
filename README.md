@@ -1,14 +1,14 @@
 # 🚀 ChopTym - Cameroonian Food Delivery PWA
 
-> **Version 1.0.0** - Production Ready
+> **Version 1.1.8** - Production Ready for Netlify
 
-Authentic Cameroonian cuisine delivered fresh to your doorstep. A modern, secure, and scalable food delivery Progressive Web App (PWA) built with React, TypeScript, and Supabase.
+Authentic Cameroonian cuisine delivered fresh to your doorstep. A modern, secure, and scalable food delivery Progressive Web App (PWA) built with React, TypeScript, and Supabase, optimized for Netlify deployment.
 
 [![Node.js](https://img.shields.io/badge/Node.js-20+-green.svg)](https://nodejs.org/)
 [![React](https://img.shields.io/badge/React-18+-blue.svg)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5+-blue.svg)](https://www.typescriptlang.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-2+-green.svg)](https://supabase.com/)
-[![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://docker.com/)
+[![Netlify](https://img.shields.io/badge/Netlify-Deployed-blue.svg)](https://netlify.com/)
 
 ## ✨ Features
 
@@ -45,14 +45,59 @@ choptym-mobile-menu/
 └── public/                # Static Assets
 ```
 
-## 🚀 Quick Start
+## 🚀 Netlify Deployment
+
+### Prerequisites
+
+- Netlify account
+- Supabase project
+- GitHub repository connected to Netlify
+
+### One-Click Deploy
+
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/Sankofa-Bloom/choptym-mobile-menu)
+
+### Manual Deployment
+
+1. **Connect to Netlify**
+   - Go to [Netlify](https://netlify.com)
+   - Click "New site from Git"
+   - Connect your GitHub repository
+
+2. **Configure Build Settings**
+   ```bash
+   # Build command
+   npm run build
+
+   # Publish directory
+   dist
+
+   # Node version
+   20
+   ```
+
+3. **Set Environment Variables**
+   Copy variables from `.env.netlify` to Netlify dashboard:
+
+   **Site Settings > Environment Variables**
+   ```
+   VITE_SUPABASE_URL=https://your-project.supabase.co
+   VITE_SUPABASE_ANON_KEY=your-anon-key
+   SUPABASE_URL=https://your-project.supabase.co
+   SUPABASE_ANON_KEY=your-anon-key
+   NODE_ENV=production
+   ```
+
+4. **Deploy**
+   - Netlify will automatically build and deploy
+   - Your site will be live at `https://your-site.netlify.app`
+
+## 🛠️ Local Development
 
 ### Prerequisites
 
 - Node.js 20+
 - npm or yarn
-- Supabase account
-- Payment processor accounts (optional)
 
 ### Installation
 
@@ -64,33 +109,28 @@ choptym-mobile-menu/
 
 2. **Install dependencies**
    ```bash
-   # Frontend
    npm install
-
-   # Backend
-   cd server && npm install && cd ..
    ```
 
 3. **Environment setup**
    ```bash
-   # Copy environment files
-   cp config/production.env.example .env
-   cd server && cp ../config/production.env.example .env && cd ..
+   # For development
+   cp .env.development .env.local
+
+   # For production testing
+   cp .env.production .env.local
    ```
 
 4. **Configure environment variables**
-   Edit `.env` and `server/.env` with your production values
-
-5. **Database setup**
-   Run the SQL script in your Supabase dashboard:
-   ```sql
-   -- Execute: final-delivery-fee-fix.sql
-   -- This creates the required database tables
+   Edit `.env.local` with your values:
+   ```bash
+   VITE_SUPABASE_URL=https://your-project.supabase.co
+   VITE_SUPABASE_ANON_KEY=your-anon-key
    ```
 
-6. **Start development server**
+5. **Start development server**
    ```bash
-   npm run dev:full
+   npm run dev
    ```
 
 ## 📱 Usage

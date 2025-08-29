@@ -29,9 +29,11 @@ dist-ssr
 .env.development
 .env.production
 .env.test
-.env.netlify
 *.env
 server/.env
+
+# Allow .env.netlify (template for Netlify deployment)
+!.env.netlify
 
 # Netlify
 .netlify/
