@@ -15,6 +15,7 @@ import TownSelector from '@/components/TownSelector';
 import RestaurantSelectionModal from '@/components/RestaurantSelectionModal';
 import CustomOrderModal from '@/components/CustomOrderModal';
 import ChopTymLoader from '@/components/ui/ChopTymLoader';
+import RealTimeDataStatus from '@/components/RealTimeDataStatus';
 
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -42,6 +43,9 @@ const Index = () => {
     total: 0,
     deliveryFee: 0
   });
+
+  // Track last data update time
+  const [lastDataUpdate, setLastDataUpdate] = useState<Date | null>(null);
 
   // PWA installation hook
   const { showInstallPrompt, installPWA, dismissPrompt } = usePWAInstall();
@@ -77,7 +81,9 @@ const Index = () => {
     saveCustomOrder,
     saveUserTown,
     getUserTown,
-    refetchForTown
+    refetchForTown,
+    refreshAllData,
+    isRefreshing
   } = useChopTymData(selectedTown);
 
   const { toast } = useToast();
@@ -170,6 +176,13 @@ const Index = () => {
     }
   }, [selectedTown, getDeliveryFeeForTown, isDeliveryFeeEnabled]);
 
+  // Update last data update time when data changes
+  useEffect(() => {
+    if (dishes.length > 0 || restaurants.length > 0 || restaurantMenus.length > 0) {
+      setLastDataUpdate(new Date());
+    }
+  }, [dishes, restaurants, restaurantMenus]);
+
   const scrollToCart = () => {
     const cartSection = document.getElementById('cart-section');
     if (cartSection) {
@@ -187,6 +200,24 @@ const Index = () => {
     // React Query handles caching and deduping automatically
     refetchForTown(town);
   }, [refetchForTown]);
+
+  const handleDataRefresh = useCallback(async () => {
+    try {
+      await refreshAllData(true); // Force refresh
+      setLastDataUpdate(new Date());
+      toast({
+        title: "Data Updated! 🎉",
+        description: "Latest information has been loaded from the database",
+        variant: "default",
+      });
+    } catch (err) {
+      toast({
+        title: "Update Failed",
+        description: "There was an error refreshing the data",
+        variant: "destructive",
+      });
+    }
+  }, [refreshAllData, toast]);
 
   const handleDishSelect = useCallback((dish: Dish) => {
     setSelectedDish(dish);
@@ -391,7 +422,21 @@ const Index = () => {
       />
       
       <main className="relative z-10">
-                        <HeroSection selectedTown={selectedTown} deliveryFee={orderDetails.deliveryFee} isDeliveryFeeEnabled={isDeliveryFeeEnabled} />
+        <HeroSection selectedTown={selectedTown} deliveryFee={orderDetails.deliveryFee} isDeliveryFeeEnabled={isDeliveryFeeEnabled} />
+        
+        {/* Real-time Data Status */}
+        <div className="container mx-auto px-4 py-4">
+          <RealTimeDataStatus
+            lastUpdated={lastDataUpdate}
+            isRefreshing={isRefreshing}
+            onRefresh={handleDataRefresh}
+            dataCount={{
+              dishes: dishes.length,
+              restaurants: restaurants.length,
+              menus: restaurantMenus.length
+            }}
+          />
+        </div>
         
         <MenuSection 
           dishes={dishes}

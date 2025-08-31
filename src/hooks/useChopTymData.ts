@@ -171,13 +171,14 @@ export const useChopTymData = (selectedTown?: string) => {
   // Enhanced error logging
   const logError = (source: string, err: unknown) => {
     console.error(`🚨 ERROR in ${source}:`, err);
-    console.error('🚨 Error details:', {
-      message: err?.message,
-      status: err?.status,
-      response: err?.response,
-      stack: err?.stack
-    });
-    setError(`Failed to load ${source}`);
+    if (err && typeof err === 'object' && 'message' in err) {
+      console.error('🚨 Error details:', {
+        message: (err as any).message,
+        status: (err as any).status,
+        response: (err as any).response,
+        stack: (err as any).stack
+      });
+    }
   };
   
   // Simple delivery fee lookup function (no API calls needed)
@@ -309,6 +310,32 @@ export const useChopTymData = (selectedTown?: string) => {
     }
   };
 
+  // Real-time refresh function
+  const refreshAllData = useCallback(async (forceRefresh = false) => {
+    console.log('🔄 Refreshing all data...', { forceRefresh, selectedTown });
+    try {
+      if (forceRefresh) {
+        // Force refresh by invalidating all queries
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.dishes });
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.restaurants(selectedTown) });
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.restaurantMenus(selectedTown) });
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.deliveryZones });
+      }
+      
+      // Refetch all queries
+      await Promise.all([
+        dishesQuery.refetch(),
+        restaurantsQuery.refetch(),
+        restaurantMenusQuery.refetch(),
+        deliveryZonesQuery.refetch()
+      ]);
+      
+      console.log('✅ Data refresh completed');
+    } catch (err) {
+      console.error('❌ Error during data refresh:', err);
+    }
+  }, [selectedTown, queryClient, dishesQuery, restaurantsQuery, restaurantMenusQuery, deliveryZonesQuery]);
+
   return {
     // React Query data
     dishes: dishesQuery.data || [],
@@ -362,5 +389,9 @@ export const useChopTymData = (selectedTown?: string) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.restaurants(town) });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.restaurantMenus(town) });
     }, [queryClient]),
+
+    // Real-time refresh capabilities
+    refreshAllData,
+    isRefreshing: dishesQuery.isFetching || restaurantsQuery.isFetching || restaurantMenusQuery.isFetching || deliveryZonesQuery.isFetching,
   };
 };
