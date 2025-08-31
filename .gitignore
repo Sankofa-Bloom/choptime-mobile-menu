@@ -24,17 +24,22 @@ dist-ssr
 *.sw?
 
 # Environment variables and sensitive files
+.env
 .env.local
 .env.test
+.env.development
+.env.production
+.env.netlify
 *.env
 
-# Allow unified environment files (not sensitive)
-!.env.development
-!.env.production
-!.env.netlify
+# Only allow template files
+!.env.development.template
+!.env.production.template
+!.env.netlify.template
 
-# Allow .env.netlify (template for Netlify deployment)
-!.env.netlify
+# Additional environment file patterns
+.env.*
+!.env.*.template
 
 # Netlify
 .netlify/

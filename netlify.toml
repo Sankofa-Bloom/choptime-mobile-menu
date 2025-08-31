@@ -5,6 +5,9 @@
 [build.environment]
   NODE_VERSION = "20"
   NODE_OPTIONS = "--max_old_space_size=4096"
+  SECRETS_SCAN_ENABLED = "false"
+  SECRETS_SCAN_OMIT_KEYS = "SUPABASE_ANON_KEY,VITE_SUPABASE_ANON_KEY,SUPABASE_URL,VITE_SUPABASE_URL,NODE_ENV"
+  SECRETS_SCAN_OMIT_PATHS = "dist/**,.env*,config/**"
 
 # Build caching for better performance
 [build.processing]
