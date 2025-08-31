@@ -1,25 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Restaurant, Dish, RestaurantMenu, Order, CustomOrder, DeliveryFee, UserTown } from '@/types/restaurant';
-
-// Smart API base URL detection for cross-platform compatibility
-const getApiBaseUrl = () => {
-  // If explicitly set in environment, use it
-  if (import.meta.env.VITE_API_BASE_URL) {
-    return import.meta.env.VITE_API_BASE_URL;
-  }
-  
-  // For web deployment, detect current origin for same-origin API calls
-  if (typeof window !== 'undefined') {
-    // In browser: use current origin for same-origin API calls
-    return window.location.origin;
-  }
-  
-  // Fallback for development/SSR
-  return 'http://localhost:3001';
-};
-
-const API_BASE_URL = getApiBaseUrl();
+import { apiConfig, getApiEndpoint } from '@/config/apiConfig';
 
 // Query keys for React Query
 export const QUERY_KEYS = {
@@ -29,25 +11,26 @@ export const QUERY_KEYS = {
   deliveryZones: ['delivery-zones'] as const,
 } as const;
 
-  // Debug logging to see what API base URL is being used
-console.log('🔧 API_BASE_URL Debug:', {
+  // Debug logging to see what API configuration is being used
+console.log('🔧 API Configuration Debug:', {
   VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
   window_origin: typeof window !== 'undefined' ? window.location.origin : 'N/A',
-  final_API_BASE_URL: API_BASE_URL,
+  final_API_BASE_URL: apiConfig.baseUrl,
+  isLocal: apiConfig.isLocal,
+  isProduction: apiConfig.isProduction,
   timestamp: new Date().toISOString()
 });
 
 console.log('🧪 Expected working endpoints:');
-console.log('✅ Should work: ' + API_BASE_URL + '/api/hello');
-console.log('✅ Should work: ' + API_BASE_URL + '/api/ping');
-console.log('🧪 Testing: ' + API_BASE_URL + '/api/dishes');
-console.log('🧪 Testing: ' + API_BASE_URL + '/api/restaurants');
-console.log('🧪 Testing: ' + API_BASE_URL + '/api/restaurant-menus');
+console.log('✅ Should work: ' + getApiEndpoint('ping'));
+console.log('🧪 Testing: ' + getApiEndpoint('dishes'));
+console.log('🧪 Testing: ' + getApiEndpoint('restaurants'));
+console.log('🧪 Testing: ' + getApiEndpoint('restaurantMenus'));
 
 // Helper function for API calls (defined at module level)
 const apiCall = async (endpoint: string, options: RequestInit = {}) => {
   try {
-    const url = `${API_BASE_URL}/api/${endpoint}`;
+    const url = getApiEndpoint(endpoint as keyof typeof apiConfig.endpoints);
     console.log('🔧 Making API call to:', url);
     console.log('🔧 Request options:', { ...options, headers: { 'Content-Type': 'application/json', ...options.headers } });
 
@@ -86,7 +69,7 @@ const apiCall = async (endpoint: string, options: RequestInit = {}) => {
 
 // Test connectivity on mount
 if (typeof window !== 'undefined') {
-  fetch(`${API_BASE_URL}/api/ping`)
+  fetch(getApiEndpoint('ping'))
     .then(response => response.json())
     .then(data => console.log('🔧 Connectivity test successful:', data))
     .catch(error => console.error('🔧 Connectivity test failed:', error));

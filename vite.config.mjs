@@ -38,6 +38,32 @@ export default defineConfig(({ mode }) => ({
         target: 'http://localhost:3001',
         changeOrigin: true,
         secure: false,
+      },
+      // Main data API endpoints
+      '/api/dishes': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/api/restaurants': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/api/restaurant-menus': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/api/delivery-zones': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/api/ping': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
       }
     }
   },

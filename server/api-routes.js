@@ -16,6 +16,43 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 const router = express.Router();
 
 // =============================================================================
+// HEALTH CHECK API
+// =============================================================================
+
+router.get('/ping', async (req, res) => {
+  try {
+    // Test Supabase connection
+    let supabaseStatus = 'not_configured';
+    if (supabaseUrl && supabaseServiceKey) {
+      try {
+        const { data, error } = await supabase.from('dishes').select('count').limit(1);
+        supabaseStatus = error ? 'connection_failed' : 'connected';
+      } catch (err) {
+        supabaseStatus = 'connection_error';
+      }
+    }
+
+    const response = {
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development',
+      supabase: supabaseStatus,
+      message: 'ChopTym API is running',
+      version: '1.0.0'
+    };
+
+    res.json(response);
+  } catch (error) {
+    console.error('Error in ping endpoint:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Internal server error',
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// =============================================================================
 // DISHES API
 // =============================================================================
 
