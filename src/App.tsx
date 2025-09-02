@@ -113,55 +113,9 @@ function App() {
       localStorage.setItem('choptym_visited', 'true');
     }
 
-    // Initialize notification service with better error handling
-    const initializeNotifications = async () => {
-      try {
-        await notificationService.initialize();
-        console.log('✅ Notification service initialized');
-
-        // Small delay to ensure service worker is fully ready
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // Debug service worker status
-        console.log('🔧 Service worker status:', notificationService.getServiceWorkerStatus());
-
-        // Check if notifications are supported and request permission if needed
-        if (notificationService.isSupported()) {
-          const permission = notificationService.getPermissionStatus();
-          console.log('📱 Notification permission status:', permission);
-
-          if (permission === 'default') {
-            // Don't auto-request permission, let user do it manually
-            console.log('📱 Notifications supported, permission not requested yet');
-          } else if (permission === 'granted') {
-            // Try to subscribe to push notifications
-            console.log('🔄 Attempting to subscribe to push notifications...');
-            const subscriptionResult = await notificationService.subscribeToPush();
-            if (subscriptionResult) {
-              console.log('✅ Push notification subscription successful');
-            } else {
-              console.log('❌ Push notification subscription failed');
-            }
-          } else {
-            console.log('🚫 Notification permission denied');
-          }
-        } else {
-          console.log('🚫 Notifications not supported in this browser');
-        }
-      } catch (error) {
-        console.error('❌ Failed to initialize notification service:', error);
-        setNotificationError(true);
-        // Don't let notification errors crash the app
-      }
-    };
-
-    // Wrap in try-catch to prevent crashes
-    try {
-      initializeNotifications();
-    } catch (error) {
-      console.error('❌ Critical error in notification initialization:', error);
-      setNotificationError(true);
-    }
+    // DISABLED: Initialize notification service to prevent crashes
+    // Temporarily disabled until crash issues are resolved
+    console.log('🔧 Notification service initialization disabled for stability');
   }, []);
 
   const handleSplashComplete = () => {
