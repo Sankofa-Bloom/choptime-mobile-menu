@@ -22,18 +22,11 @@ console.log('🔧 API Configuration Debug:', {
 });
 
 console.log('🧪 Expected working endpoints:');
-<<<<<<< HEAD
-console.log('✅ Should work: ' + getApiEndpoint('ping'));
+console.log('✅ Should work: ' + getApiEndpoint('dishes'));
+console.log('✅ Should work: ' + getApiEndpoint('restaurants'));
 console.log('🧪 Testing: ' + getApiEndpoint('dishes'));
 console.log('🧪 Testing: ' + getApiEndpoint('restaurants'));
 console.log('🧪 Testing: ' + getApiEndpoint('restaurantMenus'));
-=======
-console.log('✅ Should work: ' + API_BASE_URL + '/api/dishes');
-console.log('✅ Should work: ' + API_BASE_URL + '/api/restaurants');
-console.log('🧪 Testing: ' + API_BASE_URL + '/api/dishes');
-console.log('🧪 Testing: ' + API_BASE_URL + '/api/restaurants');
-console.log('🧪 Testing: ' + API_BASE_URL + '/api/restaurant-menus');
->>>>>>> 6d85127 (fix: production stability, admin CRUD resilience, and payment endpoints\n\n- Refactor src/hooks/useAdminData.ts for clearer helpers, TS fixes, and schema-safe CRUD\n- Add column discovery + payload filtering for dishes; handle legacy fields\n- Update connectivity test to use /api/dishes instead of /api/ping\n- Switch Payin client to Netlify Functions endpoints (no client-side auth)\n- Improve error handling and logging across admin flows)
 
 // Helper function for API calls (defined at module level)
 const apiCall = async (endpoint: string, options: RequestInit = {}) => {
@@ -77,11 +70,7 @@ const apiCall = async (endpoint: string, options: RequestInit = {}) => {
 
 // Test connectivity on mount
 if (typeof window !== 'undefined') {
-<<<<<<< HEAD
-  fetch(getApiEndpoint('ping'))
-=======
-  fetch(`${API_BASE_URL}/api/dishes`)
->>>>>>> 6d85127 (fix: production stability, admin CRUD resilience, and payment endpoints\n\n- Refactor src/hooks/useAdminData.ts for clearer helpers, TS fixes, and schema-safe CRUD\n- Add column discovery + payload filtering for dishes; handle legacy fields\n- Update connectivity test to use /api/dishes instead of /api/ping\n- Switch Payin client to Netlify Functions endpoints (no client-side auth)\n- Improve error handling and logging across admin flows)
+  fetch(getApiEndpoint('dishes'))
     .then(response => response.json())
     .then(data => console.log('🔧 Connectivity test successful (dishes):', Array.isArray(data) ? `Array(${data.length})` : data))
     .catch(error => {
