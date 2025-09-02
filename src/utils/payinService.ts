@@ -56,8 +56,13 @@ class PayinService {
   private authToken: string | null = null; // no longer required for Netlify functions
 
   constructor() {
-    // Use backend proxy for all API calls
-    this.serverUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+    // Use detected API base URL (Netlify functions in prod)
+    try {
+      const { apiConfig } = require('@/config/apiConfig');
+      this.serverUrl = apiConfig?.baseUrl || (import.meta as any)?.env?.VITE_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '');
+    } catch {
+      this.serverUrl = (import.meta as any)?.env?.VITE_API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '');
+    }
   }
 
   // Authentication handled inside Netlify functions; no-op kept for backward compatibility

@@ -15,7 +15,7 @@ import TownSelector from '@/components/TownSelector';
 import RestaurantSelectionModal from '@/components/RestaurantSelectionModal';
 import CustomOrderModal from '@/components/CustomOrderModal';
 import ChopTymLoader from '@/components/ui/ChopTymLoader';
-import RealTimeDataStatus from '@/components/RealTimeDataStatus';
+// import RealTimeDataStatus from '@/components/RealTimeDataStatus';
 
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -516,19 +516,7 @@ const Index = () => {
       <main className="relative z-10">
         <HeroSection selectedTown={selectedTown} deliveryFee={orderDetails.deliveryFee} isDeliveryFeeEnabled={isDeliveryFeeEnabled} />
         
-        {/* Real-time Data Status */}
-        <div className="container mx-auto px-4 py-4">
-          <RealTimeDataStatus
-            lastUpdated={lastDataUpdate}
-            isRefreshing={isRefreshing}
-            onRefresh={handleDataRefresh}
-            dataCount={{
-              dishes: dishes.length,
-              restaurants: restaurants.length,
-              menus: restaurantMenus.length
-            }}
-          />
-        </div>
+        {/* Real-time Data Status removed for production stability */}
         
         <MenuSection 
           dishes={dishes}
