@@ -92,6 +92,8 @@ export interface RestaurantFormData {
   town: string;
   address: string;
   contact_number: string;
+  mtn_number?: string;
+  orange_number?: string;
   cuisine_type: string;
   active: boolean;
   delivery_time_min: number;
@@ -99,6 +101,26 @@ export interface RestaurantFormData {
   rating: number;
   gps_latitude: number;
   gps_longitude: number;
+  image_url?: string;
+  logo_url?: string;
+  total_reviews?: number;
+  has_dynamic_menu?: boolean;
+  is_open_24_7?: boolean;
+  // Operating hours
+  monday_open?: string;
+  monday_close?: string;
+  tuesday_open?: string;
+  tuesday_close?: string;
+  wednesday_open?: string;
+  wednesday_close?: string;
+  thursday_open?: string;
+  thursday_close?: string;
+  friday_open?: string;
+  friday_close?: string;
+  saturday_open?: string;
+  saturday_close?: string;
+  sunday_open?: string;
+  sunday_close?: string;
 }
 
 export interface DishFormData {

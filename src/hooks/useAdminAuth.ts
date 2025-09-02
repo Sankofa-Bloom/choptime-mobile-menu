@@ -344,6 +344,28 @@ export const useAdminAuth = () => {
       setLoading(true);
       setAdmin(null);
 
+      // Test Supabase connectivity first
+      try {
+        const { data: testData, error: testError } = await supabase
+          .from('delivery_fee_settings')
+          .select('id')
+          .limit(1);
+
+        if (testError) {
+          console.error('Supabase connectivity test failed:', testError);
+          return {
+            success: false,
+            error: 'Unable to connect to the server. Please check your internet connection and try again.'
+          };
+        }
+      } catch (connectivityError) {
+        console.error('Supabase connectivity error:', connectivityError);
+        return {
+          success: false,
+          error: 'Network connection error. Please check your internet connection and try again.'
+        };
+      }
+
       // Sign in with Supabase Auth
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -353,6 +375,7 @@ export const useAdminAuth = () => {
       });
 
       if (error) {
+        console.error('Supabase auth error:', error);
         return {
           success: false,
           error: error.message

@@ -23,6 +23,33 @@ export const useAdminData = (props?: UseAdminDataProps) => {
   const [dishes, setDishes] = useState<Dish[]>([]);
   const [loading, setLoading] = useState(false);
 
+  // Discover existing columns for a table by sampling one row
+  const getExistingColumns = async (table: string): Promise<Set<string>> => {
+    try {
+      const { data, error } = await supabase.from(table).select('*').limit(1);
+      if (error) {
+        console.warn('Column discovery failed for', table, error);
+        return new Set();
+      }
+      if (Array.isArray(data) && data.length > 0) {
+        return new Set(Object.keys(data[0] as Record<string, unknown>));
+      }
+      return new Set();
+    } catch (e) {
+      console.warn('Column discovery exception for', table, e);
+      return new Set();
+    }
+  };
+
+  const filterPayloadToColumns = (payload: Record<string, unknown>, existing: Set<string>): Record<string, unknown> => {
+    if (existing.size === 0) return payload; // nothing known, keep as-is
+    const filtered: Record<string, unknown> = {};
+    Object.keys(payload).forEach((k) => {
+      if (existing.has(k)) filtered[k] = payload[k];
+    });
+    return filtered;
+  };
+
   // Load all data
   const loadData = async () => {
     setLoading(true);
@@ -176,10 +203,14 @@ export const useAdminData = (props?: UseAdminDataProps) => {
     }
 
     try {
+      // Filter payload to existing columns to avoid schema mismatches
+      const cols = await getExistingColumns('dishes');
+      const filtered = filterPayloadToColumns(data as unknown as Record<string, unknown>, cols);
+
       // Create dish
       const { data: newDish, error: dishError } = await supabase
         .from('dishes')
-        .insert([data])
+        .insert([filtered])
         .select()
         .single();
 
@@ -240,10 +271,13 @@ export const useAdminData = (props?: UseAdminDataProps) => {
     }
 
     try {
-      // Update dish
+      // Update dish using only known columns
+      const cols = await getExistingColumns('dishes');
+      const filtered = filterPayloadToColumns(data as unknown as Record<string, unknown>, cols);
+
       const { error: dishError } = await supabase
         .from('dishes')
-        .update(data)
+        .update(filtered)
         .eq('id', id);
 
       if (dishError) throw dishError;

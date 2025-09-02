@@ -26,6 +26,11 @@ const SimpleAdminLogin: React.FC = () => {
           title: 'Success',
           description: result.message
         });
+        // Add a small delay to ensure the toast is visible and state updates
+        setTimeout(() => {
+          // The redirect will happen automatically through SimpleProtectedRoute
+          // when the authentication state changes
+        }, 1000);
       } else {
         toast({
           title: 'Error',

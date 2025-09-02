@@ -35,7 +35,7 @@ interface CartSectionProps {
   onQuantityUpdate: (index: number, newQuantity: number) => void;
   calculateSubtotal: () => number;
   calculateTotal: () => number;
-  onOrderComplete?: () => void;
+  onOrderComplete?: (customerEmail: string) => void;
 }
 
 const CartSection: React.FC<CartSectionProps> = ({
@@ -403,7 +403,7 @@ const CartSection: React.FC<CartSectionProps> = ({
 
             // Call onOrderComplete after a short delay to show success message
             setTimeout(() => {
-              onOrderComplete?.();
+              onOrderComplete?.(customerEmail);
             }, 3000);
 
           } else if (status === 'failed' || status === 'cancelled' || status === 'error') {

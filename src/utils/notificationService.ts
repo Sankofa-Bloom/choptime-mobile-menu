@@ -27,28 +27,28 @@ class NotificationService {
   private configLoaded: boolean = false;
 
   /**
-   * Load configuration from backend
+   * Load configuration from environment variables
    */
   private async loadConfig(): Promise<void> {
     if (this.configLoaded) return;
 
     try {
-      const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
-      const response = await fetch(`${apiUrl}/api/config`);
-
-      if (!response.ok) {
-        throw new Error('Failed to load configuration');
+      // Use VAPID key from environment variables
+      this.vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY || '';
+      
+      if (!this.vapidPublicKey) {
+        console.warn('VAPID public key not found in environment variables');
+        // Fallback to a dummy key for development
+        this.vapidPublicKey = 'BKxQzAgO8Q8G3L3Z3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3';
       }
-
-      const config = await response.json();
-      this.vapidPublicKey = config.notifications?.vapidPublicKey || '';
+      
       this.configLoaded = true;
-
-      console.log('Notification config loaded from backend');
+      console.log('Notification config loaded from environment variables');
     } catch (error) {
       console.error('Failed to load notification config:', error);
       // Fallback to a dummy key for development
       this.vapidPublicKey = 'BKxQzAgO8Q8G3L3Z3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3J3';
+      this.configLoaded = true;
     }
   }
 
@@ -117,26 +117,32 @@ class NotificationService {
    * Initialize the notification service
    */
   async initialize(): Promise<void> {
-    if (!('serviceWorker' in navigator) || !('Notification' in window)) {
-      console.warn('Notifications not supported in this browser');
-      return;
-    }
-
     try {
+      if (!('serviceWorker' in navigator) || !('Notification' in window)) {
+        console.warn('Notifications not supported in this browser');
+        return;
+      }
+
       // Load configuration first
       await this.loadConfig();
 
       // Register service worker if not already registered
       if ('serviceWorker' in navigator) {
-        this.serviceWorkerRegistration = await navigator.serviceWorker.getRegistration();
+        try {
+          this.serviceWorkerRegistration = await navigator.serviceWorker.getRegistration();
 
-        if (!this.serviceWorkerRegistration) {
-          this.serviceWorkerRegistration = await navigator.serviceWorker.register('/sw.js');
-          console.log('Service Worker registered for notifications');
+          if (!this.serviceWorkerRegistration) {
+            this.serviceWorkerRegistration = await navigator.serviceWorker.register('/sw.js');
+            console.log('Service Worker registered for notifications');
+          }
+        } catch (swError) {
+          console.error('Service worker registration failed:', swError);
+          // Don't throw - just log the error and continue
         }
       }
     } catch (error) {
       console.error('Failed to initialize notification service:', error);
+      // Don't throw - just log the error and continue
     }
   }
 

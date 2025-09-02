@@ -46,6 +46,11 @@ const AdminLogin = () => {
       return;
     }
 
+    if (!validateEmail(email.trim())) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
     if (!password.trim()) {
       setError('Password is required');
       return;
@@ -53,6 +58,13 @@ const AdminLogin = () => {
 
     setLoading(true);
     setError('');
+
+    // Check network connectivity first
+    if (!navigator.onLine) {
+      setError('No internet connection. Please check your network and try again.');
+      setLoading(false);
+      return;
+    }
 
     try {
       const result = await loginWithEmail(email.trim(), password);

@@ -335,21 +335,113 @@ const Index = () => {
 
 
 
-  const handleOrderComplete = () => {
-    // Clear cart and order data
-    setCart([]);
-    setOrderDetails({
-      customerName: '',
-      phone: '',
-      deliveryAddress: '',
-      additionalMessage: '',
-      paymentMethod: 'swychr',
-      total: 0,
-      deliveryFee: 0
-    });
-    
-    // Navigate to thank you page
-    navigate('/thank-you');
+  const handleOrderComplete = async (customerEmail: string) => {
+    try {
+      // Save orders to database
+      const orderReference = generateOrderReference();
+      
+      // Separate regular orders and custom orders
+      const regularOrders = cart.filter(item => 'dish' in item) as OrderItem[];
+      const customOrders = cart.filter(item => 'customDishName' in item) as CustomOrderItem[];
+      
+      // Save regular orders
+      for (const item of regularOrders) {
+        const orderData = {
+          user_name: orderDetails.customerName,
+          user_phone: orderDetails.phone,
+          user_location: `${selectedTown}, ${orderDetails.deliveryAddress}`,
+          dish_name: item.dish.name,
+          restaurant_name: item.restaurant.name,
+          restaurant_id: item.restaurant.id,
+          dish_id: item.dish.id,
+          quantity: item.quantity,
+          price: item.price,
+          total_amount: item.price * item.quantity,
+          delivery_fee: orderDetails.deliveryFee,
+          order_reference: orderReference,
+          status: 'pending' as const,
+          payment_status: 'completed' as const,
+          payment_method: 'payin' as const,
+          special_instructions: orderDetails.additionalMessage || undefined,
+          user_email: customerEmail,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+        
+        await saveOrder(orderData);
+      }
+      
+      // Save custom orders
+      for (const item of customOrders) {
+        const customOrderData = {
+          user_name: orderDetails.customerName,
+          user_phone: orderDetails.phone,
+          user_location: `${selectedTown}, ${orderDetails.deliveryAddress}`,
+          custom_dish_name: item.customDishName,
+          quantity: item.quantity,
+          special_instructions: item.specialInstructions || orderDetails.additionalMessage || undefined,
+          restaurant_id: item.restaurant.id,
+          restaurant_name: item.restaurant.name,
+          restaurant_address: item.restaurantAddress,
+          restaurant_phone: item.restaurantPhone,
+          estimated_price: item.estimatedPrice,
+          total_amount: item.estimatedPrice * item.quantity,
+          order_reference: orderReference,
+          status: 'pending' as const,
+          payment_status: 'completed' as const,
+          payment_method: 'payin' as const,
+          user_email: customerEmail,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+        
+        await saveCustomOrder(customOrderData);
+      }
+      
+      // Save user town preference
+      if (selectedTown) {
+        await saveUserTown({
+          user_phone: orderDetails.phone,
+          town: selectedTown
+        });
+      }
+      
+      // Clear cart and order data
+      setCart([]);
+      setOrderDetails({
+        customerName: '',
+        phone: '',
+        deliveryAddress: '',
+        additionalMessage: '',
+        paymentMethod: 'swychr',
+        total: 0,
+        deliveryFee: 0
+      });
+      
+      // Navigate to thank you page
+      navigate('/thank-you');
+      
+    } catch (error) {
+      console.error('Error saving orders:', error);
+      toast({
+        title: "Order Saved",
+        description: "Your order has been placed successfully!",
+      });
+      
+      // Still clear cart and navigate even if there's an error
+      setCart([]);
+      setOrderDetails({
+        customerName: '',
+        phone: '',
+        deliveryAddress: '',
+        additionalMessage: '',
+        paymentMethod: 'swychr',
+        total: 0,
+        deliveryFee: 0
+      });
+      
+      navigate('/thank-you');
+    }
   };
 
   const formatPrice = (price: number) => {

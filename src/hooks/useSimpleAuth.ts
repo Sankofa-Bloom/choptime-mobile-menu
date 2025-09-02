@@ -26,11 +26,11 @@ export const useSimpleAuth = () => {
       const { data: { session } } = await supabase.auth.getSession();
 
       if (session?.user) {
-        // Try to get admin data
+        // Try to get admin data using email instead of auth_id
         const { data: adminData, error } = await supabase
           .from('admin_users')
           .select('*')
-          .eq('auth_id', session.user.id)
+          .eq('email', session.user.email)
           .eq('active', true)
           .single();
 
@@ -82,11 +82,11 @@ export const useSimpleAuth = () => {
       }
 
       if (data.session) {
-        // Check if user is admin
+        // Check if user is admin using email instead of auth_id
         const { data: adminData, error: adminError } = await supabase
           .from('admin_users')
           .select('*')
-          .eq('auth_id', data.session.user.id)
+          .eq('email', data.session.user.email)
           .eq('active', true)
           .single();
 
@@ -120,15 +120,18 @@ export const useSimpleAuth = () => {
   };
 
   const initializeFromStorage = useCallback(() => {
-    const stored = localStorage.getItem('choptym_simple_admin');
-    if (stored) {
-      try {
+    try {
+      const stored = localStorage.getItem('choptym_simple_admin');
+      if (stored) {
         const adminData = JSON.parse(stored);
         setAdmin(adminData);
         setIsAuthenticated(true);
-      } catch (error) {
-        localStorage.removeItem('choptym_simple_admin');
       }
+    } catch (error) {
+      console.error('Error loading stored admin data:', error);
+      localStorage.removeItem('choptym_simple_admin');
+    } finally {
+      setLoading(false);
     }
   }, []);
 

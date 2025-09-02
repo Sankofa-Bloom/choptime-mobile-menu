@@ -1,400 +1,183 @@
-# 🚀 ChopTym - Cameroonian Food Delivery PWA
+# Supabase CLI
 
-> **Version 1.1.8** - Production Ready for Netlify
+[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
+](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
 
-Authentic Cameroonian cuisine delivered fresh to your doorstep. A modern, secure, and scalable food delivery Progressive Web App (PWA) built with React, TypeScript, and Supabase, optimized for Netlify deployment.
+[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
 
-[![Node.js](https://img.shields.io/badge/Node.js-20+-green.svg)](https://nodejs.org/)
-[![React](https://img.shields.io/badge/React-18+-blue.svg)](https://reactjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5+-blue.svg)](https://www.typescriptlang.org/)
-[![Supabase](https://img.shields.io/badge/Supabase-2+-green.svg)](https://supabase.com/)
-[![Netlify](https://img.shields.io/badge/Netlify-Deployed-blue.svg)](https://netlify.com/)
+This repository contains all the functionality for Supabase CLI.
 
-## ✨ Features
+- [x] Running Supabase locally
+- [x] Managing database migrations
+- [x] Creating and deploying Supabase Functions
+- [x] Generating types directly from your database schema
+- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
 
-- 🍲 **Authentic Cameroonian Cuisine** - Traditional dishes from local restaurants
-- 📱 **Progressive Web App** - Installable, offline-capable mobile experience
-- 🚀 **Real-time Updates** - Live order tracking and notifications
-- 💳 **Multiple Payment Options** - Campay, Fapshi, and cash payments
-- 🛡️ **Enterprise Security** - Production-grade security and authentication
-- 📊 **Admin Dashboard** - Comprehensive restaurant and order management
-- 🌍 **Multi-town Support** - Service coverage across Cameroon
-- 🔄 **Real-time Delivery Tracking** - GPS-based delivery updates
+## Getting started
 
-## 🏗️ Architecture
+### Install the CLI
 
-```
-choptym-mobile-menu/
-├── src/                    # Frontend React Application
-│   ├── components/         # Reusable UI Components
-│   ├── pages/             # Page Components
-│   ├── hooks/             # Custom React Hooks
-│   ├── utils/             # Utility Functions
-│   └── types/             # TypeScript Type Definitions
-├── server/                # Backend API Server
-│   ├── src/
-│   │   ├── routes/        # API Route Modules
-│   │   ├── middleware/    # Express Middleware
-│   │   ├── config/        # Configuration Files
-│   │   ├── utils/         # Server Utilities
-│   │   └── validators/    # Input Validation
-│   └── logs/              # Application Logs
-├── config/                # Application Configuration
-├── scripts/               # Build and Deployment Scripts
-├── docs/                  # Documentation
-└── public/                # Static Assets
-```
-
-## 🚀 Netlify Deployment
-
-### Prerequisites
-
-- Netlify account
-- Supabase project
-- GitHub repository connected to Netlify
-
-### One-Click Deploy
-
-[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/Sankofa-Bloom/choptym-mobile-menu)
-
-### Manual Deployment
-
-1. **Connect to Netlify**
-   - Go to [Netlify](https://netlify.com)
-   - Click "New site from Git"
-   - Connect your GitHub repository
-
-2. **Configure Build Settings**
-   ```bash
-   # Build command
-   npm run build
-
-   # Publish directory
-   dist
-
-   # Node version
-   20
-   ```
-
-3. **Set Environment Variables**
-   Copy ALL variables from `.env.netlify` to Netlify dashboard:
-
-   **Site Settings > Environment Variables**
-   ```
-   # Frontend Variables (VITE_* prefix)
-   VITE_SUPABASE_URL=https://your-project.supabase.co
-   VITE_SUPABASE_ANON_KEY=your-anon-key
-   VITE_API_BASE_URL=
-   VITE_ADMIN_EMAIL=your-admin-email
-   VITE_ADMIN_PHONE=your-admin-phone
-   VITE_APP_NAME=ChopTym
-   VITE_APP_VERSION=1.1.8
-   VITE_APP_ENVIRONMENT=production
-   VITE_ENABLE_PWA=true
-   VITE_ENABLE_OFFLINE_MODE=true
-
-   # Backend Variables
-   NODE_ENV=production
-   PORT=3001
-   HOST=0.0.0.0
-   JWT_SECRET=your-jwt-secret
-   RATE_LIMIT_WINDOW_MS=900000
-   RATE_LIMIT_MAX_REQUESTS=1000
-   CORS_ORIGIN=https://your-site.netlify.app
-   CORS_CREDENTIALS=true
-   MAX_REQUEST_SIZE=10mb
-   SUPABASE_URL=https://your-project.supabase.co
-   SUPABASE_ANON_KEY=your-anon-key
-   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-   ADMIN_PIN=1035
-   ADMIN_SESSION_TIMEOUT=3600000
-   DEFAULT_DELIVERY_FEE=500
-   FREE_DELIVERY_THRESHOLD=5000
-   MAX_DELIVERY_DISTANCE=10
-   DEBUG_MODE=false
-   ```
-
-4. **Deploy**
-   - Netlify will automatically build and deploy
-   - Your site will be live at `https://your-site.netlify.app`
-
-## 🛠️ Local Development
-
-### Prerequisites
-
-- Node.js 20+
-- npm or yarn
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/Sankofa-Bloom/choptym-mobile-menu.git
-   cd choptym-mobile-menu
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Environment setup**
-   ```bash
-   # For development
-   cp .env.development .env.local
-
-   # For production testing
-   cp .env.production .env.local
-   ```
-
-4. **Configure environment variables**
-   Edit `.env.local` with your values:
-   ```bash
-   # Frontend variables
-   VITE_SUPABASE_URL=https://your-project.supabase.co
-   VITE_SUPABASE_ANON_KEY=your-anon-key
-
-   # Backend variables
-   SUPABASE_URL=https://your-project.supabase.co
-   SUPABASE_ANON_KEY=your-anon-key
-   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-   ```
-
-5. **Start development server**
-   ```bash
-   npm run dev
-   ```
-
-## 📱 Usage
-
-### For Customers
-
-1. **Browse Menu**: Explore authentic Cameroonian dishes
-2. **Add to Cart**: Select items from multiple restaurants
-3. **Choose Location**: Set delivery address with GPS
-4. **Secure Payment**: Pay with mobile money or card
-5. **Track Delivery**: Real-time GPS tracking
-6. **Install PWA**: Add to home screen for app-like experience
-
-### For Restaurants
-
-1. **Register**: Create restaurant profile
-2. **Manage Menu**: Add/update dishes with photos
-3. **Receive Orders**: Real-time order notifications
-4. **Track Revenue**: Comprehensive sales analytics
-5. **Manage Delivery**: Coordinate with delivery drivers
-
-### For Admins
-
-1. **Dashboard Access**: Secure admin login
-2. **Manage Restaurants**: Approve and monitor restaurants
-3. **Order Oversight**: Track all orders and payments
-4. **Analytics**: Revenue and performance metrics
-5. **Settings**: Configure delivery fees and zones
-
-## 🔧 Development
-
-### Available Scripts
+Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
 
 ```bash
-# Development
-npm run dev              # Start frontend dev server
-npm run dev:full         # Start both frontend and backend
-npm run server           # Start backend only
-
-# Building
-npm run build            # Build for development
-npm run build:prod       # Build for production
-npm run build:staging    # Build for staging
-
-# Testing
-npm run test            # Run tests
-npm run test:coverage   # Run tests with coverage
-npm run type-check      # TypeScript type checking
-
-# Linting & Quality
-npm run lint            # Run ESLint
-npm run lint:fix        # Fix linting issues
-npm run security:audit  # Security audit
-
-# Deployment
-npm run deploy          # Production deployment
-npm run docker:build    # Build Docker image
-npm run docker:up       # Start with Docker Compose
+npm i supabase --save-dev
 ```
 
-### Project Structure
+To install the beta release channel:
 
-```
-src/
-├── components/          # Reusable UI components
-│   ├── ui/             # Base UI components (shadcn/ui)
-│   ├── admin/          # Admin dashboard components
-│   └── common/         # Shared components
-├── pages/              # Page components
-├── hooks/              # Custom React hooks
-├── utils/              # Utility functions
-├── types/              # TypeScript definitions
-└── integrations/       # External service integrations
-
-server/src/
-├── routes/             # API route modules
-├── middleware/         # Express middleware
-├── config/             # Server configuration
-├── utils/              # Server utilities
-└── validators/         # Input validation
+```bash
+npm i supabase@beta --save-dev
 ```
 
-## 🚀 Deployment
+When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
 
-### Production Deployment
-
-1. **Automated Deployment**
-   ```bash
-   ./scripts/deploy-production.sh
-   ```
-
-2. **Manual Deployment**
-   ```bash
-   # Build for production
-   npm run build:prod
-
-   # Start production server
-   npm run serve
-   ```
-
-3. **Docker Deployment**
-   ```bash
-   # Build and run with Docker
-   docker-compose up -d
-   ```
-
-### Environment Configuration
-
-Production environment variables are documented in `config/production.env.example`
-
-### Deployment Checklist
-
-- [ ] Environment variables configured
-- [ ] SSL certificates installed
-- [ ] Database backups configured
-- [ ] Monitoring and logging set up
-- [ ] CDN configured for static assets
-- [ ] Security headers enabled
-- [ ] Performance optimizations applied
-
-## 🛡️ Security
-
-### Features
-
-- **Content Security Policy (CSP)** - Prevents XSS attacks
-- **Rate Limiting** - Protects against brute force attacks
-- **Input Validation** - Sanitizes all user inputs
-- **HTTPS Only** - Forces secure connections
-- **Secure Headers** - Comprehensive security headers
-- **Authentication** - Secure user authentication
-- **Authorization** - Role-based access control
-
-### Security Configuration
-
-Security settings are configured in `config/security.js`:
-
-```javascript
-// Example security configuration
-const securityConfig = {
-  csp: { /* Content Security Policy */ },
-  headers: { /* Security headers */ },
-  rateLimit: { /* Rate limiting */ },
-  validation: { /* Input validation */ },
-  auth: { /* Authentication settings */ }
-};
+```
+NODE_OPTIONS=--no-experimental-fetch yarn add supabase
 ```
 
-## 📊 Performance
+> **Note**
+For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
 
-### Optimizations
+<details>
+  <summary><b>macOS</b></summary>
 
-- **Code Splitting** - Lazy loading of routes and components
-- **Bundle Optimization** - Tree shaking and minification
-- **Image Optimization** - WebP format with fallbacks
-- **Caching** - Aggressive caching strategies
-- **Compression** - Gzip and Brotli compression
-- **CDN** - Static asset delivery via CDN
+  Available via [Homebrew](https://brew.sh). To install:
 
-### Monitoring
+  ```sh
+  brew install supabase/tap/supabase
+  ```
 
-- **Real-time Metrics** - Response times and error rates
-- **Performance Budgets** - Automated performance checks
-- **Bundle Analysis** - Detailed bundle size reports
-- **Lighthouse Scores** - Automated performance audits
+  To install the beta release channel:
+  
+  ```sh
+  brew install supabase/tap/supabase-beta
+  brew link --overwrite supabase-beta
+  ```
+  
+  To upgrade:
 
-## 🔧 API Documentation
+  ```sh
+  brew upgrade supabase
+  ```
+</details>
 
-### Base URL
+<details>
+  <summary><b>Windows</b></summary>
+
+  Available via [Scoop](https://scoop.sh). To install:
+
+  ```powershell
+  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
+  scoop install supabase
+  ```
+
+  To upgrade:
+
+  ```powershell
+  scoop update supabase
+  ```
+</details>
+
+<details>
+  <summary><b>Linux</b></summary>
+
+  Available via [Homebrew](https://brew.sh) and Linux packages.
+
+  #### via Homebrew
+
+  To install:
+
+  ```sh
+  brew install supabase/tap/supabase
+  ```
+
+  To upgrade:
+
+  ```sh
+  brew upgrade supabase
+  ```
+
+  #### via Linux packages
+
+  Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
+
+  ```sh
+  sudo apk add --allow-untrusted <...>.apk
+  ```
+
+  ```sh
+  sudo dpkg -i <...>.deb
+  ```
+
+  ```sh
+  sudo rpm -i <...>.rpm
+  ```
+
+  ```sh
+  sudo pacman -U <...>.pkg.tar.zst
+  ```
+</details>
+
+<details>
+  <summary><b>Other Platforms</b></summary>
+
+  You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
+
+  ```sh
+  go install github.com/supabase/cli@latest
+  ```
+
+  Add a symlink to the binary in `$PATH` for easier access:
+
+  ```sh
+  ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
+  ```
+
+  This works on other non-standard Linux distros.
+</details>
+
+<details>
+  <summary><b>Community Maintained Packages</b></summary>
+
+  Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
+  To install in your working directory:
+
+  ```bash
+  pkgx install supabase
+  ```
+
+  Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
+</details>
+
+### Run the CLI
+
+```bash
+supabase bootstrap
 ```
-https://api.choptym.com
+
+Or using npx:
+
+```bash
+npx supabase bootstrap
 ```
 
-### Authentication
-Most endpoints require authentication via Bearer token:
+The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
+
+## Docs
+
+Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
+
+## Breaking changes
+
+We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
+
+However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
+
+## Developing
+
+To run from source:
+
+```sh
+# Go >= 1.22
+go run . help
 ```
-Authorization: Bearer <token>
-```
-
-### Key Endpoints
-
-#### Dishes
-- `GET /api/dishes` - Get all dishes
-- `GET /api/dishes/:id` - Get dish by ID
-- `POST /api/dishes` - Create dish (Admin)
-- `PUT /api/dishes/:id` - Update dish (Admin)
-
-#### Restaurants
-- `GET /api/restaurants` - Get all restaurants
-- `GET /api/restaurant-menus` - Get restaurant menus
-- `POST /api/restaurants` - Create restaurant (Admin)
-
-#### Orders
-- `POST /api/orders` - Create order
-- `GET /api/orders/:id` - Get order by ID
-- `PUT /api/orders/:id/status` - Update order status
-
-#### Payments
-- `POST /api/payments/create-link` - Create payment link
-- `GET /api/payments/status/:id` - Check payment status
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### Development Guidelines
-
-- Follow the existing code style
-- Write tests for new features
-- Update documentation
-- Ensure security best practices
-- Test across different devices/browsers
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 📞 Support
-
-- **Email**: support@choptym.com
-- **Issues**: [GitHub Issues](https://github.com/Sankofa-Bloom/choptym-mobile-menu/issues)
-- **Documentation**: [Full Documentation](./docs/)
-
-## 🙏 Acknowledgments
-
-- Built with ❤️ for the Cameroonian community
-- Special thanks to all contributors and supporters
-- Powered by modern web technologies and Cameroonian innovation
-
----
-
-**ChopTym** - Bringing authentic Cameroonian flavors to your doorstep! 🇨🇲

@@ -53,56 +53,16 @@ export interface PayinStatusResponse {
 
 class PayinService {
   private serverUrl: string;
-  private authToken: string | null = null;
+  private authToken: string | null = null; // no longer required for Netlify functions
 
   constructor() {
     // Use backend proxy for all API calls
     this.serverUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
   }
 
-  /**
-   * Authenticate with Payin API through backend proxy
-   */
+  // Authentication handled inside Netlify functions; no-op kept for backward compatibility
   async authenticate(): Promise<PayinAuthResponse> {
-    try {
-      console.log('Payin: Authenticating through backend proxy');
-
-      const response = await fetch(`${this.serverUrl}/api/payin/admin/auth`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-        // Note: No body needed - backend uses its own secure credentials
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || `Authentication failed: ${response.status}`);
-      }
-
-      // Store the token for future requests
-      if (result.token) {
-        this.authToken = result.token;
-        // Store token in localStorage for persistence
-        if (typeof localStorage !== 'undefined') {
-          localStorage.setItem('payin_auth_token', result.token);
-          localStorage.setItem('payin_token_expires', Date.now() + (24 * 60 * 60 * 1000)); // 24 hours
-        }
-      }
-
-      return {
-        success: true,
-        token: result.token,
-        message: result.message || 'Authentication successful'
-      };
-    } catch (error) {
-      console.error('Payin: Authentication failed', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Authentication failed'
-      };
-    }
+    return { success: true };
   }
 
   /**
@@ -145,23 +105,11 @@ class PayinService {
         amount: paymentData.amount
       });
 
-      // Ensure we have a valid token
-      if (!this.loadStoredToken()) {
-        // Try to authenticate first
-        const authResult = await this.authenticate();
-        if (!authResult.success) {
-          return {
-            success: false,
-            error: 'Authentication failed. Please try again.'
-          };
-        }
-      }
-
-      const response = await fetch(`${this.serverUrl}/api/payin/create_payment_links`, {
+      // Call Netlify function (handles auth internally)
+      const response = await fetch(`${this.serverUrl}/api/create-payment-link`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.authToken}`
         },
         body: JSON.stringify(paymentData),
       });
@@ -169,15 +117,6 @@ class PayinService {
       const result = await response.json();
 
       if (!response.ok) {
-        if (response.status === 401) {
-          // Token expired, clear it and retry once
-          this.clearStoredToken();
-          return {
-            success: false,
-            error: 'Authentication expired. Please try again.'
-          };
-        }
-
         throw new Error(result.error || `Server error: ${response.status}`);
       }
 
@@ -203,23 +142,11 @@ class PayinService {
     try {
       console.log('Payin: Checking payment status', { transaction_id });
 
-      // Ensure we have a valid token
-      if (!this.loadStoredToken()) {
-        // Try to authenticate first
-        const authResult = await this.authenticate();
-        if (!authResult.success) {
-          return {
-            success: false,
-            error: 'Authentication failed. Please try again.'
-          };
-        }
-      }
-
-      const response = await fetch(`${this.serverUrl}/api/payin/payment-link-status`, {
+      // Call Netlify function (handles auth internally)
+      const response = await fetch(`${this.serverUrl}/api/check-payment-status`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.authToken}`
         },
         body: JSON.stringify({ transaction_id }),
       });
@@ -227,15 +154,6 @@ class PayinService {
       const result = await response.json();
 
       if (!response.ok) {
-        if (response.status === 401) {
-          // Token expired, clear it
-          this.clearStoredToken();
-          return {
-            success: false,
-            error: 'Authentication expired. Please try again.'
-          };
-        }
-
         if (response.status === 404) {
           return {
             success: false,
@@ -309,7 +227,7 @@ class PayinService {
     try {
       console.log('Payin: Storing payment record', { transactionId });
 
-      const response = await fetch(`${this.serverUrl}/store-payment-record`, {
+      const response = await fetch(`${this.serverUrl}/api/store-payment-record`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

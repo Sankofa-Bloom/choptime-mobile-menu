@@ -388,6 +388,8 @@ const ComprehensiveRestaurantManagement: React.FC = () => {
       has_dynamic_menu: restaurant.has_dynamic_menu ?? false,
       mtn_number: restaurant.mtn_number,
       orange_number: restaurant.orange_number,
+      rating: restaurant.rating,
+      total_reviews: restaurant.total_reviews,
       monday_open: restaurant.monday_open,
       monday_close: restaurant.monday_close,
       tuesday_open: restaurant.tuesday_open,
@@ -717,6 +719,33 @@ const ComprehensiveRestaurantManagement: React.FC = () => {
               value={formData.orange_number || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, orange_number: e.target.value }))}
               placeholder="e.g., 0541234567"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="total_reviews">Total Reviews</Label>
+            <Input
+              id="total_reviews"
+              type="number"
+              value={formData.total_reviews || ''}
+              onChange={(e) => setFormData(prev => ({ ...prev, total_reviews: parseInt(e.target.value) || 0 }))}
+              placeholder="0"
+              min="0"
+            />
+          </div>
+          <div>
+            <Label htmlFor="rating">Rating</Label>
+            <Input
+              id="rating"
+              type="number"
+              step="0.1"
+              value={formData.rating || ''}
+              onChange={(e) => setFormData(prev => ({ ...prev, rating: parseFloat(e.target.value) || 4.5 }))}
+              placeholder="4.5"
+              min="0"
+              max="5"
             />
           </div>
         </div>

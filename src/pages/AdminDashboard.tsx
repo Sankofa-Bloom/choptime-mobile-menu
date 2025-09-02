@@ -31,6 +31,7 @@ import ComprehensiveRestaurantManagement from '@/components/admin/ComprehensiveR
 import DynamicMenuManagement from '@/components/admin/DynamicMenuManagement';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminDashboardOverview from '@/components/admin/AdminDashboardOverview';
+import AppSettings from '@/components/admin/AppSettings';
 
 // =============================================================================
 // ADMIN DASHBOARD COMPONENT
@@ -165,90 +166,7 @@ const AdminDashboardContent: React.FC = () => {
         return <DynamicMenuManagement />;
 
       case 'settings':
-        return (
-          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
-                  <Settings className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900">System Settings</h2>
-                  <p className="text-sm text-gray-600">Configure system-wide settings and preferences</p>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <Card className="p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-center gap-3 mb-3">
-                    <MapPin className="h-5 w-5 text-purple-600" />
-                    <h3 className="font-semibold">Delivery Zones</h3>
-                  </div>
-                  <p className="text-sm text-gray-600 mb-3">Manage delivery areas and fees</p>
-                  <Button size="sm" variant="outline" className="w-full">
-                    Configure Zones
-                  </Button>
-                </Card>
-
-                <Card className="p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-center gap-3 mb-3">
-                    <DollarSign className="h-5 w-5 text-green-600" />
-                    <h3 className="font-semibold">Payment Settings</h3>
-                  </div>
-                  <p className="text-sm text-gray-600 mb-3">Configure payment methods</p>
-                  <Button size="sm" variant="outline" className="w-full">
-                    Manage Payments
-                  </Button>
-                </Card>
-
-                <Card className="p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-center gap-3 mb-3">
-                    <Bell className="h-5 w-5 text-orange-600" />
-                    <h3 className="font-semibold">Notifications</h3>
-                  </div>
-                  <p className="text-sm text-gray-600 mb-3">Configure system notifications</p>
-                  <Button size="sm" variant="outline" className="w-full">
-                    Setup Alerts
-                  </Button>
-                </Card>
-
-                <Card className="p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-center gap-3 mb-3">
-                    <FileText className="h-5 w-5 text-blue-600" />
-                    <h3 className="font-semibold">Data Import/Export</h3>
-                  </div>
-                  <p className="text-sm text-gray-600 mb-3">Bulk data operations</p>
-                  <Button size="sm" variant="outline" className="w-full">
-                    Manage Data
-                  </Button>
-                </Card>
-
-                <Card className="p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-center gap-3 mb-3">
-                    <BarChart3 className="h-5 w-5 text-indigo-600" />
-                    <h3 className="font-semibold">Analytics</h3>
-                  </div>
-                  <p className="text-sm text-gray-600 mb-3">View system analytics</p>
-                  <Button size="sm" variant="outline" className="w-full">
-                    View Reports
-                  </Button>
-                </Card>
-
-                <Card className="p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-center gap-3 mb-3">
-                    <Users className="h-5 w-5 text-pink-600" />
-                    <h3 className="font-semibold">User Management</h3>
-                  </div>
-                  <p className="text-sm text-gray-600 mb-3">Manage admin users</p>
-                  <Button size="sm" variant="outline" className="w-full">
-                    Manage Users
-                  </Button>
-                </Card>
-              </div>
-            </CardContent>
-          </Card>
-        );
+        return <AppSettings />;
 
       case 'analytics':
         return (

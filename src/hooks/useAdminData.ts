@@ -57,6 +57,81 @@ export const useAdminData = () => {
     sortOrder: 'asc'
   });
 
+  // Debug helper
+  const debugLog = (...args: unknown[]) => {
+    if (import.meta.env?.DEV) {
+      console.log('[useAdminData]', ...args);
+    }
+  };
+
+  // Discover existing columns specifically for dishes (avoids string overload issues)
+  const getExistingDishColumns = useCallback(async (): Promise<Set<string>> => {
+    try {
+      const { data, error } = await supabase
+        .from('dishes')
+        .select('*')
+        .limit(1);
+
+      if (error) {
+        console.warn('Column discovery failed for dishes', error);
+        return new Set();
+      }
+      if (Array.isArray(data) && data.length > 0) {
+        return new Set(Object.keys(data[0] as Record<string, unknown>));
+      }
+      return new Set();
+    } catch (e) {
+      console.warn('Column discovery exception for dishes', e);
+      return new Set();
+    }
+  }, []);
+
+  const filterPayloadToColumns = (payload: Record<string, unknown>, existing: Set<string>): Record<string, unknown> => {
+    if (existing.size === 0) return payload; // nothing known, keep as-is
+    const filtered: Record<string, unknown> = {};
+    Object.keys(payload).forEach((k) => {
+      if (existing.has(k)) filtered[k] = payload[k];
+    });
+    return filtered;
+  };
+
+  // -----------------------------------------------------------------------------
+  // Helpers: Build payloads compatible with both current and legacy schemas
+  // -----------------------------------------------------------------------------
+  const buildRestaurantPayloads = (data: Partial<RestaurantFormData>) => {
+    // New schema (preferred)
+    const newPayload: Record<string, unknown> = {};
+    if (data.name !== undefined) newPayload.name = data.name;
+    if (data.town !== undefined) newPayload.town = data.town;
+    if (data.contact_number !== undefined) newPayload.contact_number = data.contact_number;
+    if (data.image_url !== undefined) newPayload.image_url = data.image_url;
+    if (data.logo_url !== undefined) newPayload.logo_url = data.logo_url;
+    if (data.active !== undefined) newPayload.active = data.active;
+    if (data.delivery_time_min !== undefined) newPayload.delivery_time_min = data.delivery_time_min;
+    if (data.delivery_time_max !== undefined) newPayload.delivery_time_max = data.delivery_time_max;
+    if (data.address !== undefined) newPayload.address = data.address;
+    if (data.description !== undefined) newPayload.description = data.description;
+    if (data.cuisine_type !== undefined) newPayload.cuisine_type = data.cuisine_type;
+    if (data.gps_latitude !== undefined) newPayload.gps_latitude = data.gps_latitude;
+    if (data.gps_longitude !== undefined) newPayload.gps_longitude = data.gps_longitude;
+    if (data.has_dynamic_menu !== undefined) newPayload.has_dynamic_menu = data.has_dynamic_menu;
+    if (data.mtn_number !== undefined) newPayload.mtn_number = data.mtn_number;
+    if (data.orange_number !== undefined) newPayload.orange_number = data.orange_number;
+
+    // Legacy schema fallback
+    const legacyPayload: Record<string, unknown> = {};
+    if (data.name !== undefined) legacyPayload.name = data.name;
+    if (data.town !== undefined) legacyPayload.town = data.town;
+    if (data.contact_number !== undefined) legacyPayload.phone = data.contact_number;
+    if (data.image_url !== undefined) legacyPayload.image_url = data.image_url;
+    if (data.logo_url !== undefined) legacyPayload.logo_url = data.logo_url;
+    if (data.active !== undefined) legacyPayload.active = data.active;
+    if (data.address !== undefined) legacyPayload.address = data.address;
+    if (data.description !== undefined) legacyPayload.description = data.description;
+
+    return { newPayload, legacyPayload };
+  };
+
   // =============================================================================
   // DATA FETCHING FUNCTIONS
   // =============================================================================
@@ -120,11 +195,36 @@ export const useAdminData = () => {
    */
   const fetchStats = useCallback(async () => {
     try {
-    const { data, error } = await supabase.rpc('get_order_stats');
+      const { data, error } = await supabase.rpc('get_order_stats');
       if (error) throw error;
 
       if (data && data.length > 0) {
-      setStats(data[0]);
+        const base = data[0] as Partial<AdminStats>;
+        // Map to full AdminStats with safe defaults
+        const mapped: AdminStats = {
+          total_orders: Number((base as any).total_orders ?? 0),
+          pending_orders: Number((base as any).pending_orders ?? 0),
+          completed_orders: Number((base as any).completed_orders ?? 0),
+          total_revenue: Number((base as any).total_revenue ?? 0),
+          avg_order_value: Number((base as any).avg_order_value ?? 0),
+          total_restaurants: Number((base as any).total_restaurants ?? 0),
+          active_restaurants: Number((base as any).active_restaurants ?? 0),
+          total_dishes: Number((base as any).total_dishes ?? 0),
+          active_dishes: Number((base as any).active_dishes ?? 0),
+          total_drivers: Number((base as any).total_drivers ?? 0),
+          active_drivers: Number((base as any).active_drivers ?? 0),
+          completed_payments: Number((base as any).completed_payments ?? 0),
+          failed_payments: Number((base as any).failed_payments ?? 0),
+          pending_payments: Number((base as any).pending_payments ?? 0),
+          total_payment_volume: Number((base as any).total_payment_volume ?? 0),
+          orders_today: Number((base as any).orders_today ?? 0),
+          orders_this_week: Number((base as any).orders_this_week ?? 0),
+          orders_this_month: Number((base as any).orders_this_month ?? 0),
+          revenue_today: Number((base as any).revenue_today ?? 0),
+          revenue_this_week: Number((base as any).revenue_this_week ?? 0),
+          revenue_this_month: Number((base as any).revenue_this_month ?? 0)
+        };
+        setStats(mapped);
       }
     } catch (err) {
       console.error('Stats fetch error:', err);
@@ -249,15 +349,28 @@ export const useAdminData = () => {
     try {
       setLoading(true);
       setError(null);
-      
-    const { data, error } = await supabase
-      .from('restaurants')
-      .insert([restaurantData])
-      .select()
-      .single();
-    
+
+      const { newPayload, legacyPayload } = buildRestaurantPayloads(restaurantData);
+
+      // Try new schema first
+      let insertResult = await supabase
+        .from('restaurants')
+        .insert([newPayload as any])
+        .select()
+        .single();
+
+      if (insertResult.error && insertResult.error.code === 'PGRST204') {
+        // Fallback to legacy schema payload
+        insertResult = await supabase
+          .from('restaurants')
+          .insert([legacyPayload as any])
+          .select()
+          .single();
+      }
+
+      const { data, error } = insertResult;
       if (error) throw error;
-      
+
       await fetchRestaurants();
       return { success: true, data };
     } catch (err) {
@@ -276,16 +389,30 @@ export const useAdminData = () => {
     try {
       setLoading(true);
       setError(null);
-      
-    const { data, error } = await supabase
-      .from('restaurants')
-      .update(restaurantData)
-      .eq('id', id)
-      .select()
-      .single();
-    
+
+      const { newPayload, legacyPayload } = buildRestaurantPayloads(restaurantData);
+
+      // Try new schema first
+      let updateResult = await supabase
+        .from('restaurants')
+        .update(newPayload)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (updateResult.error && updateResult.error.code === 'PGRST204') {
+        // Fallback to legacy schema (e.g., phone instead of contact_number)
+        updateResult = await supabase
+          .from('restaurants')
+          .update(legacyPayload)
+          .eq('id', id)
+          .select()
+          .single();
+      }
+
+      const { data, error } = updateResult;
       if (error) throw error;
-      
+
       await fetchRestaurants();
       return { success: true, data };
     } catch (err) {
@@ -330,13 +457,33 @@ export const useAdminData = () => {
     try {
       setLoading(true);
       setError(null);
-      
-    const { data, error } = await supabase
-      .from('dishes')
-      .insert([{ ...dishData, admin_created: true }])
-      .select()
-      .single();
-    
+      // Prefer new schema (with admin_created), but filter to existing cols
+      const newPayload = { ...dishData, admin_created: true } as Record<string, unknown>;
+      const legacyPayload = { ...dishData } as Record<string, unknown>;
+      delete legacyPayload["admin_created"]; // ensure it's removed
+
+      // Discover existing columns and filter payloads accordingly
+      const cols = await getExistingDishColumns();
+      const filteredNew = filterPayloadToColumns(newPayload, cols);
+      const filteredLegacy = filterPayloadToColumns(legacyPayload, cols);
+
+      // Try filtered new first
+      let insertResult = await supabase
+        .from('dishes')
+        .insert([filteredNew as any])
+        .select()
+        .single();
+
+      if (insertResult.error) {
+        // If schema cache complains about unknown column or any error, try legacy filtered
+        insertResult = await supabase
+          .from('dishes')
+          .insert([filteredLegacy as any])
+          .select()
+          .single();
+      }
+
+      const { data, error } = insertResult;
       if (error) throw error;
       
       await fetchDishes();
@@ -357,14 +504,46 @@ export const useAdminData = () => {
     try {
       setLoading(true);
       setError(null);
-      
-    const { data, error } = await supabase
-      .from('dishes')
-      .update(dishData)
-      .eq('id', id)
-      .select()
-      .single();
-    
+      // Try update with provided data; if admin_created is unknown in schema, retry without it
+      const newPayload = { ...dishData } as Record<string, unknown>;
+      const legacyPayload = { ...dishData } as Record<string, unknown>;
+      delete legacyPayload["admin_created"]; // ensure removed for legacy
+
+      // First attempt
+      let updateResult = await supabase
+        .from('dishes')
+        .update(newPayload as any)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (updateResult.error && updateResult.error.code === 'PGRST204') {
+        // Discover existing columns and filter payload accordingly
+        const cols = await getExistingDishColumns();
+        const filteredLegacy = filterPayloadToColumns(legacyPayload, cols);
+        const filteredNew = filterPayloadToColumns(newPayload, cols);
+
+        // Prefer filteredNew first (minus unknowns). If it still fails, fallback to filteredLegacy
+        let secondTry = await supabase
+          .from('dishes')
+          .update(filteredNew as any)
+          .eq('id', id)
+          .select()
+          .single();
+
+        if (secondTry.error && secondTry.error.code === 'PGRST204') {
+          secondTry = await supabase
+            .from('dishes')
+            .update(filteredLegacy as any)
+            .eq('id', id)
+            .select()
+            .single();
+        }
+
+        updateResult = secondTry;
+      }
+
+      const { data, error } = updateResult;
       if (error) throw error;
       
       await fetchDishes();
@@ -376,7 +555,7 @@ export const useAdminData = () => {
     } finally {
       setLoading(false);
     }
-  }, [fetchDishes]);
+  }, [fetchDishes, getExistingDishColumns]);
 
   /**
    * Delete a dish

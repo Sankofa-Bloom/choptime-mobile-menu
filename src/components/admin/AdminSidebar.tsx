@@ -104,7 +104,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
           id: 'settings',
           label: 'Settings',
           icon: Settings,
-          description: 'System configuration'
+          description: 'Frontend app configuration'
         },
         {
           id: 'analytics',

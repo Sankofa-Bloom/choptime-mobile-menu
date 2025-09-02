@@ -1,3 +1,4 @@
+import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -20,6 +21,54 @@ import notificationService from '@/utils/notificationService';
 console.log('🚀 APP COMPONENT: Loading App.tsx');
 import { Toaster } from '@/components/ui/toaster';
 
+// Error Boundary Component
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('🚨 Error Boundary caught an error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ 
+          padding: '20px', 
+          textAlign: 'center', 
+          fontFamily: 'Arial, sans-serif',
+          maxWidth: '600px',
+          margin: '50px auto'
+        }}>
+          <h1>Something went wrong</h1>
+          <p>We're sorry, but something unexpected happened. Please try refreshing the page.</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#007bff',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer'
+            }}
+          >
+            Refresh Page
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 // Create QueryClient with optimized settings for API caching
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -36,15 +85,23 @@ const queryClient = new QueryClient({
       },
       refetchOnWindowFocus: false,
       refetchOnReconnect: true,
+      // Add error handling to prevent crashes
+      onError: (error) => {
+        console.error('🚨 React Query error:', error);
+      },
     },
     mutations: {
       retry: 1,
+      onError: (error) => {
+        console.error('🚨 React Query mutation error:', error);
+      },
     },
   },
 });
 
 function App() {
   const [showSplash, setShowSplash] = useState(false);
+  const [notificationError, setNotificationError] = useState(false);
 
   useEffect(() => {
     // Check if this is the first time visiting the app
@@ -53,10 +110,10 @@ function App() {
     if (!hasVisited) {
       setShowSplash(true);
       // Mark as visited after showing splash
-              localStorage.setItem('choptym_visited', 'true');
+      localStorage.setItem('choptym_visited', 'true');
     }
 
-    // Initialize notification service
+    // Initialize notification service with better error handling
     const initializeNotifications = async () => {
       try {
         await notificationService.initialize();
@@ -93,10 +150,18 @@ function App() {
         }
       } catch (error) {
         console.error('❌ Failed to initialize notification service:', error);
+        setNotificationError(true);
+        // Don't let notification errors crash the app
       }
     };
 
-    initializeNotifications();
+    // Wrap in try-catch to prevent crashes
+    try {
+      initializeNotifications();
+    } catch (error) {
+      console.error('❌ Critical error in notification initialization:', error);
+      setNotificationError(true);
+    }
   }, []);
 
   const handleSplashComplete = () => {
@@ -108,44 +173,46 @@ function App() {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter
-        future={{
-          v7_startTransition: true,
-          v7_relativeSplatPath: true
-        }}
-      >
-        <Routes>
-          <Route path="/" element={<Index />} />
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter
+          future={{
+            v7_startTransition: true,
+            v7_relativeSplatPath: true
+          }}
+        >
+          <Routes>
+            <Route path="/" element={<Index />} />
 
-          {/* Admin Routes */}
-          <Route path="/dash/login" element={<AdminLogin />} />
-          <Route path="/dash/setup" element={<AdminSetup />} />
-          <Route
-            path="/dash/chp-ctrl"
-            element={
-              <SimpleProtectedRoute>
-                <SimpleAdminDashboard />
-              </SimpleProtectedRoute>
-            }
-          />
+            {/* Admin Routes */}
+            <Route path="/dash/login" element={<AdminLogin />} />
+            <Route path="/dash/setup" element={<AdminSetup />} />
+            <Route
+              path="/dash/chp-ctrl"
+              element={
+                <SimpleProtectedRoute>
+                  <SimpleAdminDashboard />
+                </SimpleProtectedRoute>
+              }
+            />
 
-          {/* Public Routes */}
-          <Route path="/thank-you" element={<ThankYou />} />
-          <Route path="/payment-success" element={<PaymentSuccess />} />
+            {/* Public Routes */}
+            <Route path="/thank-you" element={<ThankYou />} />
+            <Route path="/payment-success" element={<PaymentSuccess />} />
 
-          {/* Redirect /login to /dash/login for better UX */}
-          <Route path="/login" element={<Navigate to="/dash/login" replace />} />
+            {/* Redirect /login to /dash/login for better UX */}
+            <Route path="/login" element={<Navigate to="/dash/login" replace />} />
 
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
 
-        {/* Floating WhatsApp Button - appears on all pages */}
-        <WhatsAppButton />
+          {/* Floating WhatsApp Button - appears on all pages */}
+          <WhatsAppButton />
 
-        <Toaster />
-      </BrowserRouter>
-    </QueryClientProvider>
+          <Toaster />
+        </BrowserRouter>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

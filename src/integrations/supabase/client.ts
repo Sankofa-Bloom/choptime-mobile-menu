@@ -19,5 +19,34 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     persistSession: true,
     detectSessionInUrl: true,
     flowType: 'pkce'
+  },
+  global: {
+    headers: {
+      'x-application-name': 'choptym-frontend',
+      'x-application-version': '1.1.8'
+    }
+  },
+  db: {
+    schema: 'public'
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 10
+    }
   }
 });
+
+// Add error handling for network issues
+if (typeof window !== 'undefined') {
+  // Test connectivity on client side
+  supabase
+    .from('delivery_fee_settings')
+    .select('id')
+    .limit(1)
+    .then(() => {
+      console.log('✅ Supabase connectivity test successful');
+    })
+    .catch((error) => {
+      console.error('❌ Supabase connectivity test failed:', error);
+    });
+}

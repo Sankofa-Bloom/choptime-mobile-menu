@@ -499,15 +499,29 @@ router.post('/save-order', async (req, res) => {
       return res.status(400).json({ error: 'Order data is required' });
     }
 
-    // Sanitize order data
+    // Map frontend field names to database field names
     const sanitizedOrder = {
-      ...orderData,
-      customer_name: sanitizeInput(orderData.customer_name),
-      customer_phone: sanitizeInput(orderData.customer_phone),
-      customer_email: sanitizeInput(orderData.customer_email),
-      delivery_address: sanitizeInput(orderData.delivery_address),
+      user_name: sanitizeInput(orderData.user_name),
+      user_phone: sanitizeInput(orderData.user_phone),
       user_location: sanitizeInput(orderData.user_location),
-      special_instructions: sanitizeInput(orderData.special_instructions || '')
+      dish_name: sanitizeInput(orderData.dish_name),
+      restaurant_name: sanitizeInput(orderData.restaurant_name),
+      restaurant_id: orderData.restaurant_id,
+      dish_id: orderData.dish_id,
+      quantity: orderData.quantity || 1,
+      price: orderData.price || 0,
+      total_amount: orderData.total_amount || 0,
+      delivery_fee: orderData.delivery_fee || 0,
+      order_reference: orderData.order_reference,
+      status: orderData.status || 'pending',
+      payment_status: orderData.payment_status || 'pending',
+      payment_method: orderData.payment_method || 'payin',
+      special_instructions: sanitizeInput(orderData.special_instructions || ''),
+      user_email: sanitizeInput(orderData.user_email || ''),
+      delivery_zone_id: orderData.delivery_zone_id || null,
+      delivery_fee_breakdown: orderData.delivery_fee_breakdown || null,
+      created_at: orderData.created_at || new Date().toISOString(),
+      updated_at: orderData.updated_at || new Date().toISOString()
     };
 
     const { data, error } = await supabase
@@ -532,15 +546,25 @@ router.post('/save-custom-order', async (req, res) => {
       return res.status(400).json({ error: 'Order data is required' });
     }
 
-    // Sanitize order data
+    // Map frontend field names to database field names
     const sanitizedOrder = {
-      ...orderData,
-      customer_name: sanitizeInput(orderData.customer_name),
-      customer_phone: sanitizeInput(orderData.customer_phone),
-      customer_email: sanitizeInput(orderData.customer_email),
-      delivery_address: sanitizeInput(orderData.delivery_address),
-      food_description: sanitizeInput(orderData.food_description),
-      special_instructions: sanitizeInput(orderData.special_instructions || '')
+      user_name: sanitizeInput(orderData.user_name),
+      user_phone: sanitizeInput(orderData.user_phone),
+      user_location: sanitizeInput(orderData.user_location),
+      custom_dish_name: sanitizeInput(orderData.custom_dish_name),
+      quantity: orderData.quantity || 1,
+      special_instructions: sanitizeInput(orderData.special_instructions || ''),
+      restaurant_id: orderData.restaurant_id || null,
+      restaurant_name: sanitizeInput(orderData.restaurant_name),
+      estimated_price: orderData.estimated_price || 0,
+      total_amount: orderData.total_amount || 0,
+      order_reference: orderData.order_reference,
+      status: orderData.status || 'pending',
+      payment_status: orderData.payment_status || 'pending',
+      payment_method: orderData.payment_method || 'payin',
+      user_email: sanitizeInput(orderData.user_email || ''),
+      created_at: orderData.created_at || new Date().toISOString(),
+      updated_at: orderData.updated_at || new Date().toISOString()
     };
 
     const { data, error } = await supabase
